@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Example</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'style_detail_form.css' %}" >
+
+
+</head>
+<body>
+<div class="main_body" >
+    <div class="navbar">
+        <a href="{% url 'lddt_subsites_home' %}">Back</a>
+        <a class="active" href="#">View Mode</a>
+        <a href="{% url 'update_website' website.id %}">Edit Mode</a>
+        <a href="{% url 'delete_website' website.id %}">Delete</a>
+
+    </div>
+
+    <table>
+        <tr>
+            <td colspan="3" style="text-align: center; padding:20px">
+
+                <span style="color: gray; font-size:15px">Function:</span> <span style="font-size: 20px">{{ website.function }}</span><br>
+                <br>
+                <span style="color: gray; font-size:10px">Type:</span> <span style="font-size: 13px">{{ website.type }}</span>
+
+            </td>
+        </tr>
+        <tr>
+            <td><span style="color: gray; font-size:12px">URL:</span> <a href=" {{ website.url }}" target="_blank">{{ website.url }}</a></td>
+            <td><span style="color: gray; font-size:12px">Server:</span> {{ website.server }}</td>
+            <td><span style="color: gray; font-size:12px">SSL Expiry Date:</span> {{ website.ssl_expiry_date | date:"d/m/Y" }}</td>
+        </tr>
+    </table>
+
+    <br>
+
+    <table>
+        <tr>
+            <td style="vertical-align: top; width: 20%; border-left: 5px solid gray; border-right: 1px solid white; border-top: 1px solid white; border-bottom: 1px solid white">
+                <span style="color: gray; font-size:12px">Status: susususu</span> {{ website.tech_status }}<br>
+                <span style="color: gray; font-size:12px">Activity:</span> {{ website.activity }}<br>
+                <span style="color: gray; font-size:12px">Common Name::</span> {{ website.common_name }}<br>
+                <span style="color: gray; font-size:12px">Ours:</span> {{ website.ours }}<br>
+                <span style="color: gray; font-size:12px">Environment:</span> {{ website.environment }}<br>
+                <hr>
+                <span style="color: gray; font-size:12px">Application:</span> {{ website.application }}<br>
+                <hr>
+                <span style="color: gray; font-size:12px">Port:</span> {{ website.port }}<br>
+                <span style="color: gray; font-size:12px">VM IP Address:</span> {{ website.vm_ip_address }}<br>
+                <span style="color: gray; font-size:12px">DNS IP Address:</span> {{ website.dns_ip_address }}<br>
+                <span style="color: gray; font-size:12px">DNS Network Status:</span> {{ website.dns_network_status }}<br>
+                <span style="color: gray; font-size:12px">VM Network Status:</span> {{ website.vm_network_status }}<br>
+                <hr>
+                <span style="color: gray; font-size:12px">Load Balancer:</span> {{ website.load_balancer }}<br>
+                <span style="color: gray; font-size:12px">Cert-Manager:</span> {{ website.cert_manager }}<br>
+                <span style="color: gray; font-size:12px">SSL Process:</span> {{ website.ssl_cert_process }}<br>
+            </td>
+
+            <td style="vertical-align: top; width: 30%; border-left: 5px solid gray; border-right: 1px solid white; ">
+                <span style="color: gray; font-size:12px">User:</span> {{ website.user }} <br>
+                <span style="color: gray; font-size:12px">Major User:</span> {{ website.major_user }} <br>
+                <hr>
+                <span style="color: gray; font-size:12px">External Support:</span> {{ website.external_support }} <br>
+                <span style="color: gray; font-size:12px">Expected Response:</span> {{ website.expected_response }} <br>
+                <hr>
+                <span style="color: gray; font-size:12px">Personal Data Held:</span> {{ website.personal_data_held }} <br>
+                <span style="color: gray; font-size:12px">SSL Type:</span> {{ website.ssl_type }} <br>
+                <span style="color: gray; font-size:12px">EASE Expiry:</span> {{ website.ease_expiry }} <br>
+                <span style="color: gray; font-size:12px">Handle Prefix:</span> {{ website.handle_prefix }} <br>
+                <hr>
+                <span style="color: gray; font-size:12px">Vulnerability Checked:</span> {{ website.vulnerability_checked }} <br>
+                <span style="color: gray; font-size:12px">Accessibility Statement:</span> {{ website.accessibility_statement }} <br>
+            </td>
+            <td style="vertical-align: top; width: 40%; border-left: 5px solid gray; border-right: 1px solid white;">
+                <p style="color: gray; font-size:12px">Restore Action:</p> <span style="font-size: 15px"> {{ website.restore_action | linebreaks }} </span> <br>
+                <hr>
+                <p style="color: gray; font-size:12px">SSL Certificate Action:</p> <span style="font-size: 15px"> {{ website.ssl_certificate_action | linebreaks }} </span><br>
+            </td>
+        </tr>
+    </table>
+    <br>
+    <table>
+        <tr>
+            <td>
+                <p style="color: gray; font-size:12px">Notes:</p> <span style="font-size:13px">{{ website.notes | linebreaks}} </span><br>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+</body>
+</html>

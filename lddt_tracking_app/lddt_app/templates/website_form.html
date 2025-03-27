@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load static %}
+    <title>Website Form</title>
+    <link rel="stylesheet" href="{% static 'style_detail_form.css' %}" >
+
+
+</head>
+{% load crispy_forms_tags %}
+<body>
+<div class="main_body" >
+    <div class="navbar">
+        <a href="{% url 'lddt_subsites_home' %}">Back</a>
+        <a href = "{% url 'website_details' website.id %}">View Mode</a>
+        <a class="active" href="{% url 'update_website' website.id %}">Edit Mode</a>
+        <a href="{% url 'delete_website' website.id %}">Delete</a>
+    </div>
+<form method="POST">
+    {% csrf_token %}
+    <table>
+        <tr>
+            <td colspan="3" style="text-align: center; padding:20px">
+                <span style="color: gray; font-size:15px">Function:</span> <span style="font-size: 20px">{{ website_form.function }}</span><br>
+                <br>
+                <span style="color: gray; font-size:10px">Type:</span> <span style="font-size: 13px">{{ website_form.type  }}</span>
+
+            </td>
+        </tr>
+        <tr>
+            <td><span style="color: gray; font-size:12px">URL:</span> {{ website_form.url }}</td>
+            <td><span style="color: gray; font-size:12px">Server:</span> {{ website_form.server }}</td>
+            <td><span style="color: gray; font-size:12px">SSL Expiry Date:</span> {{ website_form.ssl_expiry_date }}</td>
+        </tr>
+    </table>
+    <br>
+    <table>
+        <tr>
+            <td style="vertical-align: top; width: 20%; border-left: 5px solid gray; border-right: 1px solid white; border-top: 1px solid white; border-bottom: 1px solid white">
+                <span style="color: gray; font-size:12px">Status:</span> {{ website_form.tech_status }}<br>
+                <span style="color: gray; font-size:12px">Activity:</span> {{ website_form.activity }}<br>
+                <span style="color: gray; font-size:12px">Common Name::</span> {{ website_form.common_name }}<br>
+                <span style="color: gray; font-size:12px">Ours:</span> {{ website_form.ours }}<br>
+                <span style="color: gray; font-size:12px">Environment:</span> {{ website_form.environment }}<br>
+                <hr>
+                <span style="color: gray; font-size:12px">Application:</span> {{ website_form.application }}<br>
+                <hr>
+                <span style="color: gray; font-size:12px">Port:</span> {{ website_form.port }}<br>
+                <span style="color: gray; font-size:12px">VM IP Address:</span> {{ website_form.vm_ip_address }}<br>
+                <span style="color: gray; font-size:12px">DNS IP Address:</span> {{ website.dns_ip_address }}<br>
+                <span style="color: gray; font-size:12px">DNS Network Status:</span> {{ website.dns_network_status }}<br>
+                <span style="color: gray; font-size:12px">VM Network Status:</span> {{ website.vm_network_status }}<br>
+                <hr>
+                <span style="color: gray; font-size:12px">Load Balancer:</span> {{ website_form.load_balancer }}<br>
+                <span style="color: gray; font-size:12px">Cert-Manager:</span> {{ website_form.cert_manager }}<br>
+                <span style="color: gray; font-size:12px">SSL Process:</span> {{ website_form.ssl_cert_process }}<br>
+            </td>
+
+            <td style="vertical-align: top; width: 30%; border-left: 5px solid gray; border-right: 1px solid white; ">
+                <span style="color: gray; font-size:12px">User:</span> {{ website_form.user }} <br>
+                <span style="color: gray; font-size:12px">Major User:</span> {{ website_form.major_user }} <br>
+                <hr>
+                <span style="color: gray; font-size:12px">External Support:</span> {{ website_form.external_support }} <br>
+                <span style="color: gray; font-size:12px">Expected Response:</span> {{ website_form.expected_response }} <br>
+                <hr>
+                <span style="color: gray; font-size:12px">Personal Data Held:</span> {{ website_form.personal_data_held }} <br>
+                <span style="color: gray; font-size:12px">SSL Type:</span> {{ website_form.ssl_type }} <br>
+                <span style="color: gray; font-size:12px">EASE Expiry:</span> {{ website_form.ease_expiry }} <br>
+                <span style="color: gray; font-size:12px">Handle Prefix:</span> {{ website_form.handle_prefix }} <br>
+                <hr>
+                <span style="color: gray; font-size:12px">Vulnerability Checked:</span> {{ website_form.vulnerability_checked }} <br>
+                <span style="color: gray; font-size:12px">Accessibility Statement Y/N:</span> {{ website_form.access_statement_y_n }} <br>
+                <span style="color: gray; font-size:12px">Accessibility Statement:</span> {{ website_form.accessibility_statement }} <br>
+                <hr>
+                <span style="color: gray; font-size:12px">GA4 Required?:</span> {{ website_form.ga4_required }} <br>
+                <span style="color: gray; font-size:12px">GA4 Active?:</span> {{ website_form.ga4_y_n }} <br>
+                <span style="color: gray; font-size:12px">GA4 Path:</span> {{ website_form.ga4_path }} <br>
+
+
+            </td>
+            <td style="vertical-align: top; width: 40%; border-left: 5px solid gray; border-right: 1px solid white;">
+                <p style="color: gray; font-size:12px">Restore Action:</p> <span style="font-size: 15px"> {{ website_form.restore_action  }} </span> <br>
+                <hr>
+                <p style="color: gray; font-size:12px">SSL Certificate Action:</p> <span style="font-size: 15px"> {{ website_form.ssl_certificate_action  }} </span><br>
+                <hr>
+                <p style="color: gray; font-size:12px">Google Analytics Notes:</p> <span style="font-size: 15px"> {{ website_form.ga4_notes  }} </span><br>
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr style="width: 100%">
+            <td>
+                <p style="color: gray; font-size:12px">Notes:</p> <span style="font-size: 15px; width:100%"> {{ website_form.notes }} </span>
+            </td>
+        </tr>
+    </table>
+    <button type="submit">Submit</button>
+</form>
+
+
+
+
+
+</body>
+</html>

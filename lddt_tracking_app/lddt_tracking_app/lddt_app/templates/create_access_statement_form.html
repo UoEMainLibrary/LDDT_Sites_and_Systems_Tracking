@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>create_access_statement_form</title>
+    {% load static %}
+    <title>Website Form</title>
+    <link rel="stylesheet" href="{% static '/statements_css/statements_main.css' %}" >
+
+
+</head>
+{% load crispy_forms_tags %}
+<body>
+<div class="main_body" >
+    <div class="navbar">
+        <a href="{% url 'access_statement_home' %}">Back</a>
+        <a href="#">View Mode</a>
+        <a class="active" href="#" >Edit Mode</a>
+    </div>
+    <br>
+<form method="POST">
+    {% csrf_token %}
+    <table>
+        <tr>
+            <td colspan="6" style="text-align: center; padding:20px; border: none">
+
+                <span style="color: gray; font-size:15px">Site:  </span> <span style="font-size: 27px">  {{ access_statement_form.site }}</span><br>
+                <br>
+                <span style="color: gray; font-size:12px">URL:</span> <span>{{ access_statement_form.url }}</span>
+
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><span style="color: gray; font-size:12px">Testing Status:</span> {{ access_statement_form.testing_status_r }}</td>
+            <td><span style="color: gray; font-size:12px">Statement Status:</span> {{ access_statement_form.access_statement_status_r }}</td>
+
+        </tr>
+    </table>
+    <br>
+
+    <table>
+        <tr>
+            <td style="vertical-align: top; width: 30%; border-left: none; border-right: 1px solid white; border-top: 1px solid white; border-bottom: 1px solid white;">
+                <br>
+                <hr>
+                <table>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right; background-color: white">
+                            <span style="color: #9F9F9F; font-size:12px">Word 21:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none">
+                            {{ access_statement_form.word21 }}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Jira No.:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none">
+                            {{ access_statement_form.jira_nr }}
+                        </td>
+                    </tr>
+                </table>
+                <hr>
+                <table>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Owning Team:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none">
+                            {{ access_statement_form.owning_team }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Access/Content Manager:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none">
+                            {{ access_statement_form.content_service_manager }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Tech Contact:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none">
+                            {{ access_statement_form.tech_contact }}
+                        </td>
+                    </tr>
+                </table>
+                <hr>
+                <table>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Physical Location Server:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none">
+                            {{ access_statement_form.physical_location_server }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Physical Location directory file:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none">
+                            {{ access_statement_form.physical_location_directory_file }}
+                        </td>
+                    </tr>
+                </table>
+                <hr>
+                <br>
+            </td>
+
+            <td style="vertical-align: top; width: 40%; border-left: 5px solid #041E42; border-right: 1px solid white; border-top: none; border-bottom: none ">
+                <table>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Statement tasked to:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none;">
+                            {{ access_statement_form.wa_statement_tasked_to_last }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Last Testing Date:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none;">
+                            {{ access_statement_form.testing_date }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Statement Status Date:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none;">
+                            {{ access_statement_form.statement_status_date }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Issues Target Date:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none;">
+                            {{ access_statement_form.issues_target_date }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Re-Test Date:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none;">
+                            {{ access_statement_form.re_test_date }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; border: none; text-align: right;background-color: white">
+                            <span style="color: gray; font-size:12px">Expiry Date:</span>
+                        </td>
+                        <td style="border-left: 5px solid #041E42; border-top: none; border-right: none; border-bottom:none;">
+                            {{ access_statement_form.expiry_date }}
+                        </td>
+                    </tr>
+
+
+
+                </table>
+            </td>
+
+            <td style="vertical-align: top; width: 40%; border-left: 5px solid #041E42; border-right: 1px solid white; border-top: none; border-bottom: none">
+                <table>
+                    <tr>
+                        <td style="vertical-align: top; width: 40%; border-left: none; border-right: 1px solid white; border-top: none; border-bottom: none">
+                            <span style="color: gray; font-size:12px">How to deploy:</span><br>
+                            <br>
+                            {{ access_statement_form.how_deploy }}
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <td style="vertical-align: top; width: 40%; border-left: none; border-right: 1px solid white; border-top: none; border-bottom: none">
+
+                <br>
+                {{ access_statement_form.notes }}
+            </td>
+        </tr>
+    </table>
+    <button type="submit">Submit</button>
+</form>
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Websites</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'table_style.css' %}" >
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <link rel="stylesheet" href="{% static '/websites/style.css' %}">
+    <link rel="stylesheet" href="{% static '/statements_css/statement_top_menu.css' %}">
+    <script>
+         function animate(k){
+            k.style.MozTransform = "rotateY(360deg)";
+         }
+         window.addEventListener("load",function(){
+            //alert(document.documentElement.clientHeight);
+         });
+      </script>
+</head>
+
+<body>
+<section id="main" class="main">
+    <header>
+        <figure onClick="animate(this)">
+            <div id="logo">
+                <table>
+                    <tr>
+                        <td>
+                            <h1>VM's Section</h1>
+                            <p style="font-size: 14px">
+                                The table contains: {{ table_item_count_vms }} records.<br>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </figure>
+
+        <nav>
+            <ul style="float:right">
+                <li style="color:black; background-color: #4F4845">
+                    <a href="{% url 'home' %}" style="color:white"><i class="fa fa-fw fa-home"></i>Home</a>
+                </li>
+                <li style="background-color: #4F4845">
+                    <a href="{% url 'create_vm' %}" style="color:white">+ ADD NEW </a>
+                </li>
+                <li style="background-color: #4F4845">
+                    <a href="{% url 'websites_home' %}" style="color:white">WEBSITES</a>
+                </li>
+                <li style="background-color: #4F4845">
+                    <a href="{% url 'lddt_subsites_home' %}" style="color:white">SUBSITES</a>
+                </li>
+
+                <li style="background-color: #4F4845">
+                    <a href="{% url 'websites_full_table' %}" style="color:white">FULL TABLE</a>
+                </li>
+                <div class="clear"></div>
+            </ul>
+            <ul>
+                <li><a href="{% url 'vms_working_on' %}" style="color:black">WORKING ON </a> </li>
+                <li><a href="{% url 'vms_investigate' %}" style="color:black">INVESTIGATE </a> </li>
+
+                <div class="clear"></div>
+            </ul>
+
+        </nav>
+        <div class="clear"></div>
+    </header>
+</section>
+<br>
+<br>
+<table class="table" id="myTable">
+        <tr class="header" style="position:sticky; z-index:1; top:0; background-color: #4F4845; color: white">
+    <!-- STATUS column ------------------------------------------------------------------------------------------->
+            <th scope="col" style="font-size: 18px">Hostname <br>
+                <label for="myInput1" style="font-size: 12px">
+                    Search for Hostname:
+                </label><br>
+                <input
+                    style="font-size: 15px; width: 60%"
+                    type="text"
+                    id="myInput1"
+                    onkeyup="filterHostname()"
+                    title="Search for a name">
+            </th>
+
+    <!-- IP_Address column ----------------------------------------------------------------------------------------->
+            <th scope="col" style="font-size: 18px">IP Address <br>
+                <label for="myInput2" style="font-size: 12px">
+                    Search for IP Address:
+                </label><br>
+                <input
+                    style="font-size: 15px; width: 60%"
+                    type="text"
+                    id="myInput2"
+                    onkeyup="filterIPaddress()"
+                    title="Search for a name">
+            </th>
+
+
+    <!-- Application column ---------------------------------------------------------------------------------->
+        <th scope="col" style="font-size: 18px">Application <br>
+            <label for="myInput3" style="font-size: 12px">
+                    Search for Application type:
+                </label><br>
+            <input
+                    style="font-size: 15px; width: 60%"
+                    type="text"
+                    id="myInput3"
+                    onkeyup="filterApplication()"
+                    title="Search for a name">
+        </th>
+     <!-- VM Status column ----------------------------------------------------------------------------------------->
+        <th scope="col" style="font-size: 18px; vertical-align: middle;">Status</th>
+     <!-- VM Type column ----------------------------------------------------------------------------------------->
+        <th scope="col" style="font-size: 18px; vertical-align: middle;">Type</th>
+        <th scope="col" style="font-size: 18px; vertical-align: middle;">DB</th>
+        <th scope="col" style="font-size: 18px; vertical-align: middle;">OS</th>
+        <th scope="col" style="font-size: 18px; vertical-align: middle;">PUPPET</th>
+        <th scope="col" style="font-size: 18px; vertical-align: middle;">HTTPD</th>
+        <th scope="col" style="font-size: 18px; vertical-align: middle;">VMFS-data used in:</th>
+        <th scope="col" style="font-size: 18px; vertical-align: middle;">VMFS-root used in:</th>
+        <th scope="col" style="font-size: 18px; vertical-align: middle;">VMFS-apps used in:</th>
+    </tr>
+
+    {% for vm in vms %}
+    <tbody>
+        <tr data-href = "{% url 'vm_details' vm.id %}" style="font-size: 15px; vertical-align: middle; padding-top:20px">
+
+            <th style="vertical-align: middle;">{{ vm.hostname }}</th>
+
+            <th style="vertical-align: middle;">{{ vm.ip_address }} <br></th>
+
+            <th style="vertical-align: middle">{{ vm.application }}</th>
+            <th style="vertical-align: middle">{{ vm.vm_status }}</th>
+            <th style="vertical-align: middle">{{ vm.vm_type }}</th>
+            <th style="vertical-align: middle">{{ vm.db }}</th>
+            <th style="vertical-align: middle">{{ vm.nginx }}</th>
+            <th style="vertical-align: middle">{{ vm.puppet_controlled }}</th>
+            <th style="vertical-align: middle">{{ vm.httpd }}</th>
+            <th style="vertical-align: middle">{{ vm.vmfs_data_used }}</th>
+            <th style="vertical-align: middle">{{ vm.vmfs_root_used }}</th>
+            <th style="vertical-align: middle">{{ vm.vmfs_apps_used }}</th>
+        </tr>
+    </tbody>
+    {% endfor %}
+</table>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const rows = document.querySelectorAll("tr[data-href]");
+
+        rows.forEach(row => {
+            row.addEventListener("click", () => {
+                window.location.href = row.dataset.href;
+            });
+        });
+    });
+</script>
+<script>
+    const filterHostname = () => {
+     const columns = [
+        { name: 'Hostname', index: 0, isFilter: true },
+        { name: 'IP Address', index: 1, isFilter: false },
+        { name: 'Application', index: 2, isFilter: false },
+      ]
+      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
+      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
+      const filter = document.querySelector('#myInput1').value
+      const regex = new RegExp(escape(filter), 'i')
+      const isFoundInTds = td => regex.test(td.innerHTML)
+      const isFound = childrenArr => childrenArr.some(isFoundInTds)
+      const setTrStyleDisplay = ({ style, children }) => {
+        style.display = isFound([
+          ...filterColumns.map(c => children[c]) // <-- filter Columns
+        ]) ? '' : 'none'
+      }
+
+      trs.forEach(setTrStyleDisplay)
+    }
+
+    const filterIPaddress = () => {
+     const columns = [
+        { name: 'Hostname', index: 0, isFilter: false },
+        { name: 'IP Address', index: 1, isFilter: true },
+        { name: 'Application', index: 2, isFilter: false },
+      ]
+      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
+      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
+      const filter = document.querySelector('#myInput2').value
+      const regex = new RegExp(escape(filter), 'i')
+      const isFoundInTds = td => regex.test(td.innerHTML)
+      const isFound = childrenArr => childrenArr.some(isFoundInTds)
+      const setTrStyleDisplay = ({ style, children }) => {
+        style.display = isFound([
+          ...filterColumns.map(c => children[c]) // <-- filter Columns
+        ]) ? '' : 'none'
+      }
+
+      trs.forEach(setTrStyleDisplay)
+    }
+
+    const filterApplication = () => {
+     const columns = [
+        { name: 'Hostname', index: 0, isFilter: false },
+        { name: 'IP Address', index: 1, isFilter: false },
+        { name: 'Application', index: 2, isFilter: true },
+      ]
+      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
+      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
+      const filter = document.querySelector('#myInput3').value
+      const regex = new RegExp(escape(filter), 'i')
+      const isFoundInTds = td => regex.test(td.innerHTML)
+      const isFound = childrenArr => childrenArr.some(isFoundInTds)
+      const setTrStyleDisplay = ({ style, children }) => {
+        style.display = isFound([
+          ...filterColumns.map(c => children[c]) // <-- filter Columns
+        ]) ? '' : 'none'
+      }
+
+      trs.forEach(setTrStyleDisplay)
+    }
+</script>
+
+
+
+
+</body>
+
+</html>
+
+
+<!--
+
+
+
+
+<body>
+<h1>This is home for VM's</h1>
+<button style="margin-left: 10px">
+    <a href="{% url 'home' %}" style="text-decoration: none; color:black; font-size: 20px; ">BACK HOME</a>
+</button>
+<br>
+<br>
+<button style="margin-left: 10px">
+    <a href="{% url 'create_vm' %}" style="text-decoration: none; color:black; font-size: 20px; ">CREATE A NEW VM</a>
+</button>
+<br>
+<br>
+
+
+
+<table class="main_table" style="width:150%; font-size:12px">
+    <tr>
+        <th>HOSTNAME</th>
+        <th>IP ADDRESS</th>
+        <th>APPLICATION</th>
+        <th>SSH in LP</th>
+        <th>PUPPET CONTROLLED</th>
+        <th>DATA CENTRE</th>
+        <th>POODLE CHECKED</th>
+        <th>LOG FOR SHELL RISK</th>
+        <th>HTTPD LAST PATCH</th>
+        <th>OS CENTOS ASSUMED</th>
+        <th>HTTPD</th>
+        <th>TOMCAT</th>
+        <th>NGINX</th>
+        <th>RAM</th>
+        <th>CPU</th>
+        <th>DB</th>
+        <th>PHP</th>
+        <th>JAVA</th>
+        <th>VM STORAGE</th>
+        <th>SPECIAL MOUNTS</th>
+        <th>PYTHON</th>
+        <th>NPM</th>
+        <th>SHIBBOLETH</th>
+        <th>SSL</th>
+        <th>NOTES</th>
+    </tr>
+    {% for vm in vms %}
+
+    <tr data-href = "{% url 'vm_details' vm.id %}" >
+        <td>{{ vm.hostname|default_if_none:"-----" }}</td>
+        <td>{{ vm.ip_address|default_if_none:"-----" }}</td>
+        <td>{{ vm.application|default_if_none:"-----" }}</td>
+        <td>{{ vm.ssh_in_lp|default_if_none:"-----" }}</td>
+        <td>{{ vm.puppet_controlled|default_if_none:"-----" }}</td>
+        <td>{{ vm.data_centre|default_if_none:"-----" }}</td>
+        <td>{{ vm.poodle_checked|default_if_none:"-----" }}</td>
+        <td>{{ vm.log4shell_risk|default_if_none:"-----" }}</td>
+        <td>{{ vm.httpd_last_patch|default_if_none:"-----" }}</td>
+        <td>{{ vm.os_centos_assumed|default_if_none:"-----" }}</td>
+        <td>{{ vm.httpd|default_if_none:"-----" }}</td>
+        <td>{{ vm.tomcat|default_if_none:"-----" }}</td>
+        <td>{{ vm.nginx|default_if_none:"-----" }}</td>
+        <td>{{ vm.ram|default_if_none:"-----" }}</td>
+        <td style="width: 20px">{{ vm.cpu|default_if_none:"-----" }}</td>
+        <td>{{ vm.db|default_if_none:"-----" }}</td>
+        <td>{{ vm.php|default_if_none:"-----" }}</td>
+        <td>{{ vm.java|default_if_none:"-----" }}</td>
+        <td>{{ vm.vm_storage|default_if_none:"-----" }}</td>
+        <td>{{ vm.special_mounts|default_if_none:"------" }}</td>
+        <td>{{ vm.python|default_if_none:"-----" }}</td>
+        <td>{{ vm.npm|default_if_none:"-----" }}</td>
+        <td>{{ vm.shibboleth|default_if_none:"-----" }}</td>
+        <td>{{ vm.ssl|default_if_none:"-----" }}</td>
+        <td>{{ vm.notes|default_if_none:"-----" }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const rows = document.querySelectorAll("tr[data-href]");
+
+        rows.forEach(row => {
+            row.addEventListener("click", () => {
+                window.location.href = row.dataset.href;
+            });
+        });
+    });
+</script>
+
+</body>
+
+</html>
+-->

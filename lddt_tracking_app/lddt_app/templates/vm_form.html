@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'w3.css' %}" >
+    <link rel="stylesheet" href="{% static 'w3-theme-blue-grey.css' %}" >
+    <link rel="stylesheet" href="{% static 'family-open-sans.css' %}" >
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.x.x/css/all.min.css">
+
+
+</head>
+
+<style>
+html, body, h1, h2, h3, h4, h5 {font-family: "Open Sans", sans-serif}
+</style>
+<body class="w3-theme-l5">
+
+<!--------------------------------------------------------- Navbar ---------------------------------------------------->
+<div class="w3-top">
+ <div class="w3-bar w3-theme-d2 w3-left-align w3-large">
+
+     <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
+     <a href="#" class="w3-bar-item w3-button w3-padding-large w3-theme-d4">
+     <img class="card-img" src="/static/img/uni_logo_1.jpg" style="width:50px">
+     </a>
+     <h3>Digital Library Tracking App</h3>
+ </div>
+</div>
+<br>
+
+<!--------------------------------------------------------- End Navbar ------------------------------------------------>
+
+<form method="POST" >
+      {% csrf_token %}
+<!------------------------------------------------------- Page Container ---------------------------------------------->
+<div class="w3-container w3-content" style="max-width:1400px;margin-top:80px">
+    <!-- The Grid -->
+  <div class="w3-row">
+      <!------------------------------------------------------------------------------------------------ Left Column -->
+      <div class="w3-col m3">
+          <div style="background-color: lightblue" class="w3-card w3-round">
+              <div class="w3-container">
+                  <hr style="border: 1px solid black; border-radius: 5px;">
+                  <h4 class="w3-center">STATUS</h4>
+                  <p>
+                      <i class="fa fa-user fa-fw w3-margin-right w3-text-theme"></i> SERVER STATUS: {{ vm_form.vm_status }} <br>
+                      <i class="fa fa-user fa-fw w3-margin-right w3-text-theme"></i> TYPE: {{ vm_form.vm_type }} <br>
+                      <i class="fa fa-calendar fa-fw w3-margin-right w3-text-theme"></i> PING: <--EMPTY-->
+                  </p>
+                  <hr style="border: 1px solid black; border-radius: 5px;">
+                  <h4 class="w3-center">DETAILS</h4>
+                  <p style="font-size:12px">
+                      <strong>IP ADDRESS:</strong> {{ vm_form.ip_address }} <br>
+                      <strong>APPLICATION: </strong>{{ vm_form.application }} <br>
+                      <strong>SSH in LP:</strong> {{ vm_form.ssh_in_lp }} <br>
+                      <strong>PUPPET CONTROLLED:</strong> {{ vm_form.puppet_controlled }} <br>
+                      <strong>DATA CENTRE:</strong> {{ vm_form.data_centre }} <br>
+                      <strong>HTTPD LAST PATCH (date eg. 2023-12-29):</strong> {{ vm_form.httpd_last_patch }} <br>
+                      <strong>OS CENTOS ASSUMED:</strong> {{ vm_form.os_centos_assumed }} <br>
+                      <strong>HTTPD:</strong> {{ vm_form.httpd }} <br>
+                      <strong>TOMCAT:</strong> {{ vm_form.tomcat }} <br>
+                      <strong>NGINX:</strong> {{ vm_form.nginx }} <br>
+                      <strong>RAM:</strong> {{ vm_form.ram }} <br>
+                      <strong>CPU:</strong> {{ vm_form.cpu }} <br>
+                      <strong>DB:</strong> {{ vm_form.db }} <br>
+                      <strong>PHP:</strong> {{ vm_form.php }} <br>
+                      <strong>JAVA:</strong> {{ vm_form.java }} <br>
+                      <strong>VM STORAGE:</strong> {{ vm_form.vm_storage }} <br>
+                      <strong>SPECIAL MOUNTS:</strong> {{ vm_form.special_mounts }} <br>
+                      <strong>PYTHON:</strong> {{ vm_form.python }} <br>
+                      <strong>NPM:</strong> {{ vm_form.npm }} <br>
+                      <strong>SHIBBOLETH:</strong> {{ vm_form.shibboleth }} <br>
+                      <strong>SSL:</strong> {{ vm_form.ssl }} <br>
+                  </p>
+                  <hr style="border: 1px solid black; border-radius: 5px;">
+              </div>
+          </div>
+          <br>
+      </div>
+      <!---------------------------------------------------------------------------------------------END Left Column -->
+
+      <!---------------------------------------------------------------------------------------------- Middle Column -->
+      <div class="w3-col m9">
+          <div class="w3-row-padding">
+            <div class="w3-col m12">                                               <!-- Horizontal size of a card m12-->
+                <div style="background-color: lightblue" class="w3-card w3-round">
+                    <div class="w3-container w3-padding">
+                        <table>
+                            <tr>
+                                <td style="width: 100%">
+                                    <img src="/static/img/vms/server_icon_2.png" alt="Avatar" class="w3-left  w3-margin-center" style="width:60px">
+                                    <h3 style="margin-left: 5px; vertical-align:middle"><strong>{{ vm_form.hostname }}</strong></h3>
+                                </td>
+                                <td style="vertical-align:middle; text-align: right">
+
+                                    <button type="submit" style="width: 100%; background-color: #4CAF50; border-radius: 10px; color: white;" class="w3-button">Save</button>
+
+                                    <button type="button"  style="width: 100%; background-color: #838180; border-radius: 10px; color: white;" class="w3-button">
+                                        <a style="text-decoration: none" href="{% url 'vms_home' %}">Cancel</a>
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background-color: lightblue" class="w3-container w3-card w3-round w3-margin">
+            <h4>
+                NOTES: <br>
+                {{ vm_form.notes }}
+            </h4>
+        </div>
+
+      </div>
+      <!------------------------------------------------------------------------------------------ END Middle Column -->
+  </div>
+</div>
+</form>
+</body>
+</html>
+
+
+

@@ -1,0 +1,140 @@
+
+
+@font-face{
+    font-family:bold;
+    src:url(../fonts/RobotoCondensed-Bold.ttf);
+}
+@font-face{
+    font-family:light;
+    src:url(../fonts/RobotoCondensed-Light.ttf);
+}
+@font-face{
+    font-family:regular;
+    src:url(../fonts/RobotoCondensed-Regular.ttf);
+}
+
+section,figure,h1,h2,h3,h4,h5,h6,p,ul,li{
+    margin:0px;
+    padding:0px;
+}
+
+
+
+#main{
+    margin:auto;
+    margin-top:20px;
+    width:100%;
+
+#main header{
+    background-color:#fff;
+    padding:10px;
+    -webkit-perspective:400px;
+    -moz-perspective:400px;
+    box-shadow:1px 1px 10px rgba(0,0,0,0.25);
+
+
+/*
+overflow:hidden;
+*/
+}
+
+#main header figure{
+    float:left;
+    -webkit-transition:all 1s  ease-in-out;
+    -moz-transition:all 1s ease-in-out;
+    -moz-transform-origin:right center;
+}
+#main header select{
+display:none;
+}
+
+#main header figure #logo{
+    width:100%;
+    height:100%;
+    background-image:url(../assets/logo1.png);
+    background-size:100px 100px;
+}
+
+#main header nav{
+    float:right;
+}
+
+#main header nav ul:nth-child(1){
+    margin-top:40px;
+    color:black;
+
+}
+#main header nav ul:nth-child(1) li{
+    float:right;
+    list-style-type:none;
+    background-color:#7C7C83;
+    padding:4px;
+    margin-right:1px;
+    padding-left:10px;
+    padding-right:10px;
+    font-size:17px;
+    text-decoration:none;
+    font-family:regular;
+    text-transform:uppercase;
+    letter-spacing:-0.5px;
+    cursor:pointer;
+    -webkit-transition:all 0.5s  ease-in-out;
+    -moz-transition:all 0.5s ease-in-out;
+    -moz-transform-origin:right bottom;
+}
+
+#main header nav ul:nth-child(1) li:hover{
+    background-color:#fc0;
+    color:#333;
+    padding-left:30px;
+-webkit-transform:scale(1.5,1.5) rotate(20deg);
+-moz-transform:scale(1.5,1.5) rotate(20deg);
+
+}
+
+#main header nav ul:nth-child(2){
+margin-top:5px;
+}
+
+
+#main header nav ul:nth-child(2) li{
+    float:right;
+    list-style-type:none;
+    padding:4px;
+    margin-right:1px;
+    padding-left:10px;
+    padding-right:10px;
+    font-size:14px;
+    color:#666;
+    font-family:regular;
+    text-transform:uppercase;
+    letter-spacing:-0.5px;
+    border-left:1px solid #ccc;
+}
+
+#main header nav ul:nth-child(2) li:nth-child(3){
+    border-left:0px solid #ccc;
+}
+
+
+.clear{
+    clear:both;
+}
+
+
+
+#wrapper{
+    width:2832px;
+    height:300px;
+    margin-left:0px;
+    transition:all 1s ease-in-out;
+    -moz-transition:all 1s ease-in-out;
+    -webkit-transition:all 1s ease-in-out;
+
+}
+
+
+
+
+}
+

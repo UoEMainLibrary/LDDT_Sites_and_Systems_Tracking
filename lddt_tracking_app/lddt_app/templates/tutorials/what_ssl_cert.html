@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>What is SSL Certificate?</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static '/tutorials/main_style.css' %}" >
+    <link rel="stylesheet" href="{% static '/tutorials/menu_style.css' %}" >
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+<body>
+<div class="styled_body">
+    <div class="topnav" id="myTopnav">
+        <a href="{% url 'home' %}" ><i class="fa fa-fw fa-home"></i>Home</a>
+        <a href="{% url 'tutorials_home' %}">Tutorials Home</a>
+        <div class="dropdown">
+            <button class="dropbtn" style="background-color:#04AA6D ">SSL Certificates
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="{% url 'what_ssl_certificate' %}" class="active">What is an SSL Certificate?</a>
+                <a href="{% url 'renew_existing_certificate' %}">How to replace an expired certificate?</a>
+                <a href="#">Link 3</a>
+            </div>
+        </div>
+        <a href="javascript:void(0);" style="font-size:15px;" class="icon" onclick="myFunction()">&#9776;</a>
+    </div>
+    <br>
+    <br>
+
+
+    <h2>What is an SSL certificate – Definition and Explanation</h2>
+    <p>
+        An SSL certificate is a digital certificate that authenticates a website's identity and enables an encrypted
+        connection. SSL stands for Secure Sockets Layer, a security protocol that creates an encrypted link between
+        a web server and a web browser.<br>
+        <br>
+        SSL keeps internet connections secure and prevents criminals from reading or modifying information transferred
+        between two systems. When you see a padlock icon next to the URL in the address bar, that means SSL protects
+        the website you are visiting.
+    </p>
+    <br>
+    <h2>How do SSL certificates work?</h2>
+    <p>
+        SSL works by ensuring that any data transferred between users and websites, or between two systems, remains
+        impossible to read. It uses encryption algorithms to scramble data in transit, which prevents hackers from
+        reading it as it is sent over the connection. This data includes potentially sensitive information such as names,
+        addresses, credit card numbers, or other financial details.<br>
+        <br>
+        The process works like this:<br>
+        1. A browser or server attempts to connect to a website (i.e., a web server) secured with SSL. <br>
+        2. The browser or server requests that the web server identifies itself. <br>
+        3. The web server sends the browser or server a copy of its SSL certificate in response.<br>
+        4. The browser or server checks to see whether it trusts the SSL certificate. If it does, it signals this to the webserver.<br>
+        5. The web server then returns a digitally signed acknowledgment to start an SSL encrypted session. <br>
+        6. Encrypted data is shared between the browser or server and the webserver.<br>
+        <br>
+        This process is sometimes referred to as an "SSL handshake." While it sounds like a lengthy process, it takes
+        place in milliseconds.<br>
+        <br>
+        When a website is secured by an SSL certificate, the acronym HTTPS (which stands for HyperText Transfer Protocol
+        Secure) appears in the URL. Without an SSL certificate, only the letters HTTP – i.e., without the S for Secure
+        – will appear. A padlock icon will also display in the URL address bar. This signals trust and provides
+        reassurance to those visiting the website.
+    </p>
+
+
+
+
+</div>
+<script>
+function myFunction() {
+  var x = document.getElementById("myTopnav");
+  if (x.className === "topnav") {
+    x.className += " responsive";
+  } else {
+    x.className = "topnav";
+  }
+}
+</script>
+
+</body>
+</html>
