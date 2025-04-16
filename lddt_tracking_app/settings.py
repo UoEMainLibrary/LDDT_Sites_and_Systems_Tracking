@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load secrets.json
 try:
-    with open(os.path.join(BASE_DIR, 'secrets.json')) as f:
+    with open(os.path.join(BASE_DIR, '../secrets.json')) as f:
         secrets = json.load(f)
 except FileNotFoundError:
     raise Exception("secrets.json file is missing! Please create one.")
