@@ -225,7 +225,7 @@ class Vm(models.Model):
         hostname = self.hostname
         port = 22  # Default SSH port
         username = ssh_user_name
-        private_key_path = "/Users/patryksmacki/.ssh/live-key_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
         # Initialize the SSH client
@@ -274,7 +274,7 @@ class Vm(models.Model):
         hostname = self.hostname
         port = 22  # Default SSH port
         username = ssh_user_name
-        private_key_path = "/Users/patryksmacki/.ssh/live-key_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
         # Initialize the SSH client
@@ -322,7 +322,7 @@ class Vm(models.Model):
         hostname = self.hostname
         port = 22  # Default SSH port
         username = ssh_user_name
-        private_key_path = "/Users/patryksmacki/.ssh/live-key_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
         # Initialize the SSH client
@@ -370,7 +370,7 @@ class Vm(models.Model):
         hostname = self.hostname
         port = 22  # Default SSH port
         username = ssh_user_name
-        private_key_path = "/Users/patryksmacki/.ssh/live-key_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
         # Initialize the SSH client
@@ -418,7 +418,7 @@ class Vm(models.Model):
         hostname = self.hostname
         port = 22  # Default SSH port
         username = ssh_user_name
-        private_key_path = "/Users/patryksmacki/.ssh/live-key_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
         # Initialize the SSH client
@@ -478,7 +478,7 @@ class Vm(models.Model):
         hostname = self.hostname
         port = 22  # Default SSH port
         username = ssh_user_name
-        private_key_path = "/Users/patryksmacki/.ssh/live-key_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
         # Initialize the SSH client
@@ -537,7 +537,7 @@ class Vm(models.Model):
         hostname = self.hostname
         port = 22  # Default SSH port
         username = ssh_user_name
-        private_key_path = "/Users/patryksmacki/.ssh/live-key_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
         # Initialize the SSH client
@@ -591,7 +591,7 @@ class Vm(models.Model):
         hostname = self.hostname
         port = 22  # Default SSH port
         username = ssh_user_name
-        private_key_path = "/Users/patryksmacki/.ssh/live-key_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
         # Initialize the SSH client
