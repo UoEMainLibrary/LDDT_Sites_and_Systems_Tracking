@@ -12,14 +12,24 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 
 import os
+import json
 from pathlib import Path
-
 import pymysql
 pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load secrets.json
+try:
+    with open(os.path.join(BASE_DIR, 'secrets.json')) as f:
+        secrets = json.load(f)
+except FileNotFoundError:
+    raise Exception("secrets.json file is missing! Please create one.")
+
+# Function to fetch secret values safely
+def get_secret(key, default=None):
+    return secrets.get(key, default)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -93,7 +103,8 @@ DATABASES = {
     }
 }
 
-
+SSH_USER_NAME = get_secret('SSH_USER_NAME')
+SSH_PASSPHRASE = get_secret('SSH_PASSPHRASE')
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
