@@ -39,6 +39,7 @@ urlpatterns = [
    path('websites_ssl_exp_this_month/', websites_ssl_exp_this_month, name='websites_ssl_exp_this_month'),
    path('websites_investigate_decommissioned/', websites_investigate_decommissioned, name='websites_investigate_decommissioned'),
    path('websites_google_analytics/', websites_google_analytics, name='websites_google_analytics'),
+   path('websites_ga4_apis/', websites_ga4_apis, name='websites_ga4_apis'),
    path('websites_process_2/', websites_process_2, name='websites_process_2'),
 
    re_path(r'^lddt-vms-home/', vm_home, name='vms_home'),

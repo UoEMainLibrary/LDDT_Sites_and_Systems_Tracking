@@ -184,6 +184,9 @@ def websites_google_analytics(request):
 def websites_process_2(request):
     return render(request, 'website/websites_process_2.html')
 
+def websites_ga4_apis(request):
+    return render(request, 'website/websites_ga4_apis.html')
+
 
 def lddt_subsites_home(request):
     websites = Website.objects.filter(
