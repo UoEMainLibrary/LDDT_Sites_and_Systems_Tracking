@@ -9,6 +9,13 @@ from .models import *
 from datetime import *
 
 
+from django.http import JsonResponse
+from google.analytics.data_v1beta import BetaAnalyticsDataClient
+from google.analytics.data_v1beta.types import RunReportRequest, DateRange, Metric, Dimension
+from google.oauth2 import service_account
+import os
+
+
 # Create your views here.
 @login_required
 def home(request):
@@ -158,6 +165,7 @@ def websites_investigate_decommissioned(request):
     })
 
 def websites_google_analytics(request):
+
     # ----------------------------------
     websites = Website.objects.filter(
         ~Q(activity__name__exact="DECOMMISSIONED") & Q(ga4_required__name__exact="Yes")
@@ -183,6 +191,31 @@ def websites_google_analytics(request):
 
 def websites_process_2(request):
     return render(request, 'website/websites_process_2.html')
+
+def ga4_report(request):
+    KEY_FILE = os.path.join(os.path.dirname(__file__), "../../ga4access.json")
+    PROPERTY_ID = "382924447"
+
+    credentials = service_account.Credentials.from_service_account_file(KEY_FILE)
+    client = BetaAnalyticsDataClient(credentials=credentials)
+
+    request_obj = RunReportRequest(
+        property=f"properties/{PROPERTY_ID}",
+        dimensions=[Dimension(name="city")],
+        metrics=[Metric(name="activeUsers")],
+        date_ranges=[DateRange(start_date="7daysAgo", end_date="today")],
+    )
+
+    response = client.run_report(request_obj)
+
+    # Convert GA response to a simple list of dicts
+    data = [
+        {"city": row.dimension_values[0].value,
+         "activeUsers": row.metric_values[0].value}
+        for row in response.rows
+    ]
+
+    return render(request, "ga4_reports.html", {"data": data})
 
 
 def lddt_subsites_home(request):
