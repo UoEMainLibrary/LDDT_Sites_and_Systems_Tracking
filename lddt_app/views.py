@@ -8,6 +8,8 @@ from .filters import WebsiteFilter, VmFilter, shortwebsiteFilter, shortvmFilter
 from .models import *
 from datetime import *
 
+from openpyxl import Workbook
+
 
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -317,26 +319,18 @@ def ga4_report(request):
         else:
             receiving_status = "🔴 No recent data"
 
-        # ✅ 6️⃣ Trend Calculation with Percentage
+        # 6️⃣ Trend Calculation
         trend = "➖ Steady"
         if first_recorded_date and visits_30days > 0:
             start_date = datetime.strptime(first_recorded_date, "%Y-%m-%d")
             today = datetime.today()
             days_since_start = max((today - start_date).days, 1)
-
-            historical_avg = visits_year / days_since_start if visits_year else 0
-            recent_daily_avg = visits_30days / 30
-
-            if historical_avg > 0:
-                trend_percentage = ((recent_daily_avg - historical_avg) / historical_avg) * 100
-                if trend_percentage > 10:
-                    trend = f"📈 Up ({trend_percentage:.0f}%)"
-                elif trend_percentage < -10:
-                    trend = f"📉 Down ({abs(trend_percentage):.0f}%)"
-                else:
-                    trend = f"➖ Steady ({trend_percentage:.0f}%)"
-            else:
-                trend = f"📈 New ({recent_daily_avg:.0f}/day)"  # for very new properties
+            historical_avg = visits_year / days_since_start
+            recent_avg = visits_30days / 30
+            if recent_avg > historical_avg * 1.1:
+                trend = "📈 Up"
+            elif recent_avg < historical_avg * 0.9:
+                trend = "📉 Down"
 
         dashboard_data.append({
             "property_name": prop_name,
@@ -347,16 +341,51 @@ def ga4_report(request):
             "visits_year": visits_year,
             "first_recorded_date": first_recorded_date or "N/A",
             "receiving_status": receiving_status,
-            "trend": trend,  # ✅ Trend now includes %
+            "trend": trend,
         })
 
-    # Check if this is an AJAX refresh
+    # 🧩 If the user requested an Excel export
+    if request.GET.get("export") == "excel":
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "GA4 Report"
+
+        headers = [
+            "Property Name",
+            "Connection Status",
+            "Active Users (30 min)",
+            "Visits (30 days)",
+            "Visits (6 months)",
+            "Visits (1 year)",
+            "First Recorded Date",
+            "Receiving Data Status",
+            "Trend"
+        ]
+        ws.append(headers)
+
+        for row in dashboard_data:
+            ws.append([
+                row["property_name"],
+                row["connection_status"],
+                row["active_30min"],
+                row["visits_30days"],
+                row["visits_6months"],
+                row["visits_year"],
+                row["first_recorded_date"],
+                row["receiving_status"],
+                row["trend"],
+            ])
+
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="GA4_Report.xlsx"'
+        wb.save(response)
+        return response
+
+    # ✅ Default: Render HTML page
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({"data": dashboard_data})
 
-    # Render the existing template
     return render(request, "ga4_reports.html", {"dashboard_data": dashboard_data})
-
 
 
 def lddt_subsites_home(request):

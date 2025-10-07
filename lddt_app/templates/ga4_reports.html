@@ -41,18 +41,21 @@
     </style>
 </head>
 <body>
-
-
-
     <h2>Google Analytics Dashboard</h2>
-
     <p class="refreshing" id="status">Last updated just now</p>
-
+    <div class="flex justify-end mb-4">
+        <a href="{% url 'ga4_report' %}?export=excel"
+           class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition">
+            📊 Export to Excel
+        </a>
+    </div>
+    <br>
     <table id="ga-table">
         <thead>
             <tr>
                 <th>Service Name</th>
                 <th>Connection Status</th>
+                <th>Receiving Status</th>
                 <th>Trend</th>
                 <th>Active Users (Last 30 Min)</th>
                 <th>Visits (Last 30 Days)</th>
@@ -66,6 +69,7 @@
             <tr>
                 <td>{{ row.property_name }}</td>
                 <td style="font-size: 0.85em;">{{ row.connection_status }}</td>
+                <td style="font-size: 0.85em;">{{ row.receiving_status }}</td>
                 <td style="font-size: 0.85em;">{{ row.trend }}</td>
                 <td>{{ row.active_30min }}</td>
                 <td>{{ row.visits_30days }}</td>
@@ -91,6 +95,7 @@
                             <tr>
                                 <td>${row.property_name}</td>
                                 <td style="font-size: 0.85em;">${row.connection_status}</td>
+                                <td style="font-size: 0.85em;">${row.receiving_status}</td>
                                 <td style="font-size: 0.85em;">${row.trend}</td>
                                 <td>${row.active_30min}</td>
                                 <td>${row.visits_30days}</td>
