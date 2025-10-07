@@ -9,11 +9,21 @@ from .models import *
 from datetime import *
 
 
+from django.shortcuts import render
 from django.http import JsonResponse
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
-from google.analytics.data_v1beta.types import RunReportRequest, DateRange, Metric, Dimension
+from google.analytics.data_v1beta.types import RunReportRequest, RunRealtimeReportRequest, DateRange, Metric
 from google.oauth2 import service_account
 import os
+from google.analytics.data_v1beta import (
+    BetaAnalyticsDataClient,
+    RunReportRequest,
+    RunRealtimeReportRequest,
+    DateRange,
+    Metric,
+    Dimension,  # ✅ ADDED
+)
+
 
 
 # Create your views here.
@@ -192,30 +202,161 @@ def websites_google_analytics(request):
 def websites_process_2(request):
     return render(request, 'website/websites_process_2.html')
 
-def ga4_report(request):
-    KEY_FILE = os.path.join(os.path.dirname(__file__), "../../ga4access.json")
-    PROPERTY_ID = "382924447"
 
+# === CONFIG ===
+GA_PROPERTIES = [
+        {"name": "Exampapers", "id": "382924447"},
+        {"name": "Archives Collections", "id": "367934488"},
+        {"name": "Collections", "id": "347147610"},
+        {"name": "Luna", "id": "383741097"},
+        {"name": "Leganto", "id": "384843296"},
+        {"name": "Library Blogs", "id": "347071499"},
+        {"name": "DiscoverED", "id": "370799052"},
+        {"name": "Aura", "id": "382911188"},
+        {"name": "Era", "id": "391408836"},
+        {"name": "HWU", "id": "382928678"},
+        {"name": "QMU", "id": "382912134"},
+        {"name": "RSC", "id": "382918256"},
+        {"name": "STA", "id": "382918682"},
+        {"name": "DataShare", "id": "389022533"},
+        {"name": "Exhibitions", "id": "384908156"},
+        {"name": "Our History", "id": "345202489"},
+        {"name": "Statacc", "id": "447420661"},
+        {"name": "Ideas", "id": "451235618"},
+        {"name": "Digital Colletions", "id": "507278994"},
+        {"name": "Images Teaching", "id": "450459257"},
+        {"name": "Pizan", "id": "455961874"},
+        {"name": "Library Registration", "id": "386789431"},
+        {"name": "Mantra", "id": "391409531"},
+        {"name": "Pointsofarrival", "id": "350302368"},
+        {"name": "Fairbairn", "id": "350314353"},
+        {"name": "HIV-aids-resources", "id": "347189427"},
+        {"name": "Openbooks", "id": "350304777"},
+        {"name": "sjac-collection", "id": "350327347"},
+        {"name": "geddes", "id": "350285942"},
+        # add more properties here
+    ]
+
+KEY_FILE = os.path.join(os.path.dirname(__file__), "../../ga4access.json")
+
+# === Helper ===
+def _get_report(client, property_id, metric_name, start_date, end_date):
+    request = RunReportRequest(
+        property=f"properties/{property_id}",
+        metrics=[Metric(name=metric_name)],
+        date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
+    )
+    response = client.run_report(request)
+    return response.rows[0].metric_values[0].value if response.rows else 0
+
+def _get_first_recorded_date(client, property_id):
+    """
+    Returns the first date GA4 recorded any session for the property.
+    """
+    request = RunReportRequest(
+        property=f"properties/{property_id}",
+        dimensions=[Dimension(name="date")],
+        metrics=[Metric(name="sessions")],
+        date_ranges=[DateRange(start_date="2015-08-14", end_date="today")],
+        order_bys=[
+            {"dimension": {"dimension_name": "date"}, "desc": False}
+        ],  # ✅ sort ascending
+        limit=1  # ✅ only need the earliest
+    )
+    response = client.run_report(request)
+
+    if response.rows:
+        first_date_str = response.rows[0].dimension_values[0].value  # e.g. "20251002"
+        # ✅ Format to YYYY-MM-DD
+        formatted_date = datetime.strptime(first_date_str, "%Y%m%d").strftime("%Y-%m-%d")
+        return formatted_date
+
+    return None
+
+def ga4_report(request):
     credentials = service_account.Credentials.from_service_account_file(KEY_FILE)
     client = BetaAnalyticsDataClient(credentials=credentials)
 
-    request_obj = RunReportRequest(
-        property=f"properties/{PROPERTY_ID}",
-        dimensions=[Dimension(name="city")],
-        metrics=[Metric(name="activeUsers")],
-        date_ranges=[DateRange(start_date="7daysAgo", end_date="today")],
-    )
+    dashboard_data = []
 
-    response = client.run_report(request_obj)
+    for prop in GA_PROPERTIES:
+        prop_id = prop["id"]
+        prop_name = prop["name"]
 
-    # Convert GA response to a simple list of dicts
-    data = [
-        {"city": row.dimension_values[0].value,
-         "activeUsers": row.metric_values[0].value}
-        for row in response.rows
-    ]
+        # ✅ 0️⃣ Check Tag Connection via Realtime API
+        try:
+            realtime_request = RunRealtimeReportRequest(
+                property=f"properties/{prop_id}",
+                metrics=[Metric(name="activeUsers")]
+            )
+            realtime_response = client.run_realtime_report(realtime_request)
+            active_30min = int(realtime_response.rows[0].metric_values[0].value) if realtime_response.rows else 0
+            connection_status = "🟢 Connected"
+        except Exception as e:
+            active_30min = 0
+            connection_status = "🔴 Not Connected"
+            print(f"⚠️ GA4 property {prop_name} connection error: {e}")
 
-    return render(request, "ga4_reports.html", {"data": data})
+        # 1️⃣ Visits (Last 30 Days)
+        visits_30days = int(_get_report(client, prop_id, "sessions", "30daysAgo", "today") or 0)
+
+        # 2️⃣ Visits (Last 6 Months)
+        visits_6months = int(_get_report(client, prop_id, "sessions", "180daysAgo", "today") or 0)
+
+        # 3️⃣ Visits (Last Year)
+        visits_year = int(_get_report(client, prop_id, "sessions", "365daysAgo", "today") or 0)
+
+        # 4️⃣ First Recorded Data Date
+        first_recorded_date = _get_first_recorded_date(client, prop_id)
+
+        # 5️⃣ Receiving Data Status
+        if active_30min > 0:
+            receiving_status = "🟢 Receiving data now"
+        elif visits_30days > 0:
+            receiving_status = "🟡 Received data recently"
+        else:
+            receiving_status = "🔴 No recent data"
+
+        # ✅ 6️⃣ Trend Calculation with Percentage
+        trend = "➖ Steady"
+        if first_recorded_date and visits_30days > 0:
+            start_date = datetime.strptime(first_recorded_date, "%Y-%m-%d")
+            today = datetime.today()
+            days_since_start = max((today - start_date).days, 1)
+
+            historical_avg = visits_year / days_since_start if visits_year else 0
+            recent_daily_avg = visits_30days / 30
+
+            if historical_avg > 0:
+                trend_percentage = ((recent_daily_avg - historical_avg) / historical_avg) * 100
+                if trend_percentage > 10:
+                    trend = f"📈 Up ({trend_percentage:.0f}%)"
+                elif trend_percentage < -10:
+                    trend = f"📉 Down ({abs(trend_percentage):.0f}%)"
+                else:
+                    trend = f"➖ Steady ({trend_percentage:.0f}%)"
+            else:
+                trend = f"📈 New ({recent_daily_avg:.0f}/day)"  # for very new properties
+
+        dashboard_data.append({
+            "property_name": prop_name,
+            "connection_status": connection_status,
+            "active_30min": active_30min,
+            "visits_30days": visits_30days,
+            "visits_6months": visits_6months,
+            "visits_year": visits_year,
+            "first_recorded_date": first_recorded_date or "N/A",
+            "receiving_status": receiving_status,
+            "trend": trend,  # ✅ Trend now includes %
+        })
+
+    # Check if this is an AJAX refresh
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({"data": dashboard_data})
+
+    # Render the existing template
+    return render(request, "ga4_reports.html", {"dashboard_data": dashboard_data})
+
 
 
 def lddt_subsites_home(request):

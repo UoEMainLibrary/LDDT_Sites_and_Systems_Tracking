@@ -1,42 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Google Analytics Report</title>
+    <meta charset="UTF-8">
+    <title>GA4 Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background-color: #f9fafc;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
         table {
+            width: 90%;
+            margin: auto;
             border-collapse: collapse;
-            width: 50%;
-            margin: 20px auto;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         th, td {
-            border: 1px solid #333;
-            padding: 8px 12px;
+            border: 1px solid #ddd;
             text-align: center;
+            padding: 10px;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {background-color: #f2f2f2;}
+        .refreshing {
+            color: #007bff;
+            font-style: italic;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <h2 style="text-align: center;">GA4 Active Users by City</h2>
-    <table>
+
+
+
+    <h2>Google Analytics Dashboard</h2>
+
+    <p class="refreshing" id="status">Last updated just now</p>
+
+    <table id="ga-table">
         <thead>
             <tr>
-                <th>City</th>
-                <th>Active Users</th>
+                <th>Service Name</th>
+                <th>Connection Status</th>
+                <th>Trend</th>
+                <th>Active Users (Last 30 Min)</th>
+                <th>Visits (Last 30 Days)</th>
+                <th>Visits (Last 6 Months)</th>
+                <th>Visits (Last Year)</th>
+                <th>First Recorded Data</th>
             </tr>
         </thead>
         <tbody>
-            {% for row in data %}
+            {% for row in dashboard_data %}
             <tr>
-                <td>{{ row.city }}</td>
-                <td>{{ row.activeUsers }}</td>
+                <td>{{ row.property_name }}</td>
+                <td style="font-size: 0.85em;">{{ row.connection_status }}</td>
+                <td style="font-size: 0.85em;">{{ row.trend }}</td>
+                <td>{{ row.active_30min }}</td>
+                <td>{{ row.visits_30days }}</td>
+                <td>{{ row.visits_6months }}</td>
+                <td>{{ row.visits_year }}</td>
+                <td>{{ row.first_recorded_date }}</td>
             </tr>
-            {% empty %}
-            <tr><td colspan="2">No data available</td></tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <script>
+        const tableBody = document.querySelector("#ga-table tbody");
+        const statusEl = document.getElementById("status");
+
+        function refreshData() {
+            fetch("{% url 'ga4_report' %}", { headers: { "X-Requested-With": "XMLHttpRequest" } })
+                .then(response => response.json())
+                .then(data => {
+                    tableBody.innerHTML = "";
+                    data.data.forEach(row => {
+                        tableBody.innerHTML += `
+                            <tr>
+                                <td>${row.property_name}</td>
+                                <td style="font-size: 0.85em;">${row.connection_status}</td>
+                                <td style="font-size: 0.85em;">${row.trend}</td>
+                                <td>${row.active_30min}</td>
+                                <td>${row.visits_30days}</td>
+                                <td>${row.visits_6months}</td>
+                                <td>${row.visits_year}</td>
+                                <td>${row.first_recorded_date}</td>
+                            </tr>`;
+                    });
+                    const now = new Date();
+                    statusEl.innerText = "Last updated: " + now.toLocaleTimeString();
+                })
+                .catch(err => {
+                    console.error("Error refreshing:", err);
+                    statusEl.innerText = "Error refreshing data.";
+                });
+        }
+
+        // Refresh automatically every 60 seconds
+        setInterval(refreshData, 60000);
+    </script>
 </body>
 </html>
+
+<script>
+$(document).ready(function() {
+  $('#ga-table').DataTable(); // 🪄 adds filters, sorting, pagination
+});
+</script>
