@@ -10,6 +10,9 @@ from datetime import *
 
 from openpyxl import Workbook
 
+import requests
+from google.oauth2 import service_account
+
 
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -241,6 +244,43 @@ GA_PROPERTIES = [
 
 KEY_FILE = os.path.join(os.path.dirname(__file__), "../../ga4access.json")
 
+def get_ga4_quota_usage():
+    """Fetches GA4 quota usage (requests/day, requests/minute) from Google Cloud."""
+    try:
+        SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+        credentials = service_account.Credentials.from_service_account_file(KEY_FILE, scopes=SCOPES)
+
+        # Get access token
+        access_token = credentials.refresh(requests.Request())
+        token = credentials.token
+
+        # Replace with your actual Google Cloud project ID
+        PROJECT_ID = "trackingga4"
+
+        url = f"https://serviceusage.googleapis.com/v1/projects/{PROJECT_ID}/services/analyticsdata.googleapis.com/consumerQuotaMetrics"
+
+        headers = {"Authorization": f"Bearer {token}"}
+        response = requests.get(url, headers=headers)
+        data = response.json()
+
+        quotas = []
+        if "metrics" in data:
+            for metric in data["metrics"]:
+                metric_name = metric.get("displayName")
+                for limit in metric.get("consumerQuotaLimits", []):
+                    name = limit.get("displayName")
+                    usage = limit.get("metricValue", "Unknown")
+                    quotas.append({
+                        "metric": metric_name,
+                        "limit_name": name,
+                        "usage": usage,
+                    })
+        return quotas
+
+    except Exception as e:
+        print(f"⚠️ Error fetching quota info: {e}")
+        return []
+
 # === Helper ===
 def _get_report(client, property_id, metric_name, start_date, end_date):
     request = RunReportRequest(
@@ -385,8 +425,12 @@ def ga4_report(request):
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({"data": dashboard_data})
 
-    return render(request, "ga4_reports.html", {"dashboard_data": dashboard_data})
+    quota_info = get_ga4_quota_usage()
 
+    return render(request, "ga4_reports.html", {
+        "dashboard_data": dashboard_data,
+        "quota_info": quota_info,
+    })
 
 def lddt_subsites_home(request):
     websites = Website.objects.filter(

@@ -50,6 +50,18 @@
         </a>
     </div>
     <br>
+    <div class="quota-box" style="background:#f9fafb; padding:12px; margin-bottom:16px; border-radius:8px;">
+  <h3 style="margin-bottom:8px;">🔋 GA4 API Quota Status</h3>
+  {% if quota_info %}
+    <ul>
+      {% for q in quota_info %}
+        <li>{{ q.metric }} - {{ q.limit_name }}: {{ q.usage }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No quota info available or API not enabled.</p>
+  {% endif %}
+</div>
     <table id="ga-table">
         <thead>
             <tr>
