@@ -80,6 +80,7 @@
         <a href="{% url 'ga4_report' %}?export=excel" class="btn btn-export">📊 Export to Excel</a>
     </div>
 
+    <!-- Main Table -->
     <table id="ga-table">
         <thead>
             <tr>
@@ -106,6 +107,31 @@
                 <td>{{ row.visits_6months }}</td>
                 <td>{{ row.visits_year }}</td>
                 <td>{{ row.first_recorded_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <br><br>
+
+    <!-- Monthly Stats Table -->
+    <h2>Monthly Stats (Last 12 Months)</h2>
+    <table id="monthly-table">
+        <thead>
+            <tr>
+                <th>Service Name</th>
+                {% for month in months_list %}
+                    <th>{{ month }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in monthly_dashboard %}
+            <tr>
+                <td>{{ row.property_name }}</td>
+                {% for month_data in row.monthly_visits %}
+                    <td>{{ month_data }}</td>
+                {% endfor %}
             </tr>
             {% endfor %}
         </tbody>
@@ -152,17 +178,16 @@
                 });
         }
 
-        // 🖱️ Manual refresh button
         refreshBtn.addEventListener("click", refreshData);
 
-        // Initial load (optional)
+        // Optional initial load
         refreshData();
-    </script>
 
-    <script>
         $(document).ready(function() {
-            $('#ga-table').DataTable(); // adds filters, sorting, pagination
+            $('#ga-table, #monthly-table').DataTable(); // adds sorting, filtering, pagination
         });
     </script>
 </body>
 </html>
+
+

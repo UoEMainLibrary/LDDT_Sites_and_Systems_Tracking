@@ -9,7 +9,9 @@ from .models import *
 from datetime import *
 
 from openpyxl import Workbook
-
+from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime
+import calendar
 
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -251,6 +253,25 @@ def _get_report(client, property_id, metric_name, start_date, end_date):
     response = client.run_report(request)
     return response.rows[0].metric_values[0].value if response.rows else 0
 
+def _get_monthly_visits(client, prop_id, months=12):
+    """Return a list of dicts with visits per month for the last `months` months"""
+    monthly_data = []
+
+    today = date.today()
+    for i in range(months):
+        first_day = date(today.year, today.month, 1) - timedelta(days=calendar.monthrange(today.year, today.month)[1]*i)
+        last_day = date(first_day.year, first_day.month, calendar.monthrange(first_day.year, first_day.month)[1])
+
+        visits = int(_get_report(client, prop_id, "sessions", first_day.isoformat(), last_day.isoformat()) or 0)
+
+        monthly_data.append({
+            "month": first_day.strftime("%b %Y"),
+            "visits": visits,
+        })
+
+    monthly_data.reverse()  # earliest month first
+    return monthly_data
+
 def _get_first_recorded_date(client, property_id):
     """
     Returns the first date GA4 recorded any session for the property.
@@ -280,6 +301,14 @@ def ga4_report(request):
     client = BetaAnalyticsDataClient(credentials=credentials)
 
     dashboard_data = []
+    monthly_dashboard = []
+
+    # Build list of last 12 months as "YYYY-MM"
+    months_list = []
+    today = datetime.today()
+    for i in range(11, -1, -1):
+        dt = today.replace(day=1) - timedelta(days=i*30)  # approximate month
+        months_list.append(dt.strftime("%Y-%m"))
 
     for prop in GA_PROPERTIES:
         prop_id = prop["id"]
@@ -323,7 +352,6 @@ def ga4_report(request):
         trend = "➖ Steady"
         if first_recorded_date and visits_30days > 0:
             start_date = datetime.strptime(first_recorded_date, "%Y-%m-%d")
-            today = datetime.today()
             days_since_start = max((today - start_date).days, 1)
             historical_avg = visits_year / days_since_start
             recent_avg = visits_30days / 30
@@ -344,7 +372,22 @@ def ga4_report(request):
             "trend": trend,
         })
 
-    # 🧩 If the user requested an Excel export
+        # 🗓️ Monthly visits for last 12 months
+        monthly_visits = []
+        for month_str in months_list:
+            year, month = map(int, month_str.split("-"))
+            start_of_month = datetime(year, month, 1)
+            end_of_month_day = calendar.monthrange(year, month)[1]
+            end_of_month = datetime(year, month, end_of_month_day)
+            visits = _get_report(client, prop_id, "sessions", start_of_month.strftime("%Y-%m-%d"), end_of_month.strftime("%Y-%m-%d")) or 0
+            monthly_visits.append(visits)
+
+        monthly_dashboard.append({
+            "property_name": prop_name,
+            "monthly_visits": monthly_visits
+        })
+
+    # 🧩 Excel export
     if request.GET.get("export") == "excel":
         wb = Workbook()
         ws = wb.active
@@ -362,7 +405,6 @@ def ga4_report(request):
             "Trend"
         ]
         ws.append(headers)
-
         for row in dashboard_data:
             ws.append([
                 row["property_name"],
@@ -375,17 +417,20 @@ def ga4_report(request):
                 row["receiving_status"],
                 row["trend"],
             ])
-
         response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         response["Content-Disposition"] = 'attachment; filename="GA4_Report.xlsx"'
         wb.save(response)
         return response
 
-    # ✅ Default: Render HTML page
+    # AJAX refresh
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({"data": dashboard_data})
 
-    return render(request, "ga4_reports.html", {"dashboard_data": dashboard_data})
+    return render(request, "ga4_reports.html", {
+        "dashboard_data": dashboard_data,
+        "monthly_dashboard": monthly_dashboard,
+        "months_list": months_list
+    })
 
 
 def lddt_subsites_home(request):
