@@ -5,7 +5,7 @@
     <title>GA4 Dashboard</title>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -38,18 +38,48 @@
             font-style: italic;
             text-align: center;
         }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .btn-export {
+            background: linear-gradient(90deg, #28a745, #218838);
+            color: white;
+        }
+        .btn-export:hover {
+            background: linear-gradient(90deg, #218838, #1e7e34);
+        }
+        .btn-refresh {
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            color: white;
+        }
+        .btn-refresh:hover {
+            background: linear-gradient(90deg, #0056b3, #004085);
+        }
+        .button-bar {
+            width: 90%;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: space-between;
+        }
     </style>
 </head>
 <body>
     <h2>Google Analytics Dashboard</h2>
     <p class="refreshing" id="status">Last updated just now</p>
-    <div class="flex justify-end mb-4">
-        <a href="{% url 'ga4_report' %}?export=excel"
-           class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg transition">
-            📊 Export to Excel
-        </a>
+
+    <div class="button-bar">
+        <button class="btn btn-refresh" id="refreshBtn">🔄 Refresh Data</button>
+        <a href="{% url 'ga4_report' %}?export=excel" class="btn btn-export">📊 Export to Excel</a>
     </div>
-    <br>
+
     <table id="ga-table">
         <thead>
             <tr>
@@ -84,8 +114,13 @@
     <script>
         const tableBody = document.querySelector("#ga-table tbody");
         const statusEl = document.getElementById("status");
+        const refreshBtn = document.getElementById("refreshBtn");
 
         function refreshData() {
+            refreshBtn.disabled = true;
+            refreshBtn.innerText = "⏳ Refreshing...";
+            statusEl.innerText = "Refreshing data...";
+
             fetch("{% url 'ga4_report' %}", { headers: { "X-Requested-With": "XMLHttpRequest" } })
                 .then(response => response.json())
                 .then(data => {
@@ -105,22 +140,29 @@
                             </tr>`;
                     });
                     const now = new Date();
-                    statusEl.innerText = "Last updated: " + now.toLocaleTimeString();
+                    statusEl.innerText = "Last updated: " + now.toLocaleString();
                 })
                 .catch(err => {
                     console.error("Error refreshing:", err);
-                    statusEl.innerText = "Error refreshing data.";
+                    statusEl.innerText = "⚠️ Error refreshing data.";
+                })
+                .finally(() => {
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerText = "🔄 Refresh Data";
                 });
         }
 
-        // Refresh automatically every 60 seconds
-        setInterval(refreshData, 60000);
+        // 🖱️ Manual refresh button
+        refreshBtn.addEventListener("click", refreshData);
+
+        // Initial load (optional)
+        refreshData();
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('#ga-table').DataTable(); // adds filters, sorting, pagination
+        });
     </script>
 </body>
 </html>
-
-<script>
-$(document).ready(function() {
-  $('#ga-table').DataTable(); // 🪄 adds filters, sorting, pagination
-});
-</script>
