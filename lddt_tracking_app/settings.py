@@ -150,3 +150,10 @@ LOGIN_REDIRECT_URL='home'
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 TEMPLATE_DIRS = (os.path.join(PROJECT_ROOT, 'templates'),)
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-ga4-cache"
+    }
+}

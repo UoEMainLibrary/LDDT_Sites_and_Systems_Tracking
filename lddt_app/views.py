@@ -12,6 +12,8 @@ from openpyxl import Workbook
 from datetime import date, timedelta, datetime
 from datetime import date, timedelta, datetime
 import calendar
+from django.core.cache import cache
+
 
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -212,109 +214,91 @@ GA_PROPERTIES = [
         {"name": "Exampapers", "id": "382924447"},
         {"name": "Archives Collections", "id": "367934488"},
         {"name": "Collections", "id": "347147610"},
-        {"name": "Luna", "id": "383741097"},
-        {"name": "Leganto", "id": "384843296"},
-        {"name": "Library Blogs", "id": "347071499"},
-        {"name": "DiscoverED", "id": "370799052"},
-        {"name": "Aura", "id": "382911188"},
-        {"name": "Era", "id": "391408836"},
-        {"name": "HWU", "id": "382928678"},
-        {"name": "QMU", "id": "382912134"},
-        {"name": "RSC", "id": "382918256"},
-        {"name": "STA", "id": "382918682"},
-        {"name": "DataShare", "id": "389022533"},
-        {"name": "Exhibitions", "id": "384908156"},
-        {"name": "Our History", "id": "345202489"},
-        {"name": "Statacc", "id": "447420661"},
-        {"name": "Ideas", "id": "451235618"},
-        {"name": "Digital Colletions", "id": "507278994"},
-        {"name": "Images Teaching", "id": "450459257"},
-        {"name": "Pizan", "id": "455961874"},
-        {"name": "Library Registration", "id": "386789431"},
-        {"name": "Mantra", "id": "391409531"},
-        {"name": "Pointsofarrival", "id": "350302368"},
-        {"name": "Fairbairn", "id": "350314353"},
-        {"name": "HIV-aids-resources", "id": "347189427"},
-        {"name": "Openbooks", "id": "350304777"},
-        {"name": "sjac-collection", "id": "350327347"},
-        {"name": "geddes", "id": "350285942"},
+        #{"name": "Luna", "id": "383741097"},
+        #{"name": "Leganto", "id": "384843296"},
+        #{"name": "Library Blogs", "id": "347071499"},
+        #{"name": "DiscoverED", "id": "370799052"},
+        #{"name": "Aura", "id": "382911188"},
+        #{"name": "Era", "id": "391408836"},
+        #{"name": "HWU", "id": "382928678"},
+        #{"name": "QMU", "id": "382912134"},
+        #{"name": "RSC", "id": "382918256"},
+        #{"name": "STA", "id": "382918682"},
+        #{"name": "DataShare", "id": "389022533"},
+        #{"name": "Exhibitions", "id": "384908156"},
+        #{"name": "Our History", "id": "345202489"},
+        #{"name": "Statacc", "id": "447420661"},
+        #{"name": "Ideas", "id": "451235618"},
+        #{"name": "Digital Colletions", "id": "507278994"},
+        #{"name": "Images Teaching", "id": "450459257"},
+        #{"name": "Pizan", "id": "455961874"},
+        #{"name": "Library Registration", "id": "386789431"},
+        #{"name": "Mantra", "id": "391409531"},
+        #{"name": "Pointsofarrival", "id": "350302368"},
+        #{"name": "Fairbairn", "id": "350314353"},
+        #{"name": "HIV-aids-resources", "id": "347189427"},
+        #{"name": "Openbooks", "id": "350304777"},
+        #{"name": "sjac-collection", "id": "350327347"},
+        #{"name": "geddes", "id": "350285942"},
         # add more properties here
     ]
 
 KEY_FILE = os.path.join(os.path.dirname(__file__), "../../ga4access.json")
 
+
+
 # === Helper ===
 def _get_report(client, property_id, metric_name, start_date, end_date):
-    request = RunReportRequest(
-        property=f"properties/{property_id}",
-        metrics=[Metric(name=metric_name)],
-        date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
-    )
-    response = client.run_report(request)
-    return response.rows[0].metric_values[0].value if response.rows else 0
+    try:
+        request = RunReportRequest(
+            property=f"properties/{property_id}",
+            metrics=[Metric(name=metric_name)],
+            date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
+        )
+        response = client.run_report(request)
+        return int(response.rows[0].metric_values[0].value) if response.rows else 0
+    except Exception as e:
+        print(f"⚠️ GA4 error for {property_id}: {e}")
+        return 0
 
-def _get_monthly_visits(client, prop_id, months=12):
-    """Return a list of dicts with visits per month for the last `months` months"""
-    monthly_data = []
-
-    today = date.today()
-    for i in range(months):
-        first_day = date(today.year, today.month, 1) - timedelta(days=calendar.monthrange(today.year, today.month)[1]*i)
-        last_day = date(first_day.year, first_day.month, calendar.monthrange(first_day.year, first_day.month)[1])
-
-        visits = int(_get_report(client, prop_id, "sessions", first_day.isoformat(), last_day.isoformat()) or 0)
-
-        monthly_data.append({
-            "month": first_day.strftime("%b %Y"),
-            "visits": visits,
-        })
-
-    monthly_data.reverse()  # earliest month first
-    return monthly_data
 
 def _get_first_recorded_date(client, property_id):
-    """
-    Returns the first date GA4 recorded any session for the property.
-    """
-    request = RunReportRequest(
-        property=f"properties/{property_id}",
-        dimensions=[Dimension(name="date")],
-        metrics=[Metric(name="sessions")],
-        date_ranges=[DateRange(start_date="2015-08-14", end_date="today")],
-        order_bys=[
-            {"dimension": {"dimension_name": "date"}, "desc": False}
-        ],  # ✅ sort ascending
-        limit=1  # ✅ only need the earliest
-    )
-    response = client.run_report(request)
-
-    if response.rows:
-        first_date_str = response.rows[0].dimension_values[0].value  # e.g. "20251002"
-        # ✅ Format to YYYY-MM-DD
-        formatted_date = datetime.strptime(first_date_str, "%Y%m%d").strftime("%Y-%m-%d")
-        return formatted_date
-
+    try:
+        request = RunReportRequest(
+            property=f"properties/{property_id}",
+            dimensions=[Dimension(name="date")],
+            metrics=[Metric(name="sessions")],
+            date_ranges=[DateRange(start_date="2015-08-14", end_date="today")],
+            order_bys=[{"dimension": {"dimension_name": "date"}, "desc": False}],
+            limit=1
+        )
+        response = client.run_report(request)
+        if response.rows:
+            first_date_str = response.rows[0].dimension_values[0].value
+            return datetime.strptime(first_date_str, "%Y%m%d").strftime("%Y-%m-%d")
+    except Exception as e:
+        print(f"⚠️ Error getting first recorded date for {property_id}: {e}")
     return None
 
-def ga4_report(request):
+
+def _fetch_ga4_data():
     credentials = service_account.Credentials.from_service_account_file(KEY_FILE)
     client = BetaAnalyticsDataClient(credentials=credentials)
 
     dashboard_data = []
     monthly_dashboard = []
 
-    # Build list of last 12 months as "YYYY-MM"
-    months_list = []
     today = datetime.today()
+    months_list = []
     for i in range(11, -1, -1):
-        dt = today.replace(day=1) - timedelta(days=i*30)  # approximate month
+        dt = today.replace(day=1) - timedelta(days=i * 30)
         months_list.append(dt.strftime("%Y-%m"))
 
     for prop in GA_PROPERTIES:
         prop_id = prop["id"]
         prop_name = prop["name"]
 
-        # ✅ 0️⃣ Check Tag Connection via Realtime API
+        # Check Realtime Connection
         try:
             realtime_request = RunRealtimeReportRequest(
                 property=f"properties/{prop_id}",
@@ -323,24 +307,16 @@ def ga4_report(request):
             realtime_response = client.run_realtime_report(realtime_request)
             active_30min = int(realtime_response.rows[0].metric_values[0].value) if realtime_response.rows else 0
             connection_status = "🟢 Connected"
-        except Exception as e:
+        except Exception:
             active_30min = 0
             connection_status = "🔴 Not Connected"
-            print(f"⚠️ GA4 property {prop_name} connection error: {e}")
 
-        # 1️⃣ Visits (Last 30 Days)
-        visits_30days = int(_get_report(client, prop_id, "sessions", "30daysAgo", "today") or 0)
-
-        # 2️⃣ Visits (Last 6 Months)
-        visits_6months = int(_get_report(client, prop_id, "sessions", "180daysAgo", "today") or 0)
-
-        # 3️⃣ Visits (Last Year)
-        visits_year = int(_get_report(client, prop_id, "sessions", "365daysAgo", "today") or 0)
-
-        # 4️⃣ First Recorded Data Date
+        # Sessions
+        visits_30days = _get_report(client, prop_id, "sessions", "30daysAgo", "today")
+        visits_6months = _get_report(client, prop_id, "sessions", "180daysAgo", "today")
+        visits_year = _get_report(client, prop_id, "sessions", "365daysAgo", "today")
         first_recorded_date = _get_first_recorded_date(client, prop_id)
 
-        # 5️⃣ Receiving Data Status
         if active_30min > 0:
             receiving_status = "🟢 Receiving data now"
         elif visits_30days > 0:
@@ -348,7 +324,6 @@ def ga4_report(request):
         else:
             receiving_status = "🔴 No recent data"
 
-        # 6️⃣ Trend Calculation
         trend = "➖ Steady"
         if first_recorded_date and visits_30days > 0:
             start_date = datetime.strptime(first_recorded_date, "%Y-%m-%d")
@@ -372,14 +347,15 @@ def ga4_report(request):
             "trend": trend,
         })
 
-        # 🗓️ Monthly visits for last 12 months
+        # Monthly visits
         monthly_visits = []
         for month_str in months_list:
             year, month = map(int, month_str.split("-"))
             start_of_month = datetime(year, month, 1)
-            end_of_month_day = calendar.monthrange(year, month)[1]
-            end_of_month = datetime(year, month, end_of_month_day)
-            visits = _get_report(client, prop_id, "sessions", start_of_month.strftime("%Y-%m-%d"), end_of_month.strftime("%Y-%m-%d")) or 0
+            end_of_month = datetime(year, month, calendar.monthrange(year, month)[1])
+            visits = _get_report(client, prop_id, "sessions",
+                                 start_of_month.strftime("%Y-%m-%d"),
+                                 end_of_month.strftime("%Y-%m-%d"))
             monthly_visits.append(visits)
 
         monthly_dashboard.append({
@@ -387,49 +363,59 @@ def ga4_report(request):
             "monthly_visits": monthly_visits
         })
 
-    # 🧩 Excel export
+    return dashboard_data, monthly_dashboard, months_list
+
+
+def ga4_report(request):
+    CACHE_KEY = "ga4_cached_data"
+    CACHE_TIMEOUT = 60 * 60  # 1 hour
+
+    # --- AJAX refresh ---
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        dashboard_data, monthly_dashboard, months_list = _fetch_ga4_data()
+        payload = {
+            "dashboard": dashboard_data,
+            "monthly": monthly_dashboard,
+            "months": months_list,
+            "last_updated": datetime.now().isoformat(),
+        }
+        cache.set(CACHE_KEY, payload, CACHE_TIMEOUT)
+        return JsonResponse(payload)
+
+    # --- Excel export ---
     if request.GET.get("export") == "excel":
+        dashboard_data, monthly_dashboard, months_list = _fetch_ga4_data()
         wb = Workbook()
         ws = wb.active
         ws.title = "GA4 Report"
-
-        headers = [
-            "Property Name",
-            "Connection Status",
-            "Active Users (30 min)",
-            "Visits (30 days)",
-            "Visits (6 months)",
-            "Visits (1 year)",
-            "First Recorded Date",
-            "Receiving Data Status",
-            "Trend"
-        ]
-        ws.append(headers)
+        ws.append(["Property Name", "Connection", "Active (30m)", "30d", "6m", "1y", "First Date", "Receiving", "Trend"])
         for row in dashboard_data:
             ws.append([
-                row["property_name"],
-                row["connection_status"],
-                row["active_30min"],
-                row["visits_30days"],
-                row["visits_6months"],
-                row["visits_year"],
-                row["first_recorded_date"],
-                row["receiving_status"],
-                row["trend"],
+                row["property_name"], row["connection_status"], row["active_30min"],
+                row["visits_30days"], row["visits_6months"], row["visits_year"],
+                row["first_recorded_date"], row["receiving_status"], row["trend"]
             ])
-        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         response["Content-Disposition"] = 'attachment; filename="GA4_Report.xlsx"'
         wb.save(response)
         return response
 
-    # AJAX refresh
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return JsonResponse({"data": dashboard_data})
+    # --- Normal page load ---
+    cached = cache.get(CACHE_KEY)
+    if cached:
+        dashboard_data = cached["dashboard"]
+        monthly_dashboard = cached["monthly"]
+        months_list = cached["months"]
+        last_updated = cached.get("last_updated")
+    else:
+        dashboard_data, monthly_dashboard, months_list, last_updated = [], [], [], None
 
     return render(request, "ga4_reports.html", {
         "dashboard_data": dashboard_data,
         "monthly_dashboard": monthly_dashboard,
-        "months_list": months_list
+        "months_list": months_list,
+        "last_updated": last_updated
     })
 
 

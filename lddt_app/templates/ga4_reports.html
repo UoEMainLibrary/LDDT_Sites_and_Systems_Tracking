@@ -4,247 +4,201 @@
     <meta charset="UTF-8">
     <title>GA4 Dashboard</title>
 
-    <!-- DataTables -->
+    <!-- Libraries -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-
-    <!-- Select2 (for searchable dropdown) -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <style>
-        body { font-family: Arial, sans-serif; padding: 30px; background-color: #f9fafc; }
-        h2 { text-align: center; margin-bottom: 20px; }
-        table { width: 90%; margin: auto; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        th, td { border: 1px solid #ddd; text-align: center; padding: 10px; }
-        th { background-color: #007bff; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-        .refreshing { color: #007bff; font-style: italic; text-align: center; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; cursor: pointer; }
-        .btn-export { background: linear-gradient(90deg, #28a745, #218838); color: white; }
-        .btn-export:hover { background: linear-gradient(90deg, #218838, #1e7e34); }
-        .btn-refresh { background: linear-gradient(90deg, #007bff, #0056b3); color: white; }
-        .btn-refresh:hover { background: linear-gradient(90deg, #0056b3, #004085); }
-        .button-bar { width: 90%; margin: 0 auto 20px; display: flex; justify-content: space-between; align-items: center; }
-        .filter-bar { width: 90%; margin: 10px auto 20px; text-align: right; }
-        select { width: 300px; padding: 6px 10px; border-radius: 5px; border: 1px solid #ccc; }
-        canvas { display: block; margin: 0 auto; }
-        .chart-container {
-            width: 95%;
-            max-width: 1800px; /* optional upper limit */
-            margin: 0 auto;
-        }
-
-        #monthlyChart {
-            width: 100% !important;
-            height: 800px !important; /* adjust height as needed */
-        }
+        body { font-family: Arial, sans-serif; padding: 30px; background: #f9fafc; }
+        h2 { text-align: center; }
+        table { width: 95%; margin: 20px auto; border-collapse: collapse; background: #fff; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #007bff; color: #fff; }
+        tr:nth-child(even) { background: #f2f2f2; }
+        .btn { padding: 10px 18px; border-radius: 8px; font-weight: bold; color: #fff; cursor: pointer; border: none; }
+        .btn-refresh { background: #007bff; }
+        .btn-export { background: #28a745; }
+        .button-bar { width: 95%; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .chart-container { width: 95%; margin: auto; }
+        .status { text-align: center; color: #007bff; }
     </style>
 </head>
 <body>
 <h2>Google Analytics Dashboard</h2>
-<p class="refreshing" id="status">Last updated just now</p>
 
 <div class="button-bar">
     <button class="btn btn-refresh" id="refreshBtn">🔄 Refresh Data</button>
-    <a href="{% url 'ga4_report' %}?export=excel" class="btn btn-export">📊 Export to Excel</a>
+    <a href="?export=excel" class="btn btn-export">⬇️ Export to Excel</a>
 </div>
 
-<div class="filter-bar">
-    <label for="propertyFilter">Filter by Property:</label>
-    <select id="propertyFilter">
-        <option value="all" selected>All Properties</option>
-        {% for row in dashboard_data %}
-            <option value="{{ row.property_name }}">{{ row.property_name }}</option>
-        {% endfor %}
-    </select>
-</div>
+<!-- ✅ show cached status -->
+<p class="status" id="status">
+    {% if last_updated %}
+        Last updated: {{ last_updated }}
+    {% else %}
+        No data yet — click "🔄 Refresh Data" to load the dashboard.
+    {% endif %}
+</p>
 
-<!-- Main Table -->
-<table id="ga-table">
+<!-- ✅ main data table -->
+<table id="mainTable">
     <thead>
         <tr>
-            <th>Service Name</th>
-            <th>Connection Status</th>
-            <th>Receiving Status</th>
+            <th>Service</th>
+            <th>Connection</th>
+            <th>Receiving</th>
             <th>Trend</th>
-            <th>Active Users (Last 30 Min)</th>
-            <th>Visits (Last 30 Days)</th>
-            <th>Visits (Last 6 Months)</th>
-            <th>Visits (Last Year)</th>
-            <th>First Recorded Data</th>
+            <th>Active (30m)</th>
+            <th>30 Days</th>
+            <th>6 Months</th>
+            <th>1 Year</th>
+            <th>First Data</th>
         </tr>
     </thead>
     <tbody>
-        {% for row in dashboard_data %}
-        <tr data-property="{{ row.property_name }}">
-            <td>{{ row.property_name }}</td>
-            <td style="font-size: 0.85em;">{{ row.connection_status }}</td>
-            <td style="font-size: 0.85em;">{{ row.receiving_status }}</td>
-            <td style="font-size: 0.85em;">{{ row.trend }}</td>
-            <td>{{ row.active_30min }}</td>
-            <td>{{ row.visits_30days }}</td>
-            <td>{{ row.visits_6months }}</td>
-            <td>{{ row.visits_year }}</td>
-            <td>{{ row.first_recorded_date }}</td>
-        </tr>
-        {% endfor %}
+        {% if dashboard_data %}
+            {% for r in dashboard_data %}
+            <tr>
+                <td>{{ r.property_name }}</td>
+                <td>{{ r.connection_status }}</td>
+                <td>{{ r.receiving_status }}</td>
+                <td>{{ r.trend }}</td>
+                <td>{{ r.active_30min }}</td>
+                <td>{{ r.visits_30days }}</td>
+                <td>{{ r.visits_6months }}</td>
+                <td>{{ r.visits_year }}</td>
+                <td>{{ r.first_recorded_date }}</td>
+            </tr>
+            {% endfor %}
+        {% endif %}
     </tbody>
 </table>
 
-<br><br>
-
-<!-- Monthly Stats Table -->
-<h2>Monthly Stats (Last 12 Months)</h2>
-<table id="monthly-table">
+<h2>Monthly Visits (Last 12 Months)</h2>
+<table id="monthlyTable">
     <thead>
-        <tr>
-            <th>Service Name</th>
-            {% for month in months_list %}
-                <th>{{ month }}</th>
-            {% endfor %}
+        <tr id="monthHeader">
+            <th>Service</th>
+            {% if months_list %}
+                {% for m in months_list %}
+                    <th>{{ m }}</th>
+                {% endfor %}
+            {% endif %}
         </tr>
     </thead>
     <tbody>
-        {% for row in monthly_dashboard %}
-        <tr data-property="{{ row.property_name }}">
-            <td>{{ row.property_name }}</td>
-            {% for month_data in row.monthly_visits %}
-                <td>{{ month_data }}</td>
+        {% if monthly_dashboard %}
+            {% for r in monthly_dashboard %}
+                <tr>
+                    <td>{{ r.property_name }}</td>
+                    {% for v in r.monthly_visits %}
+                        <td>{{ v }}</td>
+                    {% endfor %}
+                </tr>
             {% endfor %}
-        </tr>
-        {% endfor %}
+        {% endif %}
     </tbody>
 </table>
 
-<h2>Monthly Visits Chart</h2>
 <div class="chart-container">
     <canvas id="monthlyChart"></canvas>
 </div>
 
 <script>
-const tableBody = document.querySelector("#ga-table tbody");
-const statusEl = document.getElementById("status");
-const refreshBtn = document.getElementById("refreshBtn");
+let chart = null;
 
-function refreshData() {
-    refreshBtn.disabled = true;
-    refreshBtn.innerText = "⏳ Refreshing...";
-    statusEl.innerText = "Refreshing data...";
-
-    fetch("{% url 'ga4_report' %}", { headers: { "X-Requested-With": "XMLHttpRequest" } })
-        .then(response => response.json())
-        .then(data => {
-            tableBody.innerHTML = "";
-            data.data.forEach(row => {
-                tableBody.innerHTML += `
-                    <tr data-property="${row.property_name}">
-                        <td>${row.property_name}</td>
-                        <td style="font-size: 0.85em;">${row.connection_status}</td>
-                        <td style="font-size: 0.85em;">${row.receiving_status}</td>
-                        <td style="font-size: 0.85em;">${row.trend}</td>
-                        <td>${row.active_30min}</td>
-                        <td>${row.visits_30days}</td>
-                        <td>${row.visits_6months}</td>
-                        <td>${row.visits_year}</td>
-                        <td>${row.first_recorded_date}</td>
-                    </tr>`;
-            });
-            statusEl.innerText = "Last updated: " + new Date().toLocaleString();
-        })
-        .catch(err => {
-            console.error("Error refreshing:", err);
-            statusEl.innerText = "⚠️ Error refreshing data.";
-        })
-        .finally(() => {
-            refreshBtn.disabled = false;
-            refreshBtn.innerText = "🔄 Refresh Data";
-        });
+function renderChart(months, monthlyData) {
+    if (chart) chart.destroy();
+    if (!months || !monthlyData) return;
+    const ctx = document.getElementById("monthlyChart").getContext("2d");
+    const datasets = monthlyData.map((p, i) => ({
+        label: p.property_name,
+        data: p.monthly_visits,
+        borderColor: `hsl(${i * 35}, 70%, 50%)`,
+        fill: false,
+        tension: 0.3
+    }));
+    chart = new Chart(ctx, {
+        type: "line",
+        data: { labels: months, datasets },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
 }
 
-refreshBtn.addEventListener("click", refreshData);
+document.addEventListener("DOMContentLoaded", function() {
+    // ✅ initialize tables with any cached data
+    $("#mainTable").DataTable();
+    $("#monthlyTable").DataTable();
 
-// Initialize DataTables and Select2
-$(document).ready(function() {
-    const gaTable = $('#ga-table').DataTable();
-    const monthlyTable = $('#monthly-table').DataTable();
-
-    // Searchable dropdown
-    $('#propertyFilter').select2({
-        placeholder: "Select or search property",
-        allowClear: true,
-        width: '300px'
-    });
-
-    // Filter logic
-    $('#propertyFilter').on('change', function() {
-        const selected = this.value;
-
-        gaTable.rows().every(function() {
-            const rowProperty = $(this.node()).data("property");
-            $(this.node()).toggle(selected === "all" || rowProperty === selected);
-        });
-
-        monthlyTable.rows().every(function() {
-            const rowProperty = $(this.node()).data("property");
-            $(this.node()).toggle(selected === "all" || rowProperty === selected);
-        });
-
-        monthlyChart.data.datasets.forEach(ds => {
-            ds.hidden = selected !== "all" && ds.label !== selected;
-        });
-        monthlyChart.update();
-    });
+    // ✅ render cached chart if data available
+    const cachedMonths = {{ months_list|safe|default:"[]" }};
+    const cachedMonthly = {{ monthly_dashboard|safe|default:"[]" }};
+    if (cachedMonths.length && cachedMonthly.length) {
+        renderChart(cachedMonths, cachedMonthly);
+    }
 });
 
-// Chart.js setup
-const ctx = document.getElementById('monthlyChart').getContext('2d');
-const months = {{ months_list|safe }};
-const datasets = [
-    {% for prop in monthly_dashboard %}
-    {
-        label: "{{ prop.property_name }}",
-        data: {{ prop.monthly_visits|safe }},
-        fill: false,
-        borderColor: "hsl({{ forloop.counter0|add:50 }}, 70%, 50%)",
-        tension: 0.3,
-        pointRadius: 3,
-        pointHoverRadius: 6
-    },
-    {% endfor %}
-];
+document.getElementById("refreshBtn").addEventListener("click", function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerText = "⏳ Fetching...";
+    $("#status").text("Fetching GA4 data...");
 
-const monthlyChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels: months, datasets: datasets },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'top' },
-            title: { display: true, text: 'Monthly Visits per Property' },
-            datalabels: {
-                align: 'top',
-                anchor: 'end',
-                font: { size: 9 },
-                color: '#333',
-                formatter: (value) => value
-            },
-            tooltip: { mode: 'index', intersect: false }
-        },
-        scales: {
-            y: { beginAtZero: true, title: { display: true, text: 'Visits' } },
-            x: { title: { display: true, text: 'Month' } }
-        }
-    },
-    plugins: [ChartDataLabels]
+    fetch("{% url 'ga4_report' %}", { headers: { "X-Requested-With": "XMLHttpRequest" } })
+        .then(r => {
+            if (!r.ok) throw new Error("Server error: " + r.status);
+            return r.json();
+        })
+        .then(json => {
+            const dashboard = json.dashboard;
+            const monthly = json.monthly;
+            const months = json.months;
+
+            // --- Fill main table ---
+            const tbody = $("#mainTable").DataTable().clear();
+            dashboard.forEach(r => {
+                tbody.row.add([
+                    r.property_name,
+                    r.connection_status,
+                    r.receiving_status,
+                    r.trend,
+                    r.active_30min,
+                    r.visits_30days,
+                    r.visits_6months,
+                    r.visits_year,
+                    r.first_recorded_date
+                ]);
+            });
+            tbody.draw();
+
+            // --- Fill monthly table ---
+            const monthHead = $("#monthHeader").empty().append("<th>Service</th>");
+            months.forEach(m => monthHead.append(`<th>${m}</th>`));
+
+            const mTable = $("#monthlyTable").DataTable().clear();
+            monthly.forEach(r => {
+                const row = [r.property_name, ...r.monthly_visits];
+                mTable.row.add(row);
+            });
+            mTable.draw();
+
+            renderChart(months, monthly);
+            $("#status").text("Last updated: " + new Date(json.last_updated).toLocaleString());
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            $("#status").text("⚠️ Error fetching GA4 data. Check console/logs.");
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerText = "🔄 Refresh Data";
+        });
 });
 </script>
 </body>
 </html>
+
 
 
