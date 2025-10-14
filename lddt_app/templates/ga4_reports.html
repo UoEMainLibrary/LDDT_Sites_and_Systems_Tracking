@@ -1,50 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>GA4 Dashboard</title>
-
-    <!-- DataTables -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-
-    <!-- Select2 (for searchable dropdown) -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <style>
-        body { font-family: Arial, sans-serif; padding: 30px; background-color: #f9fafc; }
-        h2 { text-align: center; margin-bottom: 20px; }
-        table { width: 90%; margin: auto; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        th, td { border: 1px solid #ddd; text-align: center; padding: 10px; }
-        th { background-color: #007bff; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-        .refreshing { color: #007bff; font-style: italic; text-align: center; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; cursor: pointer; }
-        .btn-export { background: linear-gradient(90deg, #28a745, #218838); color: white; }
-        .btn-export:hover { background: linear-gradient(90deg, #218838, #1e7e34); }
-        .btn-refresh { background: linear-gradient(90deg, #007bff, #0056b3); color: white; }
-        .btn-refresh:hover { background: linear-gradient(90deg, #0056b3, #004085); }
-        .button-bar { width: 90%; margin: 0 auto 20px; display: flex; justify-content: space-between; align-items: center; }
-        .filter-bar { width: 90%; margin: 10px auto 20px; text-align: right; }
-        select { width: 300px; padding: 6px 10px; border-radius: 5px; border: 1px solid #ccc; }
-        canvas { display: block; margin: 0 auto; }
-        .chart-container {
-            width: 95%;
-            max-width: 1800px; /* optional upper limit */
-            margin: 0 auto;
-        }
-
-        #monthlyChart {
-            width: 100% !important;
-            height: 800px !important; /* adjust height as needed */
-        }
-    </style>
+<meta charset="UTF-8">
+<title>GA4 Dashboard</title>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<style>
+body { font-family: Arial, sans-serif; padding: 30px; background-color: #f9fafc; }
+h2 { text-align: center; margin-bottom: 20px; }
+table { width: 90%; margin: auto; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+th, td { border: 1px solid #ddd; text-align: center; padding: 10px; }
+th { background-color: #007bff; color: white; }
+tr:nth-child(even){ background-color:#f2f2f2; }
+.refreshing{ color:#007bff; font-style:italic; text-align:center; }
+.btn{ display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:8px; font-weight:600; text-decoration:none; transition:all 0.3s ease; cursor:pointer; }
+.btn-export{ background:linear-gradient(90deg,#28a745,#218838); color:white; }
+.btn-export:hover{ background:linear-gradient(90deg,#218838,#1e7e34); }
+.btn-refresh{ background:linear-gradient(90deg,#007bff,#0056b3); color:white; }
+.btn-refresh:hover{ background:linear-gradient(90deg,#0056b3,#004085); }
+.button-bar{ width:90%; margin:0 auto 20px; display:flex; justify-content:space-between; align-items:center; }
+.chart-container{ width:95%; margin:auto; }
+select { padding:6px; font-size:1em; }
+</style>
 </head>
 <body>
 <h2>Google Analytics Dashboard</h2>
@@ -52,199 +32,109 @@
 
 <div class="button-bar">
     <button class="btn btn-refresh" id="refreshBtn">🔄 Refresh Data</button>
-    <a href="{% url 'ga4_report' %}?export=excel" class="btn btn-export">📊 Export to Excel</a>
+    <form id="exportForm" action="{% url 'ga4_report' %}?export=excel" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="chart_image" id="chartImageInput">
+        <button type="submit" class="btn btn-export">📊 Export to Excel</button>
+    </form>
 </div>
 
-<div class="filter-bar">
-    <label for="propertyFilter">Filter by Property:</label>
-    <select id="propertyFilter">
-        <option value="all" selected>All Properties</option>
-        {% for row in dashboard_data %}
-            <option value="{{ row.property_name }}">{{ row.property_name }}</option>
-        {% endfor %}
-    </select>
-</div>
-
-<!-- Main Table -->
 <table id="ga-table">
-    <thead>
-        <tr>
-            <th>Service Name</th>
-            <th>Connection Status</th>
-            <th>Receiving Status</th>
-            <th>Trend</th>
-            <th>Active Users (Last 30 Min)</th>
-            <th>Visits (Last 30 Days)</th>
-            <th>Visits (Last 6 Months)</th>
-            <th>Visits (Last Year)</th>
-            <th>First Recorded Data</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in dashboard_data %}
-        <tr data-property="{{ row.property_name }}">
-            <td>{{ row.property_name }}</td>
-            <td style="font-size: 0.85em;">{{ row.connection_status }}</td>
-            <td style="font-size: 0.85em;">{{ row.receiving_status }}</td>
-            <td style="font-size: 0.85em;">{{ row.trend }}</td>
-            <td>{{ row.active_30min }}</td>
-            <td>{{ row.visits_30days }}</td>
-            <td>{{ row.visits_6months }}</td>
-            <td>{{ row.visits_year }}</td>
-            <td>{{ row.first_recorded_date }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
+<thead>
+<tr>
+<th>Service Name</th><th>Connection Status</th><th>Receiving Status</th><th>Trend</th>
+<th>Active Users (Last 30 Min)</th><th>Visits (Last 30 Days)</th>
+<th>Visits (Last 6 Months)</th><th>Visits (Last Year)</th><th>First Recorded Data</th>
+</tr>
+</thead>
+<tbody>
+{% for row in dashboard_data %}
+<tr>
+<td>{{ row.property_name }}</td><td>{{ row.connection_status }}</td><td>{{ row.receiving_status }}</td>
+<td>{{ row.trend }}</td><td>{{ row.active_30min }}</td><td>{{ row.visits_30days }}</td>
+<td>{{ row.visits_6months }}</td><td>{{ row.visits_year }}</td><td>{{ row.first_recorded_date }}</td>
+</tr>
+{% endfor %}
+</tbody>
 </table>
 
 <br><br>
-
-<!-- Monthly Stats Table -->
 <h2>Monthly Stats (Last 12 Months)</h2>
 <table id="monthly-table">
-    <thead>
-        <tr>
-            <th>Service Name</th>
-            {% for month in months_list %}
-                <th>{{ month }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in monthly_dashboard %}
-        <tr data-property="{{ row.property_name }}">
-            <td>{{ row.property_name }}</td>
-            {% for month_data in row.monthly_visits %}
-                <td>{{ month_data }}</td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </tbody>
+<thead>
+<tr><th>Service Name</th>{% for m in months_list %}<th>{{ m }}</th>{% endfor %}</tr>
+</thead>
+<tbody>
+{% for row in monthly_dashboard %}
+<tr>
+<td>{{ row.property_name }}</td>
+{% for val in row.monthly_visits %}<td>{{ val }}</td>{% endfor %}
+</tr>
+{% endfor %}
+</tbody>
 </table>
 
 <h2>Monthly Visits Chart</h2>
 <div class="chart-container">
-    <canvas id="monthlyChart"></canvas>
+<select id="propertySelect">
+<option value="all" selected>Show All Properties</option>
+{% for row in monthly_dashboard %}
+<option value="{{ row.property_name }}">{{ row.property_name }}</option>
+{% endfor %}
+</select>
+<canvas id="monthlyChart" style="width:100%; height:500px;"></canvas>
 </div>
 
 <script>
-const tableBody = document.querySelector("#ga-table tbody");
-const statusEl = document.getElementById("status");
-const refreshBtn = document.getElementById("refreshBtn");
+const ctx = document.getElementById('monthlyChart');
+const months = {{ months_list|safe }};
+const allData = {{ monthly_dashboard|safe }};
 
-function refreshData() {
-    refreshBtn.disabled = true;
-    refreshBtn.innerText = "⏳ Refreshing...";
-    statusEl.innerText = "Refreshing data...";
+let chart;
+function renderChart(filter = "all") {
+    const datasets = allData.filter(p => filter === "all" || p.property_name === filter)
+        .map((p,i)=>({
+            label: p.property_name,
+            data: p.monthly_visits,
+            borderColor: `hsl(${i*45},70%,50%)`,
+            fill:false,
+            tension:0.3
+        }));
 
-    fetch("{% url 'ga4_report' %}", { headers: { "X-Requested-With": "XMLHttpRequest" } })
-        .then(response => response.json())
-        .then(data => {
-            tableBody.innerHTML = "";
-            data.data.forEach(row => {
-                tableBody.innerHTML += `
-                    <tr data-property="${row.property_name}">
-                        <td>${row.property_name}</td>
-                        <td style="font-size: 0.85em;">${row.connection_status}</td>
-                        <td style="font-size: 0.85em;">${row.receiving_status}</td>
-                        <td style="font-size: 0.85em;">${row.trend}</td>
-                        <td>${row.active_30min}</td>
-                        <td>${row.visits_30days}</td>
-                        <td>${row.visits_6months}</td>
-                        <td>${row.visits_year}</td>
-                        <td>${row.first_recorded_date}</td>
-                    </tr>`;
-            });
-            statusEl.innerText = "Last updated: " + new Date().toLocaleString();
-        })
-        .catch(err => {
-            console.error("Error refreshing:", err);
-            statusEl.innerText = "⚠️ Error refreshing data.";
-        })
-        .finally(() => {
-            refreshBtn.disabled = false;
-            refreshBtn.innerText = "🔄 Refresh Data";
-        });
+    if(chart) chart.destroy();
+
+    chart = new Chart(ctx,{
+        type:'line',
+        data:{ labels:months, datasets },
+        options:{
+            responsive:true,
+            plugins:{
+                legend:{ position:'top' },
+                title:{ display:true, text:'Monthly Visits per Property' },
+                datalabels:{
+                    align:'end', anchor:'end', font:{size:9},
+                    formatter:(v)=>v, color:'black'
+                }
+            },
+            scales:{ y:{ beginAtZero:true, title:{display:true, text:'Visits'} } }
+        },
+        plugins:[ChartDataLabels]
+    });
 }
 
-refreshBtn.addEventListener("click", refreshData);
-
-// Initialize DataTables and Select2
-$(document).ready(function() {
-    const gaTable = $('#ga-table').DataTable();
-    const monthlyTable = $('#monthly-table').DataTable();
-
-    // Searchable dropdown
-    $('#propertyFilter').select2({
-        placeholder: "Select or search property",
-        allowClear: true,
-        width: '300px'
-    });
-
-    // Filter logic
-    $('#propertyFilter').on('change', function() {
-        const selected = this.value;
-
-        gaTable.rows().every(function() {
-            const rowProperty = $(this.node()).data("property");
-            $(this.node()).toggle(selected === "all" || rowProperty === selected);
-        });
-
-        monthlyTable.rows().every(function() {
-            const rowProperty = $(this.node()).data("property");
-            $(this.node()).toggle(selected === "all" || rowProperty === selected);
-        });
-
-        monthlyChart.data.datasets.forEach(ds => {
-            ds.hidden = selected !== "all" && ds.label !== selected;
-        });
-        monthlyChart.update();
-    });
+document.getElementById("propertySelect").addEventListener("change",e=>{
+    renderChart(e.target.value);
 });
 
-// Chart.js setup
-const ctx = document.getElementById('monthlyChart').getContext('2d');
-const months = {{ months_list|safe }};
-const datasets = [
-    {% for prop in monthly_dashboard %}
-    {
-        label: "{{ prop.property_name }}",
-        data: {{ prop.monthly_visits|safe }},
-        fill: false,
-        borderColor: "hsl({{ forloop.counter0|add:50 }}, 70%, 50%)",
-        tension: 0.3,
-        pointRadius: 3,
-        pointHoverRadius: 6
-    },
-    {% endfor %}
-];
+renderChart();
 
-const monthlyChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels: months, datasets: datasets },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'top' },
-            title: { display: true, text: 'Monthly Visits per Property' },
-            datalabels: {
-                align: 'top',
-                anchor: 'end',
-                font: { size: 9 },
-                color: '#333',
-                formatter: (value) => value
-            },
-            tooltip: { mode: 'index', intersect: false }
-        },
-        scales: {
-            y: { beginAtZero: true, title: { display: true, text: 'Visits' } },
-            x: { title: { display: true, text: 'Month' } }
-        }
-    },
-    plugins: [ChartDataLabels]
+// Export chart image before submitting
+document.getElementById("exportForm").addEventListener("submit", function(){
+    const imgBase64 = chart.toBase64Image();
+    document.getElementById("chartImageInput").value = imgBase64;
 });
+
+$('#ga-table, #monthly-table').DataTable();
 </script>
 </body>
 </html>
-
-
