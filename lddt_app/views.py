@@ -13,6 +13,7 @@ from datetime import date, timedelta, datetime
 from datetime import date, timedelta, datetime
 import calendar
 from django.core.cache import cache
+from django.utils import timezone  # ✅ correct import
 
 
 from django.shortcuts import render
@@ -368,35 +369,50 @@ def _fetch_ga4_data():
 
 def ga4_report(request):
     CACHE_KEY = "ga4_cached_data"
-    CACHE_TIMEOUT = 60 * 60  # 1 hour
+    CACHE_TIMEOUT = None  # ♾️ Keep data until user manually refreshes
 
     # --- AJAX refresh ---
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         dashboard_data, monthly_dashboard, months_list = _fetch_ga4_data()
+
         payload = {
             "dashboard": dashboard_data,
             "monthly": monthly_dashboard,
             "months": months_list,
-            "last_updated": datetime.now().isoformat(),
+            "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),  # ✅ Django timezone
         }
+
+        # Save fresh data in shared cache
         cache.set(CACHE_KEY, payload, CACHE_TIMEOUT)
         return JsonResponse(payload)
 
     # --- Excel export ---
     if request.GET.get("export") == "excel":
-        dashboard_data, monthly_dashboard, months_list = _fetch_ga4_data()
+        cached = cache.get(CACHE_KEY)
+        if cached:
+            dashboard_data = cached["dashboard"]
+        else:
+            dashboard_data, _, _ = _fetch_ga4_data()
+
         wb = Workbook()
         ws = wb.active
         ws.title = "GA4 Report"
-        ws.append(["Property Name", "Connection", "Active (30m)", "30d", "6m", "1y", "First Date", "Receiving", "Trend"])
+
+        ws.append([
+            "Property Name", "Connection", "Active (30m)",
+            "30d", "6m", "1y", "First Date", "Receiving", "Trend"
+        ])
+
         for row in dashboard_data:
             ws.append([
                 row["property_name"], row["connection_status"], row["active_30min"],
                 row["visits_30days"], row["visits_6months"], row["visits_year"],
                 row["first_recorded_date"], row["receiving_status"], row["trend"]
             ])
+
         response = HttpResponse(
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
         response["Content-Disposition"] = 'attachment; filename="GA4_Report.xlsx"'
         wb.save(response)
         return response
@@ -404,9 +420,9 @@ def ga4_report(request):
     # --- Normal page load ---
     cached = cache.get(CACHE_KEY)
     if cached:
-        dashboard_data = cached["dashboard"]
-        monthly_dashboard = cached["monthly"]
-        months_list = cached["months"]
+        dashboard_data = cached.get("dashboard", [])
+        monthly_dashboard = cached.get("monthly", [])
+        months_list = cached.get("months", [])
         last_updated = cached.get("last_updated")
     else:
         dashboard_data, monthly_dashboard, months_list, last_updated = [], [], [], None
@@ -415,7 +431,7 @@ def ga4_report(request):
         "dashboard_data": dashboard_data,
         "monthly_dashboard": monthly_dashboard,
         "months_list": months_list,
-        "last_updated": last_updated
+        "last_updated": last_updated,
     })
 
 
