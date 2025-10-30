@@ -28,7 +28,7 @@ from google.analytics.data_v1beta import (
     RunRealtimeReportRequest,
     DateRange,
     Metric,
-    Dimension,  # ✅ ADDED
+    Dimension,
 )
 
 
@@ -76,9 +76,6 @@ def home(request):
     current_datetime_now = datetime.now()
     current_datetime_now_tostring = current_datetime_now
 
-
-
-
     return render(request, 'index.html', {
         'count_all_sites': count_all_sites,
         'count_all_active': count_all_active,
@@ -115,18 +112,12 @@ def websites_home(request):
     current_datetime_now = datetime.now()
     current_datetime_now_tostring = current_datetime_now.strftime("%Y/%B")
 
-
-
     return render(request, 'website/websites_home.html', {
         'websites': websites,
         'myFilter': myFilter,
         'shortFilter': shortFilter,
         'table_item_count_sites': table_item_count_sites,
         'current_datetime_now_tostring': current_datetime_now_tostring,
-
-
-
-
     })
 
 def websites_ssl_exp_this_month(request):
@@ -153,8 +144,6 @@ def websites_ssl_exp_this_month(request):
         'shortFilter': shortFilter,
         'table_item_count_sites': table_item_count_sites,
         'current_datetime_now_tostring': current_datetime_now_tostring,
-
-
     })
 
 def websites_investigate_decommissioned(request):
