@@ -52,6 +52,7 @@ urlpatterns = [
    path('tutorials_home/', tutorials_home, name='tutorials_home'),
    path('what_ssl_certificate/', what_ssl_certificate, name='what_ssl_certificate'),
    path('renew_existing_certificate/', renew_existing_certificate, name='renew_existing_certificate'),
+   path('ga4_report/', ga4_report, name='ga4_report'),
 
 
    path('tech_docs_home/', tech_docs_home, name='tech_docs_home'),
