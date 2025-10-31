@@ -40,7 +40,7 @@ SECRET_KEY = '3j=2^3@n768ayrhm!ooi33h9&7(02cox9kpv(l%r(!m!6ozs8='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'lac-tracking-test1.is.ed.ac.uk', 'tracking-test.is.ed.ac.uk']
+ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'lac-tracking-test1.is.ed.ac.uk', 'tracking-test.is.ed.ac.uk', 'lac-tracking-live1.is.ed.ac.uk']
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
