@@ -1,1 +1,2 @@
-secrets.jsondb.sqlite3
+secrets.json
+db.sqlite3
