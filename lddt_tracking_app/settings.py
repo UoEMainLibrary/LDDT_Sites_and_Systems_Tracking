@@ -20,11 +20,6 @@ pymysql.install_as_MySQLdb()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-    BASE_DIR / "assets",
-]
-
 # Load secrets.json
 try:
     with open(os.path.join(BASE_DIR, '../secrets.json')) as f:
