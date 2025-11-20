@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Register</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'register.css' %}" >
+</head>
+<body>
+    <div class="register-container">
+        <h2>Register</h2>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <ul class="errorlist">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endfor %}
+            <button type="submit">Register</button>
+            <br>
+            <button><a style="text-decoration: none; color: white" href="{% url 'login' %}">Cancel</a></button>
+        </form>
+    </div>
+</body>
+</html>

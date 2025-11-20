@@ -58,7 +58,8 @@ INSTALLED_APPS = [
     'django_filters',
     'import_export',
     'lddt_app',
-    'crispy_bootstrap4'
+    'crispy_bootstrap4',
+    'accounts'
 
 ]
 

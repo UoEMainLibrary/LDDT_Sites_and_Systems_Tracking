@@ -26,6 +26,10 @@ urlpatterns = [
    re_path(r'^login/$', LoginView.as_view(template_name='login.html'), name="login"),
    re_path(r'^logout/$', LogoutView.as_view(template_name='logout.html'), name="logout"),
 
+   path('accounts/', include('accounts.urls')),
+   path('', include('django.contrib.auth.urls')),  # For login, logout views
+
+
    re_path(r'^lddt-websites-home/', websites_home, name='websites_home'),
    re_path('create_website/', create_website, name='create_website'),
    re_path('create_subsite/', create_subsite, name='create_subsite'),
