@@ -9,7 +9,7 @@
 
     <title>Login</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'accounts/style.css' %}" >
+    <link rel="stylesheet" href="{% static 'login.css' %}" >
 </head>
 
 
@@ -21,12 +21,13 @@
     <p style="font-size: 20px; margin:50px; text-align:center">
         To be able to start uploading process, you will need to login to the system.
     </p>
-    <div class="d-grid gap-2 col-3 mx-auto" style="margin-bottom: 50px">
+    <div class="form-area">
         <form method="post">
             {% csrf_token %}
             {{ form.as_p}}
             <button class="btn btn-primary" type="submit" style="background-color: #0280a5">Login</button>
         </form>
+        <a href="{% url 'register' %}">Create your account</a>
     </div>
 </div>
 {% endblock %}
