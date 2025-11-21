@@ -1,8 +1,5 @@
-
-
-
-tr:nth-child(even){background-color: none; border: none}
-tr:nth-child(odd){background-color: none}
+tr:nth-child(even){background-color: #CACECF; border: none}
+tr:nth-child(odd){background-color: white}
 
 .table tr:hover {
   background-color: #D2D9D2;
@@ -12,4 +9,3 @@ tr:nth-child(odd){background-color: none}
 .table tr[data-href] {
         cursor: pointer;
     }
-

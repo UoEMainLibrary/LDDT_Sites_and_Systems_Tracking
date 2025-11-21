@@ -1,0 +1,129 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+    padding: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Replace your Bootstrap container with our centered box */
+.container {
+    background: white;
+    padding: 40px;
+    width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+    border: none !important;  /* remove earlier border */
+    margin-top: 0 !important;
+}
+
+/* Page heading + description */
+.container h3 {
+    margin: 0 0 20px;
+    text-align: center;
+    color: #333;
+    font-weight: 700;
+}
+
+.container p {
+    font-size: 16px;
+    margin: 0 0 25px;
+    text-align: center;
+    color: #666;
+}
+
+/* Remove Bootstrap grid influence */
+.d-grid {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px !important;
+}
+
+/* Form layout */
+form {
+    width: 100%;
+}
+
+form p {
+    margin-bottom: 15px;
+}
+
+/* Labels inside Django form.as_p */
+label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #555;
+    display: block;
+}
+
+/* Text fields */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0,123,255,0.5);
+}
+
+/* Login button */
+button.btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    background-color: #007bff !important;
+    border: none;
+    border-radius: 5px;
+    font-weight: 700;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+button.btn:hover {
+    background-color: #0056b3 !important;
+}
+
+/* Create account link */
+.container a {
+    text-decoration: none;
+    font-weight: 600;
+    color: #007bff;
+    transition: 0.2s;
+}
+
+.container a:hover {
+    color: #0056b3;
+}
+
+/* Error styling */
+.errorlist {
+    padding: 10px;
+    background: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    list-style: none;
+}
+.form-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
