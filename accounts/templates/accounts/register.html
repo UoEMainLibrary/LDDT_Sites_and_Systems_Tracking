@@ -1,22 +1,117 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Register</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'register.css' %}" >
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .register-container {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 350px;
+        }
+
+        .logo {
+            display: block;
+            margin: 0 auto 20px auto;
+            width: 330px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            padding: 10px 12px;
+            margin-bottom: 20px;
+            border: 1.5px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0,123,255,0.5);
+        }
+
+        button {
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            font-weight: 700;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .errorlist {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+            border-radius: 5px;
+            list-style-type: none;
+        }
+    </style>
 </head>
+
 <body>
     <div class="register-container">
+
+        <!-- LOGO -->
+        <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
+
         <h2>Register</h2>
+
         <form method="post" novalidate>
             {% csrf_token %}
             {{ form.non_field_errors }}
+
             {% for field in form %}
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
+
                 {% if field.errors %}
                     <ul class="errorlist">
                         {% for error in field.errors %}
@@ -25,9 +120,12 @@
                     </ul>
                 {% endif %}
             {% endfor %}
+
             <button type="submit">Register</button>
             <br>
-            <button><a style="text-decoration: none; color: white" href="{% url 'login' %}">Cancel</a></button>
+            <button>
+                <a style="text-decoration: none; color: white" href="{% url 'login' %}">Cancel</a>
+            </button>
         </form>
     </div>
 </body>
