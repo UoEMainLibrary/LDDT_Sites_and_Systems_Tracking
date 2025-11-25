@@ -658,14 +658,20 @@ class Vm(models.Model):
             private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
             ssh.connect(self.hostname, port=22, username=username, pkey=private_key)
 
-            cmd = f"openssl s_client -connect {self.hostname}:443 -servername {self.hostname} < /dev/null 2>/dev/null | openssl x509 -noout -enddate"
+            # Use localhost in openssl command
+            cmd = f"openssl s_client -connect localhost:443 -servername {self.hostname} 2>/dev/null | openssl x509 -noout -enddate"
             stdin, stdout, stderr = ssh.exec_command(cmd)
             output = stdout.read().decode().strip()
+            error = stderr.read().decode().strip()
+
+            if error:
+                print("OpenSSL error:", error)
 
             if output.startswith("notAfter="):
                 expiry_date = output.split("notAfter=")[1]
                 return expiry_date
             else:
+                print("No certificate expiry found, output was:", output)
                 return None
 
         except paramiko.AuthenticationException:
@@ -682,7 +688,6 @@ class Vm(models.Model):
 
         finally:
             ssh.close()
-
 
 
 
