@@ -212,7 +212,7 @@ class Vm(models.Model):
     vmfs_root_used = models.CharField('VMFS-root used', blank=True, null=True, max_length=150)
     vmfs_apps_used = models.CharField('VMFS-apps used', blank=True, null=True, max_length=150)
     vmfs_data_used = models.CharField('VMFS-data used', blank=True, null=True, max_length=150)
-
+    ssl_certificate_expiry = models.CharField('SSL-Cert Expiry', blank=True, null=True, max_length=150)
     @property
     def print_hostname(self):
         return self.hostname
@@ -642,8 +642,52 @@ class Vm(models.Model):
         except Exception as e:
             print(f"An error occurred: {e}")
 
+    @property
+    def ssh_ssl_certificate_expiry(self):
+        ssh_user_name = settings.SSH_USER_NAME
+        ssh_passphrase = settings.SSH_PASSPHRASE
 
+        username = ssh_user_name
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
+        passphrase = ssh_passphrase
 
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        try:
+            private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+            ssh.connect(self.hostname, port=22, username=username, pkey=private_key)
+
+            # Use localhost in openssl command
+            cmd = f"openssl s_client -connect localhost:443 -servername {self.hostname} 2>/dev/null | openssl x509 -noout -enddate"
+            stdin, stdout, stderr = ssh.exec_command(cmd)
+            output = stdout.read().decode().strip()
+            error = stderr.read().decode().strip()
+
+            if error:
+                print("OpenSSL error:", error)
+
+            if output.startswith("notAfter="):
+                expiry_date = output.split("notAfter=")[1]
+                return expiry_date
+            else:
+                print("No certificate expiry found, output was:", output)
+                return None
+
+        except paramiko.AuthenticationException:
+            print("Authentication failed, please verify your credentials or key.")
+            return None
+
+        except paramiko.SSHException as sshException:
+            print(f"Unable to establish SSH connection: {sshException}")
+            return None
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
+
+        finally:
+            ssh.close()
 
 
 
