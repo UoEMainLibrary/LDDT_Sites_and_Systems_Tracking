@@ -59,6 +59,7 @@ class ga4_required(models.Model):
 
 class Website(models.Model):
     ssl_expiry_date = models.DateField(blank=True, default=None, null=True)
+    ssl_expiry_date_new = models.DateField(blank=True, default=None, null=True)
     url = models.CharField('URL', blank=True, null=True, max_length=100)
     function = models.CharField('Function', blank=True, null=True, max_length=150)
     common_name = models.CharField('Common Name', blank=True, null=True, max_length=150)
@@ -98,6 +99,26 @@ class Website(models.Model):
     def __str__(self):
         return self.url
 
+    @property
+    def ssl_expiration(self):
+        cmd = (
+            f'echo | openssl s_client -connect {self.common_name}:443 '
+            f'-servername {self.common_name} 2>/dev/null | '
+            'openssl x509 -noout -enddate'
+        )
+
+        try:
+            result = subprocess.check_output(cmd, shell=True).decode().strip()
+            # result = "notAfter=Jan 20 12:00:00 2026 GMT"
+
+            if result.startswith("notAfter="):
+                result = result.replace("notAfter=", "")
+
+            # Convert to Python date
+            dt = datetime.strptime(result, "%b %d %H:%M:%S %Y %Z").date()
+            return dt
+        except Exception:
+            return None
 
     def get_calc_ping_field(self):
         hostname = self.url

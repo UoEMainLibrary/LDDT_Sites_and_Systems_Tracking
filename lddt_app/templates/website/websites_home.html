@@ -141,6 +141,7 @@ background-color:#6B6B6D for table header;
     <!-- SSL CERT PROCESS column -------------------------------------------------------------------------------------->
         <th scope="col" style="font-size: 15px; text-align: center;vertical-align: middle">SSL.Cert.Process</th>
         <th scope="col" style="font-size: 15px; text-align: center;vertical-align: middle">Cert Expire this month?</th>
+        <th scope="col" style="font-size: 15px; text-align: center;vertical-align: middle">New SSL Cert expiry data</th>
     </tr>
 
     {% for website in websites %}
@@ -190,6 +191,7 @@ background-color:#6B6B6D for table header;
 
             <th style="vertical-align: middle; border-top: 1px solid black;text-align: center;">{{ website.ssl_cert_process }}</th>
             <th style="vertical-align: middle; border-top: 1px solid black;text-align: center;">{{ website.ssl_exp_date_year_month }}</th>
+            <th style="vertical-align: middle; border-top: 1px solid black;text-align: center;">{{ website.ssl_expiry_date_new }}</th>
         </tr>
     </tbody>
     {% endfor %}
