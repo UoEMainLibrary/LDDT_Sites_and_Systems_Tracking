@@ -367,7 +367,7 @@ class Vm(models.Model):
             if not version:
                 return 'Puppet "not installed"'
 
-            return f'Puppet "{version}"'
+            return f'Puppet - {version} '
 
         except paramiko.AuthenticationException:
             return 'Puppet "authentication failed"'
