@@ -343,44 +343,43 @@ class Vm(models.Model):
         hostname = self.hostname
         port = 22  # Default SSH port
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        # Load private key with passphrase
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
+            # Connect
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
-            stdin, stdout, stderr = ssh.exec_command("rpm -qa | grep puppet")
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
+            # Query only puppet-agent version
+            command = "rpm -q --qf '%{VERSION}-%{RELEASE}\n' puppet-agent"
+            stdin, stdout, stderr = ssh.exec_command(command)
 
-            # Print the output
-            output = stdout.read().decode()
+            version = stdout.read().decode().strip()
 
-            return output
+            if not version:
+                return 'Puppet "not installed"'
+
+            return f'Puppet "{version}"'
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'Puppet "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'Puppet "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'Puppet "error: {e}"'
 
         finally:
-            # Close the SSH connection
             ssh.close()
 
     @property
