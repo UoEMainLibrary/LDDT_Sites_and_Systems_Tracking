@@ -299,53 +299,57 @@ class Vm(models.Model):
         finally:
             ssh.close()
 
-
     @property
     def ssh_nginx(self):
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_fil§e(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
-            stdin, stdout, stderr = ssh.exec_command("cat -t /etc/centos-release; nginx -V;")
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
+            # Get OS and nginx info
+            # cat -t is unnecessary here; removed for clean output
+            stdin, stdout, stderr = ssh.exec_command("cat /etc/centos-release; nginx -v")
 
-            # Print the output
-            output = stdout.read().decode()
+            output = stdout.read().decode().strip()
 
-            return output
+            if not output:
+                return 'OS "unknown"'
+
+            # First line should contain the OS release text
+            lines = output.splitlines()
+            os_release = lines[0]
+
+            # Remove parentheses content, e.g. (Green Obsidian)
+            if "(" in os_release:
+                os_release = os_release.split("(")[0].strip()
+
+            return os_release
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'OS "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'OS "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'OS "error: {e}"'
 
         finally:
-            # Close the SSH connection
             ssh.close()
 
     @property
