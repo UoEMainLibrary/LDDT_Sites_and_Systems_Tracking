@@ -453,59 +453,52 @@ class Vm(models.Model):
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
             stdin, stdout, stderr = ssh.exec_command('df -h /dev/mapper/VMFS-root')
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
-
-            # Print the output
             output = stdout.read().decode()
+
             if output:
-                output_lines = output.splitlines()
-                for line in output_lines:
-                    if "Filesystem" in line:
+                for line in output.splitlines():
+                    if line.startswith("Filesystem"):
                         continue
-                    elif '/dev/mapper/VMFS-root' in line:
-                        # Extract only the Use% from the df output
-                        df_parts = line.split()
-                        if len(df_parts) >= 5:
-                            use_percent = df_parts[4]
-                            return (f"{use_percent}")
-                    else:
-                        print(line)
+
+                    if "/dev/mapper/VMFS-root" in line:
+                        parts = line.split()
+                        if len(parts) >= 5:
+                            used_str = parts[4]  # example "73%"
+                            # remove "%" and convert
+                            used = int(used_str.replace("%", ""))
+                            free = 100 - used
+                            return f"{free}%"
+
+            return "Unknown"
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'VMFS "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'VMFS "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'VMFS "error: {e}"'
 
         finally:
-            # Close the SSH connection
             ssh.close()
-
 
     @property
     def ssh_vmfs_apps_used(self):
@@ -513,57 +506,50 @@ class Vm(models.Model):
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
             stdin, stdout, stderr = ssh.exec_command('df -h /dev/mapper/VMFS-apps')
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
-
-            # Print the output
             output = stdout.read().decode()
+
             if output:
-                output_lines = output.splitlines()
-                for line in output_lines:
-                    if "Filesystem" in line:
+                for line in output.splitlines():
+                    if line.startswith("Filesystem"):
                         continue
-                    elif '/dev/mapper/VMFS-apps' in line:
-                        # Extract only the Use% from the df output
-                        df_parts = line.split()
-                        if len(df_parts) >= 5:
-                            use_percent = df_parts[4]
-                            return (f"{use_percent}")
-                    else:
-                        print(line)
+
+                    if "/dev/mapper/VMFS-apps" in line:
+                        parts = line.split()
+                        if len(parts) >= 5:
+                            used_str = parts[4]  # e.g. "67%"
+                            used = int(used_str.replace("%", ""))
+                            free = 100 - used
+                            return f"{free}%"
+
+            return "Unknown"
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'VMFS "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'VMFS "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'VMFS "error: {e}"'
 
         finally:
-            # Close the SSH connection
             ssh.close()
 
     @property
@@ -572,53 +558,51 @@ class Vm(models.Model):
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
             stdin, stdout, stderr = ssh.exec_command('df -h /dev/mapper/VMFS-data')
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
-
-            # Print the output
             output = stdout.read().decode()
+
             if output:
-                output_lines = output.splitlines()
-                for line in output_lines:
-                    if "Filesystem" in line:
+                for line in output.splitlines():
+                    if line.startswith("Filesystem"):
                         continue
-                    elif '/dev/mapper/VMFS-data' in line:
-                        # Extract only the Use% from the df output
-                        df_parts = line.split()
-                        if len(df_parts) >= 5:
-                            use_percent = df_parts[4]
-                            return (f"{use_percent}")
-                    else:
-                        print(line)
+
+                    if "/dev/mapper/VMFS-data" in line:
+                        parts = line.split()
+                        if len(parts) >= 5:
+                            used_str = parts[4]  # e.g. "79%"
+                            used = int(used_str.replace("%", ""))
+                            free = 100 - used
+                            return f"{free}%"
+
+            return "Unknown"
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'VMFS "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'VMFS "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
+            return f'VMFS "error: {e}"'
+
+        finally:
+            ssh.close()
 
     @property
     def ssh_ip_address(self):
