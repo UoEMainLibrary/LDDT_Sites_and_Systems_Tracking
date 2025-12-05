@@ -233,7 +233,6 @@ class Vm(models.Model):
     vmfs_root_used = models.CharField('VMFS-root used', blank=True, null=True, max_length=150)
     vmfs_apps_used = models.CharField('VMFS-apps used', blank=True, null=True, max_length=150)
     vmfs_data_used = models.CharField('VMFS-data used', blank=True, null=True, max_length=150)
-    ssl_certificate_expiry = models.CharField('SSL-Cert Expiry', blank=True, null=True, max_length=150)
     @property
     def print_hostname(self):
         return self.hostname
