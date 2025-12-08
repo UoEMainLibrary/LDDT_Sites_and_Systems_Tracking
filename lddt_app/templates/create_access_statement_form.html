@@ -14,7 +14,7 @@
 <div class="main_body" >
     <div class="navbar">
         <a href="{% url 'access_statement_home' %}">Back</a>
-        <a href="#">View Mode</a>
+        <a href="{% url 'access_statement_details' access_statement.id%}">View Mode</a>
         <a class="active" href="#" >Edit Mode</a>
     </div>
     <br>
