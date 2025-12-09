@@ -14,7 +14,12 @@
 <div class="main_body" >
     <div class="navbar">
         <a href="{% url 'access_statement_home' %}">Back</a>
-        <a href="{% url 'access_statement_details' access_statement.id%}">View Mode</a>
+        {% if access_statement and access_statement.id %}
+        <a href="{% url 'access_statement_details' access_statement.id %}">View Mode</a>
+        {% else %}
+        <!-- Maybe show nothing or a placeholder -->
+        <span style="color: gray;">View Mode (not available)</span>
+        {% endif %}
         <a class="active" href="#" >Edit Mode</a>
     </div>
     <br>
