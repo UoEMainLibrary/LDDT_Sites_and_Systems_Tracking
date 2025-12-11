@@ -235,6 +235,7 @@ class Vm(models.Model):
     vmfs_data_used = models.CharField('VMFS-data used', blank=True, null=True, max_length=150)
     processors = models.CharField('Processors', blank=True, null=True, max_length=150)
     memory = models.CharField('Memory', blank=True, null=True, max_length=150)
+    last_patch_days_ago = models.CharField('Last Patch in days ago', blank=True, null=True, max_length=150)
     @property
     def print_hostname(self):
         return self.hostname
@@ -757,6 +758,48 @@ class Vm(models.Model):
         finally:
             ssh.close()
 
+    @property
+    def ssh_last_patch_days_ago(self):
+        ssh_user_name = settings.SSH_USER_NAME
+        ssh_passphrase = settings.SSH_PASSPHRASE
+
+        hostname = self.hostname
+        port = 22
+        username = ssh_user_name
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
+        passphrase = ssh_passphrase
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
+
+        try:
+            ssh.connect(hostname, port=port, username=username, pkey=private_key)
+
+            cmd = 'boot=$(uptime -s); echo $(( ( $(date +%s) - $(date -d "$boot" +%s) ) / 86400 ))'
+            stdin, stdout, stderr = ssh.exec_command(cmd)
+            output = stdout.read().decode().strip()
+
+            if output.isdigit():
+                return int(output)
+            else:
+                return "Unknown"
+
+        except paramiko.AuthenticationException:
+            return 'Days since boot "authentication failed"'
+
+        except paramiko.SSHException as sshException:
+            return f'Days since boot "SSH error: {sshException}"'
+
+        except Exception as e:
+            return f'Days since boot "error: {e}"'
+
+        finally:
+            ssh.close()
 
 class Testing_Status_r(models.Model):
     name = models.CharField(max_length=150)
