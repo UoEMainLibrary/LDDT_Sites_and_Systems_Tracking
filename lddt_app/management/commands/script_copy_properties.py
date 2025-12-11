@@ -16,6 +16,7 @@ class Command(BaseCommand):
             obj.vmfs_apps_used = obj.ssh_vmfs_apps_used
             obj.vmfs_data_used = obj.ssh_vmfs_data_used
             obj.ip_address = obj.ssh_ip_address
+            obj.proscessors = obj.ssh_processors
             obj.save()
             name = obj.ssh_db
             print( 'Updated ' + str(obj.hostname))

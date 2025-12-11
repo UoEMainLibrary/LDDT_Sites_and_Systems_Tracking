@@ -233,6 +233,7 @@ class Vm(models.Model):
     vmfs_root_used = models.CharField('VMFS-root used', blank=True, null=True, max_length=150)
     vmfs_apps_used = models.CharField('VMFS-apps used', blank=True, null=True, max_length=150)
     vmfs_data_used = models.CharField('VMFS-data used', blank=True, null=True, max_length=150)
+    processors = models.CharField('Processors', blank=True, null=True, max_length=150)
     @property
     def print_hostname(self):
         return self.hostname
@@ -663,6 +664,48 @@ class Vm(models.Model):
         except Exception as e:
             print(f"An error occurred: {e}")
 
+    @property
+    def ssh_processors(self):
+        ssh_user_name = settings.SSH_USER_NAME
+        ssh_passphrase = settings.SSH_PASSPHRASE
+
+        hostname = self.hostname
+        port = 22
+        username = ssh_user_name
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
+        passphrase = ssh_passphrase
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
+
+        try:
+            ssh.connect(hostname, port=port, username=username, pkey=private_key)
+
+            # Command to count processors (CPU cores / threads)
+            stdin, stdout, stderr = ssh.exec_command('grep -c ^processor /proc/cpuinfo')
+            output = stdout.read().decode().strip()
+
+            if output.isdigit():
+                return int(output)
+
+            return "Unknown"
+
+        except paramiko.AuthenticationException:
+            return 'Processors "authentication failed"'
+
+        except paramiko.SSHException as sshException:
+            return f'Processors "SSH error: {sshException}"'
+
+        except Exception as e:
+            return f'Processors "error: {e}"'
+
+        finally:
+            ssh.close()
 
 
 

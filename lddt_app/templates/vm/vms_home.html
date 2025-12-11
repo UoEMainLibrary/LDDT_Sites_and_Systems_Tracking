@@ -110,6 +110,7 @@
             <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">ROOT<br>space<br>left<br></th>
             <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">APPS<br>space<br>left<br></th>
             <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">DATA<br>space<br>left<br></th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">Proc's</th>
     </tr>
 
     {% for vm in vms %}
@@ -127,6 +128,7 @@
             <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important; text-align: center; {% if vm.vmfs_root_used >= 60 and vm.vmfs_root_used < 90 %} background-color: yellow !important;{% endif %}">{{ vm.vmfs_root_used|default_if_none:"" }}</th>
             <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important; text-align: center;">{{ vm.vmfs_data_used|default_if_none:"" }}</th>
             <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;text-align: center;">{{ vm.vmfs_apps_used|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;text-align: center;">{{ vm.processors|default_if_none:"" }}</th>
         </tr>
     </tbody>
     {% endfor %}
