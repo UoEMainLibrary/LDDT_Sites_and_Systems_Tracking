@@ -234,6 +234,7 @@ class Vm(models.Model):
     vmfs_apps_used = models.CharField('VMFS-apps used', blank=True, null=True, max_length=150)
     vmfs_data_used = models.CharField('VMFS-data used', blank=True, null=True, max_length=150)
     processors = models.CharField('Processors', blank=True, null=True, max_length=150)
+    memory = models.CharField('Memory', blank=True, null=True, max_length=150)
     @property
     def print_hostname(self):
         return self.hostname
@@ -707,7 +708,54 @@ class Vm(models.Model):
         finally:
             ssh.close()
 
+    @property
+    def ssh_mem_total_gb(self):
+        ssh_user_name = settings.SSH_USER_NAME
+        ssh_passphrase = settings.SSH_PASSPHRASE
 
+        hostname = self.hostname
+        port = 22
+        username = ssh_user_name
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
+        passphrase = ssh_passphrase
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
+
+        try:
+            ssh.connect(hostname, port=port, username=username, pkey=private_key)
+
+            stdin, stdout, stderr = ssh.exec_command('cat /proc/meminfo | grep MemTotal')
+            output = stdout.read().decode().strip()
+
+            if output:
+                parts = output.split()
+                if len(parts) >= 2:
+                    try:
+                        mem_kb = int(parts[1])
+                        mem_gb = mem_kb / (1024 ** 2)  # convert kB to GB
+                        return round(mem_gb, 2)
+                    except ValueError:
+                        return "Unknown"
+
+            return "Unknown"
+
+        except paramiko.AuthenticationException:
+            return 'MemTotal "authentication failed"'
+
+        except paramiko.SSHException as sshException:
+            return f'MemTotal "SSH error: {sshException}"'
+
+        except Exception as e:
+            return f'MemTotal "error: {e}"'
+
+        finally:
+            ssh.close()
 
 
 class Testing_Status_r(models.Model):
