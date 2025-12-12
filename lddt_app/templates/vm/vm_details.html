@@ -180,7 +180,7 @@
             display: flex;
             gap: 20px;
             flex-grow: 1;
-            min-height: 500px; /* ensure reasonable height */
+            min-height: 500px;
         }
 
         /* Left Column (Status) */
@@ -201,6 +201,56 @@
         /* Scroll bars if content overflows */
         .w3-card .w3-container {
             overflow-y: auto;
+        }
+
+        /* === Progress Bar Styles for MEMORY DETAILS === */
+        .memory-bar {
+            margin-bottom: 1rem;
+            font-weight: 700;
+            color: #00ffe4;
+            font-size: 14px;
+        }
+        .memory-bar label {
+            display: block;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+        .progress-bar {
+            position: relative;
+            background: #121424;
+            border-radius: 12px;
+            height: 20px;
+            box-shadow:
+                inset 0 0 6px #00ffe4cc;
+            border: 1px solid #00ffe4;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 12px 0 0 12px;
+            box-shadow: 0 0 8px #00ffe4;
+            transition: width 0.5s ease;
+        }
+        .progress-fill.root {
+            background: linear-gradient(90deg, #00ffc8, #008060);
+        }
+        .progress-fill.apps {
+            background: linear-gradient(90deg, #00aaff, #004d99);
+        }
+        .progress-fill.data {
+            background: linear-gradient(90deg, #ff4d4d, #b30000);
+        }
+        .progress-label {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            text-shadow: 0 0 3px #000;
+            pointer-events: none;
+            user-select: none;
         }
 
     </style>
@@ -289,6 +339,36 @@
 
         <!-- Right Column - stacked cards -->
         <div class="right-column">
+
+            <div class="w3-card" role="region" aria-labelledby="memory-details-heading" style="flex: 1 1 33%;">
+                <div class="w3-container">
+                    <h4 id="memory-details-heading" class="w3-center">MEMORY DETAILS</h4>
+
+                    <div class="memory-bar">
+                        <label>VMFS-ROOT USED:</label>
+                        <div class="progress-bar" role="progressbar" aria-valuenow="{{ vm.vmfs_root_used|default:'0'|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-fill root" style="width: {{ vm.vmfs_root_used }};"></div>
+                            <span class="progress-label">{{ vm.vmfs_root_used }}</span>
+                        </div>
+                    </div>
+
+                    <div class="memory-bar">
+                        <label>VMFS-APPS USED:</label>
+                        <div class="progress-bar" role="progressbar" aria-valuenow="{{ vm.vmfs_apps_used|default:'0'|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-fill apps" style="width: {{ vm.vmfs_apps_used }};"></div>
+                            <span class="progress-label">{{ vm.vmfs_apps_used }}</span>
+                        </div>
+                    </div>
+
+                    <div class="memory-bar">
+                        <label>VMFS-DATA USED:</label>
+                        <div class="progress-bar" role="progressbar" aria-valuenow="{{ vm.vmfs_data_used|default:'0'|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-fill data" style="width: {{ vm.vmfs_data_used }};"></div>
+                            <span class="progress-label">{{ vm.vmfs_data_used }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="w3-card" role="region" aria-labelledby="additional-info-heading" style="flex: 1 1 33%;">
                 <div class="w3-container">
