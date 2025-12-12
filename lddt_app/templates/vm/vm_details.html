@@ -5,10 +5,12 @@
     <title>Digital Library Tracking App - VM Details</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     {% load static %}
-    <link rel="stylesheet" href="{% static 'w3.css' %}" />
-    <link rel="stylesheet" href="{% static 'w3-theme-blue-grey.css' %}" />
-    <link rel="stylesheet" href="{% static 'family-open-sans.css' %}" />
-    <link rel="stylesheet" href="{% static 'font-awsome-min.css' %}" />
+
+    <link rel="stylesheet" href="{% static 'w3.css' %}">
+    <link rel="stylesheet" href="{% static 'w3-theme-blue-grey.css' %}">
+    <link rel="stylesheet" href="{% static 'family-open-sans.css' %}">
+    <link rel="stylesheet" href="{% static 'font-awsome-min.css' %}">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Open+Sans&display=swap');
 
@@ -28,7 +30,10 @@
             margin: 0;
         }
 
+        /* ------------------------------------ */
         /* NAVBAR */
+        /* ------------------------------------ */
+
         .w3-top .w3-bar {
             background: linear-gradient(90deg, #0fffdc, #0fffdc 30%, #004d40 100%);
             border-bottom: 1px solid #00ffea;
@@ -63,7 +68,10 @@
         .btn-delete { background-color: #ff4d4d; color: white !important; }
         .btn-delete:hover { background-color: #ff1a1a; }
 
-        /* GENERAL CARD STYLES */
+        /* ------------------------------------ */
+        /* CARD STYLING */
+        /* ------------------------------------ */
+
         .w3-card {
             background: linear-gradient(145deg, #1a1c29, #121424);
             border: 1px solid #00ffe4;
@@ -84,7 +92,10 @@
             gap: 20px;
         }
 
+        /* ------------------------------------ */
         /* SERVER NAME SECTION */
+        /* ------------------------------------ */
+
         .server-name-section {
             padding: 1rem 2rem;
             border-radius: 16px;
@@ -108,7 +119,10 @@
         }
         .server-ip { font-size: 14px; color: #6ef9f1; white-space: nowrap; }
 
-        /* TWO COLUMN LAYOUT */
+        /* ------------------------------------ */
+        /* MAIN LAYOUT (LEFT + RIGHT) */
+        /* ------------------------------------ */
+
         .content-row {
             display: flex;
             gap: 20px;
@@ -116,7 +130,10 @@
         .left-column { flex: 1 1 35%; }
         .right-column { flex: 1 1 65%; display: flex; gap: 20px; flex-direction: column; }
 
-        /* MEMORY DETAILS SPLIT (60% / 40%) */
+        /* ------------------------------------ */
+        /* MEMORY DETAILS (60/40 SPLIT) */
+        /* ------------------------------------ */
+
         .memory-split {
             display: flex;
             gap: 20px;
@@ -131,7 +148,6 @@
             padding-top: 10px;
         }
 
-        /* PROGRESS BARS */
         .memory-bar { margin-bottom: 1rem; }
         .memory-bar label {
             font-weight: 700;
@@ -168,8 +184,31 @@
             font-size: 12px;
             text-shadow: 0 0 3px black;
         }
+
+        /* ------------------------------------ */
+        /* OS & HTTPD SPLIT (NEW — 50/50) */
+        /* ------------------------------------ */
+
+        .os-httpd-split {
+            display: flex;
+            margin-top: 1rem;
+        }
+        .os-httpd-panel {
+            flex: 1;
+            padding: 1rem;
+            font-size: 14px;
+            color: #a3a8b5;
+        }
+        .os-httpd-divider {
+            width: 1px;
+            background: #00ffe4;
+            box-shadow: 0 0 8px #00ffe4, inset 0 0 12px #00ffe4;
+            margin: 0 10px;
+            border-radius: 2px;
+        }
     </style>
 </head>
+
 <body>
 
 <!-- NAVBAR -->
@@ -179,6 +218,7 @@
             <img src="/static/img/uni_logo_1.jpg" style="width:50px;">
             <h3 style="color:#00ffea;">Digital Library Tracking App</h3>
         </div>
+
         <div class="w3-bar-right">
             <a href="{% url 'vms_home' %}" class="w3-bar-item w3-button btn-back">Back</a>
             <a href="{% url 'update_vm' vm.id %}" class="w3-bar-item w3-button btn-update">Update</a>
@@ -205,6 +245,7 @@
         <div class="left-column">
             <div class="w3-card">
                 <div class="w3-container">
+
                     <h4 class="w3-center">STATUS</h4>
                     <p>
                         <strong>SERVER STATUS:</strong> {{ vm.vm_status }}<br/>
@@ -221,13 +262,9 @@
                         <strong>POODLE CHECKED:</strong> {{ vm.poodle_checked }}<br/>
                         <strong>LOG4SHELL RISK:</strong> {{ vm.log4shell_risk }}<br/>
                         <strong>TRACE RISK:</strong> {{ vm.trace_risk }}<br/>
-                        <strong>HTTPD LAST PATCH:</strong> {{ vm.httpd_last_patch }}<br/>
                         <strong>OS CENTOS ASSUMED:</strong> {{ vm.os_centos_assumed }}<br/>
-                        <strong>HTTPD:</strong> {{ vm.httpd }}<br/>
                         <strong>TOMCAT:</strong> {{ vm.tomcat }}<br/>
-                        <strong>NGINX:</strong> {{ vm.nginx }}<br/>
                         <strong>RAM:</strong> {{ vm.ram }}<br/>
-                        <strong>CPU:</strong> {{ vm.cpu }}<br/>
                         <strong>DB:</strong> {{ vm.db }}<br/>
                         <strong>PHP:</strong> {{ vm.php }}<br/>
                         <strong>JAVA:</strong> {{ vm.java }}<br/>
@@ -238,7 +275,7 @@
                         <strong>SHIBBOLETH:</strong> {{ vm.shibboleth }}<br/>
                         <strong>SSL:</strong> {{ vm.ssl }}<br/>
                         <strong>TESRSA:</strong> {{ vm.testrsa }}<br/>
-                        <strong>LAST PATCH DAYS AGO:</strong> {{ vm.last_patch_days_ago }}<br/>
+
                     </p>
                 </div>
             </div>
@@ -247,14 +284,14 @@
         <!-- RIGHT COLUMN -->
         <div class="right-column">
 
-            <!-- MEMORY DETAILS (NEW SPLIT) -->
+            <!-- MEMORY DETAILS -->
             <div class="w3-card">
                 <div class="w3-container">
                     <h4 class="w3-center">MEMORY DETAILS</h4>
 
                     <div class="memory-split">
 
-                        <!-- 60% GRAPH AREA -->
+                        <!-- GRAPH AREA -->
                         <div class="memory-graphs">
 
                             <div class="memory-bar">
@@ -283,7 +320,9 @@
 
                         </div>
 
-                        <!-- 40% TEXT AREA -->
+                        <div class="os-httpd-divider"></div>
+
+                        <!-- INFO AREA -->
                         <div class="memory-info">
                             <strong style="color:#00ffe4 ">Memory:</strong> {{ vm.memory }}<br>
                             <strong style="color:#00ffe4 ">Processors:</strong> {{ vm.processors }}<br>
@@ -294,16 +333,39 @@
                 </div>
             </div>
 
-            <!-- ADDITIONAL INFO -->
+            <!-- OS & HTTPD (NEW SPLIT SECTION) -->
             <div class="w3-card">
                 <div class="w3-container">
                     <h4 class="w3-center">OS & HTTPD</h4>
-                    <p>
-                        <strong>Last Backup:</strong> {{ vm.last_backup }}<br/>
-                        <strong>Owner:</strong> {{ vm.owner }}<br/>
-                        <strong>Uptime:</strong> {{ vm.uptime }}<br/>
-                        <strong>Notes:</strong> {{ vm.additional_notes }}<br/>
-                    </p>
+
+                    <div class="os-httpd-split">
+
+                        <!-- LEFT 50% -->
+                        <div class="os-httpd-panel">
+
+                                <strong style="color:#00ffe4 ">OPERATING SYSTEM</strong><br>
+                                 {{ vm.nginx }}<br/>
+
+                        </div>
+
+                        <!-- DIVIDER -->
+                        <div class="os-httpd-divider"></div>
+
+                        <!-- RIGHT 50% -->
+                        <div class="os-httpd-panel">
+                            <strong style="color:#00ffe4 ">HTTPD</strong><br>
+                                {{ vm.httpd }}
+                        </div>
+
+                        <!-- DIVIDER -->
+                        <div class="os-httpd-divider"></div>
+                        <div class="os-httpd-panel">
+                            <strong style="color:#00ffe4 ">LAST PATH {{ vm.last_patch_days_ago }} DAYS AGO</strong><br>
+
+                        </div>
+
+                    </div>
+
                 </div>
             </div>
 
@@ -329,8 +391,8 @@
             </div>
 
         </div>
+
     </div>
 </div>
-
 </body>
 </html>
