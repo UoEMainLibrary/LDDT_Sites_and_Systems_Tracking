@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <title>Websites</title>
@@ -136,7 +136,7 @@ table.table {
 
         </ul>
 
-        <button id="darkToggle" class="btn btn-outline-secondary btn-sm"><i class="fa fa-moon"></i></button>
+        <button id="darkToggle" class="btn btn-outline-secondary btn-sm"><i class="fa fa-sun"></i></button>
     </div>
 </nav>
 
@@ -279,12 +279,27 @@ table.table {
 <script>
 
 // ------------------ Dark Mode ------------------
-document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+const root = document.documentElement;
+const darkToggleBtn = document.getElementById("darkToggle");
+const darkToggleIcon = darkToggleBtn.querySelector("i");
 
-document.getElementById("darkToggle").onclick = () => {
-    const root = document.documentElement;
+function updateDarkModeIcon(theme) {
+    if(theme === "dark") {
+        darkToggleIcon.classList.remove("fa-moon");
+        darkToggleIcon.classList.add("fa-sun");
+    } else {
+        darkToggleIcon.classList.remove("fa-sun");
+        darkToggleIcon.classList.add("fa-moon");
+    }
+}
+
+root.dataset.theme = localStorage.getItem("theme") || "dark";
+updateDarkModeIcon(root.dataset.theme);
+
+darkToggleBtn.onclick = () => {
     root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
     localStorage.setItem("theme", root.dataset.theme);
+    updateDarkModeIcon(root.dataset.theme);
 };
 
 
@@ -414,4 +429,3 @@ document.querySelectorAll("th[data-col]").forEach(th => {
 
 </body>
 </html>
-
