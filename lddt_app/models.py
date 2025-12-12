@@ -101,6 +101,10 @@ class Website(models.Model):
 
     @property
     def ssl_expiration(self):
+        type_str = getattr(self.type, 'name', None)  # adjust 'name' as needed
+        if not type_str or type_str.strip().upper() != "SITE":
+            return None
+
         cmd = (
             f'echo | openssl s_client -connect {self.common_name}:443 '
             f'-servername {self.common_name} 2>/dev/null | '
