@@ -1,512 +1,495 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Accessibility Statement</title>
+
     {% load static %}
-    <link rel="stylesheet" href="{% static '/statements_css/table_style.css' %}" >
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-    <link rel="stylesheet" href="{% static '/statements_css/statement_top_menu.css' %}">
-    <link rel="stylesheet" href="/websites/device.css"/>
+    <link rel="stylesheet" href="{% static '/statements_css/table_style.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="{% static '/statements_css/statement_top_menu.css' %}" />
+    <link rel="stylesheet" href="/websites/device.css" />
+
+    <style>
+    /* Body remains dark to keep header/nav consistent */
+    body {
+        background-color: #2c3240;
+        color: #e1e1e1;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    header nav.navbar {
+        background-color: #041e42;
+    }
+
+    #logo h1 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.6rem;
+        color: #e1e1e1;
+    }
+    #logo small {
+        color: #b0b0b0;
+        font-size: 0.85rem;
+    }
+
+    /* Table container with white background */
+    .table-responsive {
+        background-color: #fff; /* white background for table */
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        margin: 0 -15px;
+    }
+
+    main.container {
+        max-width: 100% !important;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        color: #2e2e2e; /* dark text for readability */
+    }
+
+    thead th {
+        position: sticky;
+        top: 0;
+        background-color: #041e42;
+        color: #ffffff;
+        z-index: 10;
+        vertical-align: bottom;
+        padding: 0.65rem 0.75rem;
+        border-bottom: 2px solid #0a2e67;
+        font-size: 0.9rem;
+    }
+
+    thead th.sortable {
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    thead th .sort-icon {
+        font-size: 0.7rem;
+        margin-left: 6px;
+        color: #ccc;
+        user-select: none;
+    }
+
+    thead th.sorted-asc .sort-icon {
+        color: #5599ff;
+    }
+    thead th.sorted-desc .sort-icon {
+        color: #5599ff;
+    }
+
+    thead input {
+        font-size: 0.8rem;
+        width: 100%;
+        max-width: 140px;
+        padding: 0.25rem 0.4rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background-color: #fafafa;
+        color: #333;
+    }
+    thead input::placeholder {
+        color: #999;
+    }
+    thead input:focus {
+        outline: none;
+        border-color: #5599ff;
+        box-shadow: 0 0 5px #5599ff;
+        background-color: #fff;
+        color: #000;
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #ddd;
+        transition: background-color 0.3s ease;
+    }
+    tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    tbody tr:hover,
+    tbody tr:focus {
+        background-color: #d9e4ff;
+        color: #000;
+        cursor: pointer;
+    }
+
+    tbody th,
+    tbody td {
+        padding: 0.5rem 0.65rem;
+        vertical-align: middle;
+        color: #2e2e2e; /* darker text */
+        font-size: 0.8rem;
+    }
+
+    tbody th {
+        font-weight: 600;
+    }
+
+    .text-center {
+        text-align: center !important;
+    }
+
+    tr[data-href] {
+        outline: none;
+    }
+    tr[data-href]:focus {
+        outline: 2px solid #5599ff;
+        outline-offset: -2px;
+    }
+</style>
 
     <script>
-         function animate(k){
-            k.style.MozTransform = "rotateY(360deg)";
-         }
-         window.addEventListener("load",function(){
-            //alert(document.documentElement.clientHeight);
-         });
-      </script>
+        function animate(el) {
+            el.style.transform = "rotateY(360deg)";
+        }
+        window.addEventListener("load", () => {
+            // Placeholder for load event
+        });
+    </script>
 </head>
 
 <body>
-<section id="main" class="main">
     <header>
-        <figure onClick="animate(this)">
-            <div id="logo">
-                <table>
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" href="#" onclick="animate(this)">
+                    <div id="logo" class="mr-3">
+                        <h1 class="mb-0">Accessibility Testing</h1>
+                        <small>Total service: {{ access_statements_all_count }}</small>
+                    </div>
+                </a>
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-toggle="collapse"
+                    data-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link text-white" href="{% url 'home' %}">
+                                <i class="fa fa-fw fa-home"></i> Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{% url 'create_access_statement' %}">+ ADD NEW</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container my-4">
+
+        <div class="mb-3">
+            <input
+                type="text"
+                id="globalSearchInput"
+                onkeyup="filterWholeTable()"
+                placeholder="Search entire table..."
+                aria-label="Search entire table"
+                class="form-control"
+                style="max-width: 300px;"
+            />
+        </div>
+
+        <div class="table-responsive" role="region" aria-label="Accessibility Statements Table">
+            <table class="table table-bordered table-hover" id="myTable" aria-describedby="tableDescription">
+                <caption id="tableDescription" class="sr-only">
+                    Table of accessibility statements with filtering options by each column.
+                </caption>
+                <thead>
                     <tr>
-                        <td>
-                            <h1>Accessibility Testing</h1>
-                            <p>Total service: {{ access_statements_all_count }}</p>
+                        <th scope="col">
+                            Site
+                            <input
+                                type="text"
+                                id="myInput1"
+                                onkeyup="filterSite()"
+                                aria-label="Filter by Site name"
+                                placeholder="Type site name"
+                            />
+                        </th>
+                        <th scope="col">
+                            Assigned to
+                            <input
+                                type="text"
+                                id="myInput2"
+                                onkeyup="filterAssignTo()"
+                                aria-label="Filter by Assigned to"
+                                placeholder="Type person name"
+                            />
+                        </th>
+                        <th scope="col" class="text-center sortable" data-col="2">
+                            Last Testing <br>
+                            <span class="sort-icon">▲▼</span>
+                        </th>
+                        <th scope="col" class="text-center">
+                            Testing Status
+                            <input
+                                type="text"
+                                id="myInput3"
+                                onkeyup="filterTestingStatus()"
+                                aria-label="Filter by Testing Status"
+                                placeholder="Type status"
+                            />
+                        </th>
+                        <th scope="col" class="text-center">
+                            Statement Status
+                            <input
+                                type="text"
+                                id="myInput4"
+                                onkeyup="filterStatementStatus()"
+                                aria-label="Filter by Statement Status"
+                                placeholder="Type status"
+                            />
+                        </th>
+                        <th scope="col" class="text-center sortable" data-col="5">
+                            Expiry Date<br>
+                            <span class="sort-icon">▲▼</span>
+                        </th>
+                        <th scope="col" class="text-center sortable" data-col="6">
+                            Statement Date<br>
+                            <span class="sort-icon">▲▼</span>
+                        </th>
+                        <th scope="col" class="text-center sortable" data-col="7">
+                            Issues Target Date<br>
+                            <span class="sort-icon">▲▼</span>
+                        </th>
+                        <th scope="col" class="text-center sortable" data-col="8">
+                            Re-Test Date<br>
+                            <span class="sort-icon">▲▼</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for access_statement in access_statements %}
+                    <tr
+                        tabindex="0"
+                        data-href="{% url 'access_statement_details' access_statement.id %}"
+                        aria-label="Details for {{ access_statement.site }}"
+                    >
+                        <th scope="row">{{ access_statement.site }}</th>
+                        <td>{{ access_statement.wa_statement_tasked_to_last }}</td>
+
+                        <td class="text-center">
+                            {% if not access_statement.testing_date %}
+                            &times;
+                            {% else %}
+                            {{ access_statement.testing_date|date:"Y-m-d" }}<br />
+                            <small>{{ access_statement.testing_date|timeuntil }}</small>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            {% if access_statement.testing_status_r == Empty %}
+                            &times;
+                            {% else %}
+                            {{ access_statement.testing_status_r }}
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            {% if access_statement.access_statement_status_r == Empty %}
+                            &times;
+                            {% else %}
+                            {{ access_statement.access_statement_status_r }}
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            {% if not access_statement.expiry_date %}
+                            &times;
+                            {% else %}
+                            {{ access_statement.expiry_date|date:"Y-m-d" }}<br />
+                            <small>{{ access_statement.expiry_date|timeuntil }}</small>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            {% if not access_statement.statement_status_date %}
+                            &times;
+                            {% else %}
+                            {{ access_statement.statement_status_date|date:"Y-m-d" }}<br />
+                            <small>{{ access_statement.statement_status_date|timeuntil }}</small>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            {% if not access_statement.issues_target_date %}
+                            &times;
+                            {% else %}
+                            {{ access_statement.issues_target_date|date:"Y-m-d" }}<br />
+                            <small>{{ access_statement.issues_target_date|timeuntil }}</small>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            {% if not access_statement.re_test_date %}
+                            &times;
+                            {% else %}
+                            {{ access_statement.re_test_date|date:"Y-m-d" }}<br />
+                            <small>{{ access_statement.re_test_date|timeuntil }}</small>
+                            {% endif %}
                         </td>
                     </tr>
-                </table>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
 
+    <script>
+        // Animate logo rotation on click
+        function animate(el) {
+            el.style.transform = "rotateY(360deg)";
+        }
 
-            </div>
-        </figure>
+        // Enable row click navigation
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll("tr[data-href]").forEach(row => {
+                row.addEventListener("click", () => {
+                    window.location.href = row.dataset.href;
+                });
+                row.addEventListener("keypress", (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        window.location.href = row.dataset.href;
+                    }
+                });
+            });
 
-        <nav>
-            <ul>
-                <li style="color:black; background-color: #041E42;">
-                    <a href="{% url 'home' %}" style="color:white"><i class="fa fa-fw fa-home"></i>Home</a>
-                </li>
-                <li style="background-color: #041E42;">
-                    <a href="{% url 'create_access_statement' %}" style="color:white">+ADD NEW</a>
-                </li>
+            // Sorting logic for date columns
+            const table = document.getElementById('myTable');
+            const tbody = table.tBodies[0];
 
-                <div class="clear"></div>
-            </ul>
-            <ul>
-                <li>None</li>
-                <li>None</li>
+            function parseDateFromCell(cell) {
+                // The date is in the first line of the cell (Y-m-d format), or empty fallback
+                const firstLine = cell.textContent.trim().split('\n')[0].trim();
+                if (!firstLine || firstLine === '×') return null;
+                const parsed = Date.parse(firstLine);
+                return isNaN(parsed) ? null : parsed;
+            }
 
-                <div class="clear"></div>
-            </ul>
-        </nav>
-        <div class="clear"></div>
-    </header>
-</section>
-<br>
+            function sortTableByColumn(colIndex, asc) {
+                const rowsArray = Array.from(tbody.rows);
 
+                rowsArray.sort((a, b) => {
+                    const dateA = parseDateFromCell(a.cells[colIndex]);
+                    const dateB = parseDateFromCell(b.cells[colIndex]);
 
-<table class="table" id="myTable">
-    <tr class="header" style="position:sticky; z-index:1; top:0; background-color: #041E42; color: white">
-        <!-- SITE column ------------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 18px">Site <br>
-            <label for="myInput1" style="font-size: 12px">
-                Type Site name:
-            </label><br>
-            <input
-                    style="font-size: 15px; width: 60%"
-                    type="text"
-                    id="myInput1"
-                    onkeyup="filterSite()"
-                    title="Search for a name">
-        </th>
+                    if (dateA === null && dateB === null) return 0;
+                    if (dateA === null) return 1;
+                    if (dateB === null) return -1;
 
+                    return asc ? dateA - dateB : dateB - dateA;
+                });
 
-        <!-- STATEMENT TASKED NEW TO column ---------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 18px">Assigned to<br>
-            <label for="myInput2" style="font-size: 12px">
-                Type person name:
-            </label><br>
-            <input
-                    style="font-size: 15px; width: 100%"
-                    type="text"
-                    id="myInput2"
-                    onkeyup="filterAssignTo()"
-                    title="Search for an email">
-        </th>
+                rowsArray.forEach(row => tbody.appendChild(row));
+            }
 
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.addEventListener('click', () => {
+                    const colIndex = parseInt(th.getAttribute('data-col'));
+                    const isAsc = th.classList.contains('sorted-asc');
 
-        <!-- TESTING DATE column -------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 18px; text-align: center">Last Testing <br>
-            <label for="myInput5" style="font-size: 12px">
-                Type date:
-            </label><br>
-            <input
-                    style="font-size: 15px; width: 60%"
-                    type="text"
-                    id="myInput5"
-                    onkeyup="filterLastTestingDate()"
-                    title="Search Date">
-        </th>
+                    // Remove sorted classes from all headers
+                    document.querySelectorAll('th.sortable').forEach(header => {
+                        header.classList.remove('sorted-asc', 'sorted-desc');
+                    });
 
-        <!-- TESTING STATUS R column ---------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 18px; text-align: center">Testing Status <br>
-            <label for="myInput3" style="font-size: 12px">
-                Type Status:
-            </label><br>
-            <input
-                    style="font-size: 15px; width: 70%"
-                    type="text"
-                    id="myInput3"
-                    onkeyup="filterTestingStatus()"
-                    title="Type in a name">
+                    // Toggle sort classes on clicked header
+                    if (isAsc) {
+                        th.classList.add('sorted-desc');
+                    } else {
+                        th.classList.add('sorted-asc');
+                    }
 
-        </th>
-
-        <!-- STATEMENT STATUS R column ---------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 18px; text-align: center">Statement Status <br>
-            <label for="myInput4" style="font-size: 12px">
-                Type Status:
-            </label><br>
-            <input
-                    style="font-size: 15px; width: 70%"
-                    type="text"
-                    id="myInput4"
-                    onkeyup="filterStatementStatus()"
-                    title="Type in a name">
-        </th>
-
-        <!-- EXPIRY DATE column ---------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 18px; text-align: center">Expiry Date <br>
-            <label for="myInput6" style="font-size: 12px">
-                Type date:
-            </label><br>
-            <input
-                    style="font-size: 15px; width: 60%"
-                    type="text"
-                    id="myInput6"
-                    onkeyup="filterExpiryDate()"
-                    title="Search Date">
-        </th>
-
-        <!-- STATEMENT STATUS DATE column ---------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 18px; text-align: center">Statement Date <br>
-            <label for="myInput7" style="font-size: 12px">
-                Type date:
-            </label><br>
-            <input
-                    style="font-size: 15px; width: 60%"
-                    type="text"
-                    id="myInput7"
-                    onkeyup="filterStatementDate()"
-                    title="Search Date">
-        </th>
-
-
-        <!-- ISSUES TARGET DATE column ---------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 18px; text-align: center">Issues Target Date<br>
-            <label for="myInput8" style="font-size: 12px">
-                Type date:
-            </label><br>
-            <input
-                    style="font-size: 15px; width: 60%"
-                    type="text"
-                    id="myInput8"
-                    onkeyup="filterIssuesTargetDate()"
-                    title="Search Date">
-        </th>
-
-        <!-- RE-TEST DATE column ---------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 17px; text-align: center">Re-Test Date<br>
-            <label for="myInput9" style="font-size: 12px">
-                Type date:
-            </label><br>
-
-            <input  style="font-size: 15px; width: 60%"
-                    type="text"
-                    id="myInput9"
-                    onkeyup="filterRetestDate()"
-                    title="Search Date">
-        </th>
-    </tr>
-
-
-    {% for access_statement in access_statements %}
-    <tbody>
-        <tr data-href = "{% url 'access_statement_details' access_statement.id %}" style="font-size: 15px; vertical-align: middle; padding-top:20px">
-            <th style="vertical-align: middle">{{ access_statement.site }}</th>
-            <th style="vertical-align: middle">{{ access_statement.wa_statement_tasked_to_last }}</th>
-
-            <!-- LAST TESTING DATE column -->
-            {% if not access_statement.testing_date %}
-            <td style="text-align: center; vertical-align: middle"> X </td>
-            {% else %}
-            <th style="vertical-align: middle; text-align: center">{{ access_statement.testing_date|date:"Y-m-d" }}<br>
-                <p style="font-size: 11px">{{ access_statement.testing_date|timeuntil }}</p>
-            </th>
-            {% endif %}
-
-            <!-- TESTING STATUS column -->
-            {% if access_statement.testing_status_r == Empty %}
-            <td style="text-align: center; vertical-align: middle"> X </td>
-            {% else %}
-            <th style="vertical-align: middle; text-align: center">{{ access_statement.testing_status_r }}
-            </th>
-            {% endif %}
-
-            <!-- STATEMENT STATUS column -->
-            {% if access_statement.access_statement_status_r == Empty %}
-            <td style="text-align: center; vertical-align: middle"> X </td>
-            {% else %}
-            <th style="vertical-align: middle; text-align: center">{{ access_statement.access_statement_status_r }}
-            </th>
-            {% endif %}
-
-            <!-- EXPIRY DATE column -->
-            {% if not access_statement.expiry_date %}
-            <td style="text-align: center; vertical-align: middle"> X </td>
-            {% else %}
-            <th style="vertical-align: middle; text-align: center">{{ access_statement.expiry_date|date:"Y-m-d" }}<br>
-                <p style="font-size: 11px">{{ access_statement.expiry_date|timeuntil }}</p>
-            </th>
-            {% endif %}
-
-            <!-- STATEMENT DATE column -->
-            {% if not access_statement.statement_status_date %}
-            <td style="text-align: center; vertical-align: middle"> X </td>
-            {% else %}
-            <th style="vertical-align: middle; text-align: center">{{ access_statement.statement_status_date|date:"Y-m-d" }}<br>
-                <p style="font-size: 11px">{{ access_statement.statement_status_date|timeuntil }}</p>
-            </th>
-            {% endif %}
-
-            <!-- ISSUES TARGET DATE column -->
-            {% if not access_statement.issues_target_date %}
-            <td style="text-align: center; vertical-align: middle"> X </td>
-            {% else %}
-            <th style="vertical-align: middle; text-align: center">{{ access_statement.issues_target_date|date:"Y-m-d" }}<br>
-                <p style="font-size: 11px">{{ access_statement.issues_target_date|timeuntil }}</p>
-            </th>
-            {% endif %}
-
-            <!-- RE-TEST DATE column -->
-            {% if not access_statement.re_test_date %}
-            <td style="text-align: center; vertical-align: middle"> X </td>
-            {% else %}
-            <th style="vertical-align: middle; text-align: center">{{ access_statement.re_test_date|date:"Y-m-d" }}<br>
-                <p style="font-size: 11px">{{ access_statement.re_test_date|timeuntil }}</p>
-            </th>
-            {% endif %}
-
-        </tr>
-    </tbody>
-    {% endfor %}
-</table>
-
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const rows = document.querySelectorAll("tr[data-href]");
-
-        rows.forEach(row => {
-            row.addEventListener("click", () => {
-                window.location.href = row.dataset.href;
+                    // Sort table
+                    sortTableByColumn(colIndex, !isAsc);
+                });
             });
         });
-    });
-</script>
-<script>
-    const filterSite = () => {
-     const columns = [
-        { name: 'Site', index: 0, isFilter: true },
-        { name: 'Assign to', index: 1, isFilter: false },
-        { name: 'Server', index: 2, isFilter: false },
-        { name: 'Testing Status', index: 3, isFilter: false },
-        { name: 'Statement Status', index: 4, isFilter: false }
 
-      ]
-      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
-      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
-      const filter = document.querySelector('#myInput1').value
-      const regex = new RegExp(escape(filter), 'i')
-      const isFoundInTds = td => regex.test(td.innerHTML)
-      const isFound = childrenArr => childrenArr.some(isFoundInTds)
-      const setTrStyleDisplay = ({ style, children }) => {
-        style.display = isFound([
-          ...filterColumns.map(c => children[c]) // <-- filter Columns
-        ]) ? '' : 'none'
-      }
+        // Escape regex special characters for filtering
+        const escapeRegex = (text) => {
+            return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
 
-      trs.forEach(setTrStyleDisplay)
-    }
+        // Generic filter function
+        const filterTable = (inputId, filterIndices) => {
+            const filter = document.querySelector(inputId).value.trim();
+            const rows = document.querySelectorAll('#myTable tbody tr');
 
-    const filterAssignTo = () => {
-     const columns = [
-        { name: 'Site', index: 0, isFilter: false },
-        { name: 'Assign to', index: 1, isFilter: true },
-        { name: 'Server', index: 2, isFilter: false },
-        { name: 'Testing Status', index: 3, isFilter: false },
-        { name: 'Statement Status', index: 4, isFilter: false }
-      ]
-      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
-      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
-      const filter = document.querySelector('#myInput2').value
-      const regex = new RegExp(escape(filter), 'i')
-      const isFoundInTds = td => regex.test(td.innerHTML)
-      const isFound = childrenArr => childrenArr.some(isFoundInTds)
-      const setTrStyleDisplay = ({ style, children }) => {
-        style.display = isFound([
-          ...filterColumns.map(c => children[c]) // <-- filter Columns
-        ]) ? '' : 'none'
-      }
+            if (!filter) {
+                rows.forEach(row => row.style.display = '');
+                return;
+            }
 
-      trs.forEach(setTrStyleDisplay)
-    }
-    const filterTestingStatus = () => {
-     const columns = [
-        { name: 'Site', index: 0, isFilter: false },
-        { name: 'Assign to', index: 1, isFilter: false },
-        { name: 'Last Testing Date', index: 2, isFilter: false },
-        { name: 'Testing Status', index: 3, isFilter: true }
+            const regex = new RegExp(escapeRegex(filter), 'i');
 
+            rows.forEach(row => {
+                const cells = [...row.children];
+                const found = filterIndices.some(idx => regex.test(cells[idx].textContent));
+                row.style.display = found ? '' : 'none';
+            });
+        }
 
-      ]
-      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
-      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
-      const filter = document.querySelector('#myInput3').value
-      const regex = new RegExp(escape(filter), 'i')
-      const isFoundInTds = td => regex.test(td.innerHTML)
-      const isFound = childrenArr => childrenArr.some(isFoundInTds)
-      const setTrStyleDisplay = ({ style, children }) => {
-        style.display = isFound([
-          ...filterColumns.map(c => children[c]) // <-- filter Columns
-        ]) ? '' : 'none'
-      }
+        // Specific filter wrappers
+        const filterSite = () => filterTable('#myInput1', [0]);
+        const filterAssignTo = () => filterTable('#myInput2', [1]);
+        const filterLastTestingDate = () => filterTable('#myInput5', [2]);
+        const filterTestingStatus = () => filterTable('#myInput3', [3]);
+        const filterStatementStatus = () => filterTable('#myInput4', [4]);
+        const filterExpiryDate = () => filterTable('#myInput6', [5]);
+        const filterStatementDate = () => filterTable('#myInput7', [6]);
+        const filterIssuesTargetDate = () => filterTable('#myInput8', [7]);
+        const filterRetestDate = () => filterTable('#myInput9', [8]);
 
-      trs.forEach(setTrStyleDisplay)
-    }
-    const filterStatementStatus = () => {
-     const columns = [
-        { name: 'Site', index: 0, isFilter: false },
-        { name: 'Assign to', index: 1, isFilter: false },
-        { name: 'Last Testing Date', index: 2, isFilter: false },
-        { name: 'Testing Status', index: 3, isFilter: false },
-        { name: 'Statement Status', index: 4, isFilter: true },
+        // Global search
+        function filterWholeTable() {
+            const filter = document.getElementById('globalSearchInput').value.trim().toLowerCase();
+            const rows = document.querySelectorAll('#myTable tbody tr');
 
+            if (!filter) {
+                rows.forEach(row => row.style.display = '');
+                return;
+            }
 
-      ]
-      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
-      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
-      const filter = document.querySelector('#myInput4').value
-      const regex = new RegExp(escape(filter), 'i')
-      const isFoundInTds = td => regex.test(td.innerHTML)
-      const isFound = childrenArr => childrenArr.some(isFoundInTds)
-      const setTrStyleDisplay = ({ style, children }) => {
-        style.display = isFound([
-          ...filterColumns.map(c => children[c]) // <-- filter Columns
-        ]) ? '' : 'none'
-      }
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+    </script>
 
-      trs.forEach(setTrStyleDisplay)
-    }
-
-    const filterLastTestingDate = () => {
-     const columns = [
-        { name: 'Site', index: 0, isFilter: false },
-        { name: 'Assign to', index: 1, isFilter: false },
-        { name: 'Last Testing Date', index: 2, isFilter: true },
-        { name: 'Testing Status', index: 3, isFilter: false },
-        { name: 'Statement Status', index: 4, isFilter: false },
-
-
-      ]
-      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
-      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
-      const filter = document.querySelector('#myInput5').value
-      const regex = new RegExp(escape(filter), 'i')
-      const isFoundInTds = td => regex.test(td.innerHTML)
-      const isFound = childrenArr => childrenArr.some(isFoundInTds)
-      const setTrStyleDisplay = ({ style, children }) => {
-        style.display = isFound([
-          ...filterColumns.map(c => children[c]) // <-- filter Columns
-        ]) ? '' : 'none'
-      }
-
-      trs.forEach(setTrStyleDisplay)
-    }
-
-    const filterExpiryDate = () => {
-     const columns = [
-        { name: 'Site', index: 0, isFilter: false },
-        { name: 'Assign to', index: 1, isFilter: false },
-        { name: 'Last Testing Date', index: 2, isFilter: false },
-        { name: 'Testing Status', index: 3, isFilter: false },
-        { name: 'Statement Status', index: 4, isFilter: false },
-        { name: 'Expiry Date', index: 5, isFilter: true },
-
-
-      ]
-      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
-      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
-      const filter = document.querySelector('#myInput6').value
-      const regex = new RegExp(escape(filter), 'i')
-      const isFoundInTds = td => regex.test(td.innerHTML)
-      const isFound = childrenArr => childrenArr.some(isFoundInTds)
-      const setTrStyleDisplay = ({ style, children }) => {
-        style.display = isFound([
-          ...filterColumns.map(c => children[c]) // <-- filter Columns
-        ]) ? '' : 'none'
-      }
-
-      trs.forEach(setTrStyleDisplay)
-    }
-
-    const filterStatementDate = () => {
-     const columns = [
-        { name: 'Site', index: 0, isFilter: false },
-        { name: 'Assign to', index: 1, isFilter: false },
-        { name: 'Last Testing Date', index: 2, isFilter: false },
-        { name: 'Testing Status', index: 3, isFilter: false },
-        { name: 'Statement Status', index: 4, isFilter: false },
-        { name: 'Expiry Date', index: 5, isFilter: false },
-        { name: 'Statement Date', index: 6, isFilter: true },
-
-
-      ]
-      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
-      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
-      const filter = document.querySelector('#myInput7').value
-      const regex = new RegExp(escape(filter), 'i')
-      const isFoundInTds = td => regex.test(td.innerHTML)
-      const isFound = childrenArr => childrenArr.some(isFoundInTds)
-      const setTrStyleDisplay = ({ style, children }) => {
-        style.display = isFound([
-          ...filterColumns.map(c => children[c]) // <-- filter Columns
-        ]) ? '' : 'none'
-      }
-
-      trs.forEach(setTrStyleDisplay)
-    }
-
-    const filterIssuesTargetDate = () => {
-     const columns = [
-        { name: 'Site', index: 0, isFilter: false },
-        { name: 'Assign to', index: 1, isFilter: false },
-        { name: 'Last Testing Date', index: 2, isFilter: false },
-        { name: 'Testing Status', index: 3, isFilter: false },
-        { name: 'Statement Status', index: 4, isFilter: false },
-        { name: 'Expiry Date', index: 5, isFilter: false },
-        { name: 'Statement Date', index: 6, isFilter: false },
-        { name: 'Issues Target Date', index: 7, isFilter: true },
-
-
-      ]
-      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
-      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
-      const filter = document.querySelector('#myInput8').value
-      const regex = new RegExp(escape(filter), 'i')
-      const isFoundInTds = td => regex.test(td.innerHTML)
-      const isFound = childrenArr => childrenArr.some(isFoundInTds)
-      const setTrStyleDisplay = ({ style, children }) => {
-        style.display = isFound([
-          ...filterColumns.map(c => children[c]) // <-- filter Columns
-        ]) ? '' : 'none'
-      }
-
-      trs.forEach(setTrStyleDisplay)
-    }
-
-    const filterRetestDate = () => {
-     const columns = [
-        { name: 'Site', index: 0, isFilter: false },
-        { name: 'Assign to', index: 1, isFilter: false },
-        { name: 'Last Testing Date', index: 2, isFilter: false },
-        { name: 'Testing Status', index: 3, isFilter: false },
-        { name: 'Statement Status', index: 4, isFilter: false },
-        { name: 'Expiry Date', index: 5, isFilter: false },
-        { name: 'Statement Date', index: 6, isFilter: false },
-        { name: 'Issues Target Date', index: 7, isFilter: false },
-        { name: 'Re-test Date', index: 8, isFilter: true },
-
-
-      ]
-      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
-      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
-      const filter = document.querySelector('#myInput9').value
-      const regex = new RegExp(escape(filter), 'i')
-      const isFoundInTds = td => regex.test(td.innerHTML)
-      const isFound = childrenArr => childrenArr.some(isFoundInTds)
-      const setTrStyleDisplay = ({ style, children }) => {
-        style.display = isFound([
-          ...filterColumns.map(c => children[c]) // <-- filter Columns
-        ]) ? '' : 'none'
-      }
-
-      trs.forEach(setTrStyleDisplay)
-    }
-
-
-</script>
-
-
-
+    <!-- Bootstrap JS dependencies -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
 </body>
-
 </html>

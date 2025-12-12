@@ -73,7 +73,6 @@
 <br>
 <table class="table" id="myTable" style="background-color:#1e2431; margin: 0 auto; width: 96%; border-radius: 10px; overflow: hidden;">
         <tr class="header" style="position:sticky; z-index:1; top:0; background-color: #323c4e; color: white">
-            <th scope="col" style="font-size: 16px; vertical-align: middle;">SSL CERT. EXPIRY</th>
     <!-- STATUS column ------------------------------------------------------------------------------------------->
             <th scope="col" style="font-size: 18px">Hostname <br>
                 <label for="myInput1" style="font-size: 12px">
@@ -101,49 +100,39 @@
             </th>
 
 
-    <!-- Application column ---------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 18px">Application <br>
-            <label for="myInput3" style="font-size: 12px">
-                    Search for Application type:
-                </label><br>
-            <input
-                    style="font-size: 15px; width: 60%"
-                    type="text"
-                    id="myInput3"
-                    onkeyup="filterApplication()"
-                    title="Search for a name">
-        </th>
+
      <!-- VM Status column ----------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 18px; vertical-align: middle;">Status</th>
-     <!-- VM Type column ----------------------------------------------------------------------------------------->
-        <th scope="col" style="font-size: 16px; vertical-align: middle;">Type</th>
-        <th scope="col" style="font-size: 16px; vertical-align: middle;">DB</th>
-        <th scope="col" style="font-size: 16px; vertical-align: middle;">OS</th>
-        <th scope="col" style="font-size: 16px; vertical-align: middle;">PUPPET</th>
-        <th scope="col" style="font-size: 16px; vertical-align: middle;">HTTPD</th>
-        <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">VMFS<br>
-            data used <br>in:</th>
-        <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">VMFS<br>root used<br>in:</th>
-        <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">VMFS<br>apps used<br>in:</th>
+            <th scope="col" style="font-size: 18px; vertical-align: middle;">Status</th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle;">DB</th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle;">OS</th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle;">PUPPET</th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle;">HTTPD</th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">ROOT<br>space<br>left<br></th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">APPS<br>space<br>left<br></th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">DATA<br>space<br>left<br></th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">Proc's</th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">MEMORY<br> (GB)</th>
+            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">LAST<br> PATCH<br>days ago<br></th>
     </tr>
 
     {% for vm in vms %}
     <tbody style="border-top: 2px solid #0a0c11 !important; ">
         <tr data-href = "{% url 'vm_details' vm.id %}" style="font-size: 12px; vertical-align: top; padding-top:10px; color: #6e9fa6">
 
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;">{{ vm.ssl_certificate_expiry }} </th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;">{{ vm.hostname }} </th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.ip_address }} </th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.application }}</th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.vm_status }}</th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.vm_type }}</th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.db }}</th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.nginx }}</th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.puppet_controlled }}</th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.httpd }}</th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important; text-align: center;">{{ vm.vmfs_data_used }}</th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important; text-align: center;">{{ vm.vmfs_root_used }}</th>
-            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;text-align: center;">{{ vm.vmfs_apps_used }}</th>
+
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;">{{ vm.hostname|default_if_none:"" }} </th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.ip_address|default_if_none:"" }} </th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.vm_status|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.db|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.nginx|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.puppet_controlled|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.httpd|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important; text-align: center; {% if vm.vmfs_root_used >= 60 and vm.vmfs_root_used < 90 %} background-color: yellow !important;{% endif %}">{{ vm.vmfs_root_used|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important; text-align: center;">{{ vm.vmfs_data_used|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;text-align: center;">{{ vm.vmfs_apps_used|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;text-align: center;">{{ vm.processors|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;text-align: center;">{{ vm.memory|default_if_none:"" }}</th>
+            <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;text-align: center;">{{ vm.last_patch_days_ago|default_if_none:"" }}</th>
         </tr>
     </tbody>
     {% endfor %}

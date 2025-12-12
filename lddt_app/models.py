@@ -59,6 +59,7 @@ class ga4_required(models.Model):
 
 class Website(models.Model):
     ssl_expiry_date = models.DateField(blank=True, default=None, null=True)
+    ssl_expiry_date_new = models.DateField(blank=True, default=None, null=True)
     url = models.CharField('URL', blank=True, null=True, max_length=100)
     function = models.CharField('Function', blank=True, null=True, max_length=150)
     common_name = models.CharField('Common Name', blank=True, null=True, max_length=150)
@@ -98,6 +99,30 @@ class Website(models.Model):
     def __str__(self):
         return self.url
 
+    @property
+    def ssl_expiration(self):
+        type_str = getattr(self.type, 'name', None)  # adjust 'name' as needed
+        if not type_str or type_str.strip().upper() != "SITE":
+            return None
+
+        cmd = (
+            f'echo | openssl s_client -connect {self.common_name}:443 '
+            f'-servername {self.common_name} 2>/dev/null | '
+            'openssl x509 -noout -enddate'
+        )
+
+        try:
+            result = subprocess.check_output(cmd, shell=True).decode().strip()
+            # result = "notAfter=Jan 20 12:00:00 2026 GMT"
+
+            if result.startswith("notAfter="):
+                result = result.replace("notAfter=", "")
+
+            # Convert to Python date
+            dt = datetime.strptime(result, "%b %d %H:%M:%S %Y %Z").date()
+            return dt
+        except Exception:
+            return None
 
     def get_calc_ping_field(self):
         hostname = self.url
@@ -212,7 +237,9 @@ class Vm(models.Model):
     vmfs_root_used = models.CharField('VMFS-root used', blank=True, null=True, max_length=150)
     vmfs_apps_used = models.CharField('VMFS-apps used', blank=True, null=True, max_length=150)
     vmfs_data_used = models.CharField('VMFS-data used', blank=True, null=True, max_length=150)
-    ssl_certificate_expiry = models.CharField('SSL-Cert Expiry', blank=True, null=True, max_length=150)
+    processors = models.CharField('Processors', blank=True, null=True, max_length=150)
+    memory = models.CharField('Memory', blank=True, null=True, max_length=150)
+    last_patch_days_ago = models.CharField('Last Patch in days ago', blank=True, null=True, max_length=150)
     @property
     def print_hostname(self):
         return self.hostname
@@ -223,48 +250,61 @@ class Vm(models.Model):
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
-            stdin, stdout, stderr = ssh.exec_command("mysql -V;")
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
+            # Query MySQL version
+            stdin, stdout, stderr = ssh.exec_command("mysql -V")
+            output = stdout.read().decode().strip()
 
-            # Print the output
-            output = stdout.read().decode()
+            if not output:
+                return 'MySQL "not installed"'
 
-            return output
+            # Example output:
+            # mysql  Ver 14.14 Distrib 5.7.41, for Linux (x86_64) using EditLine wrapper
+
+            version = None
+
+            # Extract version after "Distrib "
+            if "Distrib" in output:
+                version = output.split("Distrib")[1].split(",")[0].strip()
+
+            if not version:
+                # fallback: try numeric extraction
+                import re
+                match = re.search(r"(\d+\.\d+\.\d+)", output)
+                if match:
+                    version = match.group(1)
+
+            if not version:
+                return f'MySQL "unknown version"'
+
+            return f'MySQL - {version}'
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'MySQL "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'MySQL "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'MySQL "error: {e}"'
 
         finally:
-            # Close the SSH connection
             ssh.close()
-
 
     @property
     def ssh_nginx(self):
@@ -272,46 +312,51 @@ class Vm(models.Model):
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_fil§e(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
-            stdin, stdout, stderr = ssh.exec_command("cat -t /etc/centos-release; nginx -V;")
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
+            # Get OS and nginx info
+            # cat -t is unnecessary here; removed for clean output
+            stdin, stdout, stderr = ssh.exec_command("cat /etc/centos-release; nginx -v")
 
-            # Print the output
-            output = stdout.read().decode()
+            output = stdout.read().decode().strip()
 
-            return output
+            if not output:
+                return 'OS "unknown"'
+
+            # First line should contain the OS release text
+            lines = output.splitlines()
+            os_release = lines[0]
+
+            # Remove parentheses content, e.g. (Green Obsidian)
+            if "(" in os_release:
+                os_release = os_release.split("(")[0].strip()
+
+            return os_release
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'OS "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'OS "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'OS "error: {e}"'
 
         finally:
-            # Close the SSH connection
             ssh.close()
 
     @property
@@ -322,44 +367,43 @@ class Vm(models.Model):
         hostname = self.hostname
         port = 22  # Default SSH port
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        # Load private key with passphrase
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
+            # Connect
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
-            stdin, stdout, stderr = ssh.exec_command("rpm -qa | grep puppet")
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
+            # Query only puppet-agent version
+            command = "rpm -q --qf '%{VERSION}-%{RELEASE}\n' puppet-agent"
+            stdin, stdout, stderr = ssh.exec_command(command)
 
-            # Print the output
-            output = stdout.read().decode()
+            version = stdout.read().decode().strip()
 
-            return output
+            if not version:
+                return 'Puppet "not installed"'
+
+            return f'Puppet - {version} '
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'Puppet "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'Puppet "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'Puppet "error: {e}"'
 
         finally:
-            # Close the SSH connection
             ssh.close()
 
     @property
@@ -416,59 +460,52 @@ class Vm(models.Model):
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
             stdin, stdout, stderr = ssh.exec_command('df -h /dev/mapper/VMFS-root')
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
-
-            # Print the output
             output = stdout.read().decode()
+
             if output:
-                output_lines = output.splitlines()
-                for line in output_lines:
-                    if "Filesystem" in line:
+                for line in output.splitlines():
+                    if line.startswith("Filesystem"):
                         continue
-                    elif '/dev/mapper/VMFS-root' in line:
-                        # Extract only the Use% from the df output
-                        df_parts = line.split()
-                        if len(df_parts) >= 5:
-                            use_percent = df_parts[4]
-                            return (f"{use_percent}")
-                    else:
-                        print(line)
+
+                    if "/dev/mapper/VMFS-root" in line:
+                        parts = line.split()
+                        if len(parts) >= 5:
+                            used_str = parts[4]  # example "73%"
+                            # remove "%" and convert
+                            used = int(used_str.replace("%", ""))
+                            free = 100 - used
+                            return f"{free}%"
+
+            return "Unknown"
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'VMFS "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'VMFS "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'VMFS "error: {e}"'
 
         finally:
-            # Close the SSH connection
             ssh.close()
-
 
     @property
     def ssh_vmfs_apps_used(self):
@@ -476,57 +513,50 @@ class Vm(models.Model):
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
             stdin, stdout, stderr = ssh.exec_command('df -h /dev/mapper/VMFS-apps')
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
-
-            # Print the output
             output = stdout.read().decode()
+
             if output:
-                output_lines = output.splitlines()
-                for line in output_lines:
-                    if "Filesystem" in line:
+                for line in output.splitlines():
+                    if line.startswith("Filesystem"):
                         continue
-                    elif '/dev/mapper/VMFS-apps' in line:
-                        # Extract only the Use% from the df output
-                        df_parts = line.split()
-                        if len(df_parts) >= 5:
-                            use_percent = df_parts[4]
-                            return (f"{use_percent}")
-                    else:
-                        print(line)
+
+                    if "/dev/mapper/VMFS-apps" in line:
+                        parts = line.split()
+                        if len(parts) >= 5:
+                            used_str = parts[4]  # e.g. "67%"
+                            used = int(used_str.replace("%", ""))
+                            free = 100 - used
+                            return f"{free}%"
+
+            return "Unknown"
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'VMFS "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'VMFS "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'VMFS "error: {e}"'
 
         finally:
-            # Close the SSH connection
             ssh.close()
 
     @property
@@ -535,53 +565,51 @@ class Vm(models.Model):
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
             stdin, stdout, stderr = ssh.exec_command('df -h /dev/mapper/VMFS-data')
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
-
-            # Print the output
             output = stdout.read().decode()
+
             if output:
-                output_lines = output.splitlines()
-                for line in output_lines:
-                    if "Filesystem" in line:
+                for line in output.splitlines():
+                    if line.startswith("Filesystem"):
                         continue
-                    elif '/dev/mapper/VMFS-data' in line:
-                        # Extract only the Use% from the df output
-                        df_parts = line.split()
-                        if len(df_parts) >= 5:
-                            use_percent = df_parts[4]
-                            return (f"{use_percent}")
-                    else:
-                        print(line)
+
+                    if "/dev/mapper/VMFS-data" in line:
+                        parts = line.split()
+                        if len(parts) >= 5:
+                            used_str = parts[4]  # e.g. "79%"
+                            used = int(used_str.replace("%", ""))
+                            free = 100 - used
+                            return f"{free}%"
+
+            return "Unknown"
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'VMFS "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'VMFS "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
+            return f'VMFS "error: {e}"'
+
+        finally:
+            ssh.close()
 
     @property
     def ssh_ip_address(self):
@@ -643,10 +671,12 @@ class Vm(models.Model):
             print(f"An error occurred: {e}")
 
     @property
-    def ssh_ssl_certificate_expiry(self):
+    def ssh_processors(self):
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
+        hostname = self.hostname
+        port = 22
         username = ssh_user_name
         private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
@@ -654,42 +684,126 @@ class Vm(models.Model):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
+
         try:
-            private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
-            ssh.connect(self.hostname, port=22, username=username, pkey=private_key)
+            ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Use localhost in openssl command
-            cmd = f"openssl s_client -connect localhost:443 -servername {self.hostname} 2>/dev/null | openssl x509 -noout -enddate"
-            stdin, stdout, stderr = ssh.exec_command(cmd)
+            # Command to count processors (CPU cores / threads)
+            stdin, stdout, stderr = ssh.exec_command('grep -c ^processor /proc/cpuinfo')
             output = stdout.read().decode().strip()
-            error = stderr.read().decode().strip()
 
-            if error:
-                print("OpenSSL error:", error)
+            if output.isdigit():
+                return int(output)
 
-            if output.startswith("notAfter="):
-                expiry_date = output.split("notAfter=")[1]
-                return expiry_date
-            else:
-                print("No certificate expiry found, output was:", output)
-                return None
+            return "Unknown"
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
-            return None
+            return 'Processors "authentication failed"'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
-            return None
+            return f'Processors "SSH error: {sshException}"'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-            return None
+            return f'Processors "error: {e}"'
 
         finally:
             ssh.close()
 
+    @property
+    def ssh_mem_total_gb(self):
+        ssh_user_name = settings.SSH_USER_NAME
+        ssh_passphrase = settings.SSH_PASSPHRASE
 
+        hostname = self.hostname
+        port = 22
+        username = ssh_user_name
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
+        passphrase = ssh_passphrase
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
+
+        try:
+            ssh.connect(hostname, port=port, username=username, pkey=private_key)
+
+            stdin, stdout, stderr = ssh.exec_command('cat /proc/meminfo | grep MemTotal')
+            output = stdout.read().decode().strip()
+
+            if output:
+                parts = output.split()
+                if len(parts) >= 2:
+                    try:
+                        mem_kb = int(parts[1])
+                        mem_gb = mem_kb / (1024 ** 2)  # convert kB to GB
+                        return round(mem_gb, 2)
+                    except ValueError:
+                        return "Unknown"
+
+            return "Unknown"
+
+        except paramiko.AuthenticationException:
+            return 'MemTotal "authentication failed"'
+
+        except paramiko.SSHException as sshException:
+            return f'MemTotal "SSH error: {sshException}"'
+
+        except Exception as e:
+            return f'MemTotal "error: {e}"'
+
+        finally:
+            ssh.close()
+
+    @property
+    def ssh_last_patch_days_ago(self):
+        ssh_user_name = settings.SSH_USER_NAME
+        ssh_passphrase = settings.SSH_PASSPHRASE
+
+        hostname = self.hostname
+        port = 22
+        username = ssh_user_name
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
+        passphrase = ssh_passphrase
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
+
+        try:
+            ssh.connect(hostname, port=port, username=username, pkey=private_key)
+
+            cmd = 'boot=$(uptime -s); echo $(( ( $(date +%s) - $(date -d "$boot" +%s) ) / 86400 ))'
+            stdin, stdout, stderr = ssh.exec_command(cmd)
+            output = stdout.read().decode().strip()
+
+            if output.isdigit():
+                return int(output)
+            else:
+                return "Unknown"
+
+        except paramiko.AuthenticationException:
+            return 'Days since boot "authentication failed"'
+
+        except paramiko.SSHException as sshException:
+            return f'Days since boot "SSH error: {sshException}"'
+
+        except Exception as e:
+            return f'Days since boot "error: {e}"'
+
+        finally:
+            ssh.close()
 
 class Testing_Status_r(models.Model):
     name = models.CharField(max_length=150)

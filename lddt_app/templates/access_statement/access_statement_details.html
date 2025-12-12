@@ -14,6 +14,7 @@
         <a  href="{% url 'access_statement_home' %}">Back</a>
         <a  class="active" href="#">View Mode</a>
         <a href="{% url 'update_access_statement' access_statement.id%}">Edit Mode</a>
+        <a href="{% url 'delete_statement' access_statement.id%}" style="background-color: red ">Delete</a>
 
     </div>
 
