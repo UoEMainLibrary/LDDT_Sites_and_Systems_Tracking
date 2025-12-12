@@ -17,8 +17,6 @@
             font-family: 'Open Sans', sans-serif;
             background: #0f111a;
             color: #c0c4cc;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             width: 100vw;
             overflow-x: hidden;
         }
@@ -26,244 +24,160 @@
         h1, h2, h3, h4, h5 {
             font-family: 'Orbitron', sans-serif;
             color: #00ffea;
-            text-transform: uppercase;
             letter-spacing: 2px;
             margin: 0;
         }
 
+        /* NAVBAR */
         .w3-top .w3-bar {
             background: linear-gradient(90deg, #0fffdc, #0fffdc 30%, #004d40 100%);
-            box-shadow: 0 2px 12px rgba(0, 255, 234, 0.6);
             border-bottom: 1px solid #00ffea;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             padding: 0 1rem;
             height: 56px;
+            box-shadow: 0 2px 12px rgba(0,255,234,0.6);
         }
-        .w3-bar-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .w3-bar-right {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+        .w3-bar-left { display: flex; gap: 1rem; align-items: center; }
+        .w3-bar-right { display: flex; gap: .5rem; align-items: center; }
+
         .w3-bar-item.w3-button {
-            color: #00ffea !important;
+            color: #00ffea;
             font-weight: 700;
             letter-spacing: 1px;
             border-radius: 12px;
             box-shadow: 0 0 8px #00ffea88;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            white-space: nowrap;
-            height: 36px;
-            line-height: 36px;
-            padding: 0 1rem;
+            text-decoration: none;
             display: flex;
             align-items: center;
-            text-decoration: none;
+            padding: 0 1rem;
+            height: 36px;
         }
         .w3-bar-item.w3-button:hover {
             background-color: #00ffe4;
             color: #000;
         }
-        .btn-back {
-            background-color: #004d40;
-        }
-        .btn-back:hover {
-            background-color: #00ffe4;
-            color: #000;
-        }
-        .btn-update {
-            background-color: #00796b;
-        }
-        .btn-update:hover {
-            background-color: #00ffe4;
-            color: #000;
-        }
-        .btn-delete {
-            background-color: #ff4d4d;
-            color: #fff !important;
-        }
-        .btn-delete:hover {
-            background-color: #ff1a1a;
-            color: #fff !important;
-        }
+        .btn-back { background-color: #004d40; }
+        .btn-update { background-color: #00796b; }
+        .btn-delete { background-color: #ff4d4d; color: white !important; }
+        .btn-delete:hover { background-color: #ff1a1a; }
 
+        /* GENERAL CARD STYLES */
         .w3-card {
             background: linear-gradient(145deg, #1a1c29, #121424);
-            border-radius: 16px;
-            box-shadow:
-                0 0 8px #00ffe4,
-                0 0 15px #00ffe4 inset;
             border: 1px solid #00ffe4;
-            box-sizing: border-box;
+            border-radius: 16px;
+            box-shadow: 0 0 8px #00ffe4, inset 0 0 15px #00ffe4;
             display: flex;
             flex-direction: column;
         }
-        .w3-container {
-            padding: 1rem 1.5rem;
-            flex: 1 1 auto;
-            overflow-y: auto;
-        }
+        .w3-container { padding: 1rem 1.5rem; flex: 1; }
 
-        .status p strong {
-            color: #00ffe4;
-            text-transform: uppercase;
-        }
-        .details p strong {
-            color: #00ffea;
-        }
-        .details p {
-            font-size: 14px;
-            line-height: 1.5;
-            color: #a3a8b5;
-        }
-
-        /* Center everything, with max-width and padding */
+        /* WRAPPER */
         .content-wrapper {
             max-width: 1400px;
             margin: 0 auto;
             padding: 0 5vw;
-            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             gap: 20px;
-            min-height: 90vh;
         }
 
-        /* Server Name Section */
+        /* SERVER NAME SECTION */
         .server-name-section {
-            background: linear-gradient(145deg, #1a1c29, #121424);
-            border-radius: 16px;
-            box-shadow:
-                0 0 8px #00ffe4,
-                0 0 15px #00ffe4 inset;
-            border: 1px solid #00ffe4;
             padding: 1rem 2rem;
+            border-radius: 16px;
+            border: 1px solid #00ffe4;
+            box-shadow: 0 0 8px #00ffe4, inset 0 0 15px #00ffe4;
             display: flex;
             align-items: center;
             gap: 20px;
-            width: 100%;
-            box-sizing: border-box;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            background: linear-gradient(145deg, #1a1c29, #121424);
         }
         .server-name-section img {
-            width: 60px;
-            border-radius: 12px;
-            flex-shrink: 0;
+            width: 60px; border-radius: 12px;
         }
         .server-name {
-            font-weight: 700;
+            flex: 1;
             font-size: 1.75rem;
-            color: #00ffea;
-            flex: 1 1 auto;
+            font-weight: 700;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .server-ip {
-            font-size: 14px;
-            color: #6ef9f1;
-            font-family: 'Open Sans', sans-serif;
-            flex-shrink: 0;
-            white-space: nowrap;
-        }
+        .server-ip { font-size: 14px; color: #6ef9f1; white-space: nowrap; }
 
-        /* Layout for below server name: two columns */
+        /* TWO COLUMN LAYOUT */
         .content-row {
             display: flex;
             gap: 20px;
-            flex-grow: 1;
-            min-height: 500px;
         }
+        .left-column { flex: 1 1 35%; }
+        .right-column { flex: 1 1 65%; display: flex; gap: 20px; flex-direction: column; }
 
-        /* Left Column (Status) */
-        .left-column {
-            flex: 1 1 35%;
+        /* MEMORY DETAILS SPLIT (60% / 40%) */
+        .memory-split {
             display: flex;
-            flex-direction: column;
-        }
-
-        /* Right Column (stacked cards) */
-        .right-column {
-            flex: 1 1 65%;
-            display: flex;
-            flex-direction: column;
             gap: 20px;
         }
-
-        /* Scroll bars if content overflows */
-        .w3-card .w3-container {
-            overflow-y: auto;
+        .memory-graphs {
+            flex: 0 0 60%;
+        }
+        .memory-info {
+            flex: 0 0 40%;
+            color: #a3a8b5;
+            font-size: 14px;
+            padding-top: 10px;
         }
 
-        /* === Progress Bar Styles for MEMORY DETAILS === */
-        .memory-bar {
-            margin-bottom: 1rem;
+        /* PROGRESS BARS */
+        .memory-bar { margin-bottom: 1rem; }
+        .memory-bar label {
             font-weight: 700;
             color: #00ffe4;
-            font-size: 14px;
-        }
-        .memory-bar label {
-            display: block;
             margin-bottom: 6px;
-            letter-spacing: 1px;
+            display: block;
         }
         .progress-bar {
             position: relative;
-            background: #121424;
-            border-radius: 12px;
+            width: 100%;
             height: 20px;
-            box-shadow:
-                inset 0 0 6px #00ffe4cc;
+            background: #121424;
             border: 1px solid #00ffe4;
+            border-radius: 12px;
             overflow: hidden;
+            box-shadow: inset 0 0 6px #00ffe4cc;
         }
         .progress-fill {
             height: 100%;
             border-radius: 12px 0 0 12px;
-            box-shadow: 0 0 8px #00ffe4;
-            transition: width 0.5s ease;
+            transition: width .5s ease;
         }
-        .progress-fill.root {
-            background: linear-gradient(90deg, #00ffc8, #008060);
-        }
-        .progress-fill.apps {
-            background: linear-gradient(90deg, #00aaff, #004d99);
-        }
-        .progress-fill.data {
-            background: linear-gradient(90deg, #ff4d4d, #b30000);
-        }
+        .root { background: linear-gradient(90deg, #00ffc8, #008060); }
+        .apps { background: linear-gradient(90deg, #00aaff, #004d99); }
+        .data { background: linear-gradient(90deg, #ff4d4d, #b30000); }
+
         .progress-label {
             position: absolute;
             right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            color: #fff;
-            font-weight: 700;
+            color: white;
+            font-weight: bold;
             font-size: 12px;
-            text-shadow: 0 0 3px #000;
-            pointer-events: none;
-            user-select: none;
+            text-shadow: 0 0 3px black;
         }
-
     </style>
 </head>
 <body>
 
+<!-- NAVBAR -->
 <div class="w3-top">
-    <div class="w3-bar w3-theme-d2 w3-left-align w3-large" style="width: 100%;">
+    <div class="w3-bar">
         <div class="w3-bar-left">
-            <a href="#" class="w3-bar-item w3-button w3-padding-large w3-theme-d4" style="display:flex; align-items:center; gap:10px;">
-                <img class="card-img" src="/static/img/uni_logo_1.jpg" style="width:50px;" alt="Logo" />
-                <h3 style="margin: 0; color: #00ffea;">Digital Library Tracking App</h3>
-            </a>
+            <img src="/static/img/uni_logo_1.jpg" style="width:50px;">
+            <h3 style="color:#00ffea;">Digital Library Tracking App</h3>
         </div>
         <div class="w3-bar-right">
             <a href="{% url 'vms_home' %}" class="w3-bar-item w3-button btn-back">Back</a>
@@ -272,139 +186,150 @@
         </div>
     </div>
 </div>
-<br /><br /><br />
 
-<div class="content-wrapper" role="main" aria-label="VM Details">
+<br><br><br>
 
-    <!-- Server Name Section (full width) -->
-    <div class="server-name-section" role="banner" aria-label="Server information">
-        <img src="/static/img/vms/server_icon_2.png" alt="Server Icon" />
-        <h1 class="server-name" title="{{ vm.hostname }}">{{ vm.hostname }}</h1>
+<!-- CONTENT -->
+<div class="content-wrapper">
+
+    <!-- SERVER NAME -->
+    <div class="server-name-section">
+        <img src="/static/img/vms/server_icon_2.png">
+        <h1 class="server-name">{{ vm.hostname }}</h1>
         <p class="server-ip">IP ADDRESS: {{ vm.ip_address }}</p>
     </div>
 
-    <!-- Two columns below -->
     <div class="content-row">
 
-        <!-- Left Column - Status -->
+        <!-- LEFT COLUMN -->
         <div class="left-column">
-            <div class="w3-card status" role="region" aria-labelledby="status-heading" style="flex-grow: 1;">
+            <div class="w3-card">
                 <div class="w3-container">
-                    <hr style="border: 1px solid #00ffea; border-radius: 5px;" />
-                    <h4 id="status-heading" class="w3-center">STATUS</h4>
+                    <h4 class="w3-center">STATUS</h4>
                     <p>
-                        <i class="fa fa-server fa-fw w3-margin-right" style="color:#00ffe4;"></i> <strong>SERVER STATUS:</strong> {{ vm.vm_status }}<br />
-                        <i class="fa fa-cube fa-fw w3-margin-right" style="color:#00ffe4;"></i> <strong>TYPE:</strong> {{ vm.vm_type }}<br />
-                        <i class="fa fa-signal fa-fw w3-margin-right" style="color:#00ffe4;"></i> PING: &lt;--EMPTY--&gt;
+                        <strong>SERVER STATUS:</strong> {{ vm.vm_status }}<br/>
+                        <strong>TYPE:</strong> {{ vm.vm_type }}<br/>
+                        <strong>PING:</strong> &lt;--EMPTY--&gt;
                     </p>
-                    <hr style="border: 1px solid #00ffea; border-radius: 5px;" />
+
                     <h4 class="w3-center">DETAILS</h4>
                     <p class="details">
-                        <strong>IP ADDRESS:</strong> {{ vm.ip_address }} <br />
-                        <strong>APPLICATION:</strong> {{ vm.application }} <br />
-                        <strong>SSH in LP:</strong> {{ vm.ssh_in_lp }} <br />
-                        <strong>PUPPET CONTROLLED:</strong> {{ vm.puppet_controlled }} <br />
-                        <strong>DATA CENTRE:</strong> {{ vm.data_centre }} <br />
-                        <strong>POODLE CHECKED:</strong> {{ vm.poodle_checked }} <br />
-                        <strong>LOG4SHELL RISK:</strong> {{ vm.log4shell_risk }} <br />
-                        <strong>TRACE RISK:</strong> {{ vm.trace_risk }} <br />
-                        <strong>HTTPD LAST PATCH:</strong> {{ vm.httpd_last_patch }} <br />
-                        <strong>OS CENTOS ASSUMED:</strong> {{ vm.os_centos_assumed }} <br />
-                        <strong>HTTPD:</strong> {{ vm.httpd }} <br />
-                        <strong>TOMCAT:</strong> {{ vm.tomcat }} <br />
-                        <strong>NGINX:</strong> {{ vm.nginx }} <br />
-                        <strong>RAM:</strong> {{ vm.ram }} <br />
-                        <strong>CPU:</strong> {{ vm.cpu }} <br />
-                        <strong>DB:</strong> {{ vm.db }} <br />
-                        <strong>PHP:</strong> {{ vm.php }} <br />
-                        <strong>JAVA:</strong> {{ vm.java }} <br />
-                        <strong>VM STORAGE:</strong> {{ vm.vm_storage }} <br />
-                        <strong>SPECIAL MOUNTS:</strong> {{ vm.special_mounts }} <br />
-                        <strong>PYTHON:</strong> {{ vm.python }} <br />
-                        <strong>NPM:</strong> {{ vm.npm }} <br />
-                        <strong>SHIBBOLETH:</strong> {{ vm.shibboleth }} <br />
-                        <strong>SSL:</strong> {{ vm.ssl }} <br />
-                        <strong>TESRSA:</strong> {{ vm.testrsa }} <br />
-                        <strong>VMFS-ROOT USED:</strong> {{ vm.vmfs_root_used }} <br />
-                        <strong>VMFS-APPS USED:</strong> {{ vm.vmfs_apps_used }} <br />
-                        <strong>VMFS-DATA USED:</strong> {{ vm.vmfs_data_used }} <br />
-                        <strong>PROCESSORS:</strong> {{ vm.processors }} <br />
-                        <strong>MEMORY:</strong> {{ vm.memory }} <br />
-                        <strong>LAST PATCH DAYS AGO:</strong> {{ vm.last_patch_days_ago }} <br />
+                        <strong>APPLICATION:</strong> {{ vm.application }}<br/>
+                        <strong>SSH in LP:</strong> {{ vm.ssh_in_lp }}<br/>
+                        <strong>PUPPET CONTROLLED:</strong> {{ vm.puppet_controlled }}<br/>
+                        <strong>DATA CENTRE:</strong> {{ vm.data_centre }}<br/>
+                        <strong>POODLE CHECKED:</strong> {{ vm.poodle_checked }}<br/>
+                        <strong>LOG4SHELL RISK:</strong> {{ vm.log4shell_risk }}<br/>
+                        <strong>TRACE RISK:</strong> {{ vm.trace_risk }}<br/>
+                        <strong>HTTPD LAST PATCH:</strong> {{ vm.httpd_last_patch }}<br/>
+                        <strong>OS CENTOS ASSUMED:</strong> {{ vm.os_centos_assumed }}<br/>
+                        <strong>HTTPD:</strong> {{ vm.httpd }}<br/>
+                        <strong>TOMCAT:</strong> {{ vm.tomcat }}<br/>
+                        <strong>NGINX:</strong> {{ vm.nginx }}<br/>
+                        <strong>RAM:</strong> {{ vm.ram }}<br/>
+                        <strong>CPU:</strong> {{ vm.cpu }}<br/>
+                        <strong>DB:</strong> {{ vm.db }}<br/>
+                        <strong>PHP:</strong> {{ vm.php }}<br/>
+                        <strong>JAVA:</strong> {{ vm.java }}<br/>
+                        <strong>VM STORAGE:</strong> {{ vm.vm_storage }}<br/>
+                        <strong>SPECIAL MOUNTS:</strong> {{ vm.special_mounts }}<br/>
+                        <strong>PYTHON:</strong> {{ vm.python }}<br/>
+                        <strong>NPM:</strong> {{ vm.npm }}<br/>
+                        <strong>SHIBBOLETH:</strong> {{ vm.shibboleth }}<br/>
+                        <strong>SSL:</strong> {{ vm.ssl }}<br/>
+                        <strong>TESRSA:</strong> {{ vm.testrsa }}<br/>
+                        <strong>LAST PATCH DAYS AGO:</strong> {{ vm.last_patch_days_ago }}<br/>
                     </p>
-                    <hr style="border: 1px solid #00ffea; border-radius: 5px;" />
                 </div>
             </div>
         </div>
 
-        <!-- Right Column - stacked cards -->
+        <!-- RIGHT COLUMN -->
         <div class="right-column">
 
-            <div class="w3-card" role="region" aria-labelledby="memory-details-heading" style="flex: 1 1 33%;">
+            <!-- MEMORY DETAILS (NEW SPLIT) -->
+            <div class="w3-card">
                 <div class="w3-container">
-                    <h4 id="memory-details-heading" class="w3-center">MEMORY DETAILS</h4>
+                    <h4 class="w3-center">MEMORY DETAILS</h4>
 
-                    <div class="memory-bar">
-                        <label>VMFS-ROOT USED:</label>
-                        <div class="progress-bar" role="progressbar" aria-valuenow="{{ vm.vmfs_root_used|default:'0'|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
-                            <div class="progress-fill root" style="width: {{ vm.vmfs_root_used }};"></div>
-                            <span class="progress-label">{{ vm.vmfs_root_used }}</span>
+                    <div class="memory-split">
+
+                        <!-- 60% GRAPH AREA -->
+                        <div class="memory-graphs">
+
+                            <div class="memory-bar">
+                                <label>VMFS-ROOT USED</label>
+                                <div class="progress-bar">
+                                    <div class="progress-fill root" style="width: {{ vm.vmfs_root_used }};"></div>
+                                    <span class="progress-label">{{ vm.vmfs_root_used }}</span>
+                                </div>
+                            </div>
+
+                            <div class="memory-bar">
+                                <label>VMFS-APPS USED</label>
+                                <div class="progress-bar">
+                                    <div class="progress-fill apps" style="width: {{ vm.vmfs_apps_used }};"></div>
+                                    <span class="progress-label">{{ vm.vmfs_apps_used }}</span>
+                                </div>
+                            </div>
+
+                            <div class="memory-bar">
+                                <label>VMFS-DATA USED</label>
+                                <div class="progress-bar">
+                                    <div class="progress-fill data" style="width: {{ vm.vmfs_data_used }};"></div>
+                                    <span class="progress-label">{{ vm.vmfs_data_used }}</span>
+                                </div>
+                            </div>
+
                         </div>
+
+                        <!-- 40% TEXT AREA -->
+                        <div class="memory-info">
+                            <strong style="color:#00ffe4 ">Memory:</strong> {{ vm.memory }}<br>
+                            <strong style="color:#00ffe4 ">Processors:</strong> {{ vm.processors }}<br>
+                        </div>
+
                     </div>
 
-                    <div class="memory-bar">
-                        <label>VMFS-APPS USED:</label>
-                        <div class="progress-bar" role="progressbar" aria-valuenow="{{ vm.vmfs_apps_used|default:'0'|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
-                            <div class="progress-fill apps" style="width: {{ vm.vmfs_apps_used }};"></div>
-                            <span class="progress-label">{{ vm.vmfs_apps_used }}</span>
-                        </div>
-                    </div>
-
-                    <div class="memory-bar">
-                        <label>VMFS-DATA USED:</label>
-                        <div class="progress-bar" role="progressbar" aria-valuenow="{{ vm.vmfs_data_used|default:'0'|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
-                            <div class="progress-fill data" style="width: {{ vm.vmfs_data_used }};"></div>
-                            <span class="progress-label">{{ vm.vmfs_data_used }}</span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            <div class="w3-card" role="region" aria-labelledby="additional-info-heading" style="flex: 1 1 33%;">
+            <!-- ADDITIONAL INFO -->
+            <div class="w3-card">
                 <div class="w3-container">
-                    <h4 id="additional-info-heading" class="w3-center">ADDITIONAL INFO</h4>
-                    <p style="color: #a3a8b5; font-size: 14px;">
-                        <strong>Last Backup:</strong> {{ vm.last_backup }}<br />
-                        <strong>Owner:</strong> {{ vm.owner }}<br />
-                        <strong>Uptime:</strong> {{ vm.uptime }}<br />
-                        <strong>Notes:</strong> {{ vm.additional_notes }}<br />
+                    <h4 class="w3-center">OS & HTTPD</h4>
+                    <p>
+                        <strong>Last Backup:</strong> {{ vm.last_backup }}<br/>
+                        <strong>Owner:</strong> {{ vm.owner }}<br/>
+                        <strong>Uptime:</strong> {{ vm.uptime }}<br/>
+                        <strong>Notes:</strong> {{ vm.additional_notes }}<br/>
                     </p>
                 </div>
             </div>
 
-            <div class="w3-card" role="region" aria-labelledby="extra-details-heading" style="flex: 1 1 33%;">
+            <!-- EXTRA DETAILS -->
+            <div class="w3-card">
                 <div class="w3-container">
-                    <h4 id="extra-details-heading" class="w3-center">EXTRA DETAILS</h4>
-                    <p style="color: #a3a8b5; font-size: 14px;">
-                        <strong>Security Status:</strong> {{ vm.security_status }}<br />
-                        <strong>Last Audit:</strong> {{ vm.last_audit_date }}<br />
-                        <strong>Compliance:</strong> {{ vm.compliance }}<br />
-                        <strong>Custom Notes:</strong> {{ vm.custom_notes }}<br />
+                    <h4 class="w3-center">EXTRA DETAILS</h4>
+                    <p>
+                        <strong>Security Status:</strong> {{ vm.security_status }}<br/>
+                        <strong>Last Audit:</strong> {{ vm.last_audit_date }}<br/>
+                        <strong>Compliance:</strong> {{ vm.compliance }}<br/>
+                        <strong>Custom Notes:</strong> {{ vm.custom_notes }}<br/>
                     </p>
                 </div>
             </div>
 
-            <div class="w3-card" role="region" aria-labelledby="notes-heading" style="flex: 1 1 33%;">
+            <!-- NOTES -->
+            <div class="w3-card">
                 <div class="w3-container">
-                    <h4 id="notes-heading" class="w3-center">NOTES</h4>
+                    <h4 class="w3-center">NOTES</h4>
                     <p>{{ vm.notes }}</p>
                 </div>
             </div>
 
         </div>
-
     </div>
-
 </div>
 
 </body>
