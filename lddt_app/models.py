@@ -297,13 +297,13 @@ class Vm(models.Model):
             return f'MySQL {version}'
 
         except paramiko.AuthenticationException:
-            return 'MySQL "authentication failed"'
+            return ''
 
         except paramiko.SSHException as sshException:
-            return f'MySQL "SSH error: {sshException}"'
+            return f''
 
         except Exception as e:
-            return f'MySQL "error: {e}"'
+            return f''
 
         finally:
             ssh.close()
