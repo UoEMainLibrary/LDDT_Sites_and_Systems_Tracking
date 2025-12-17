@@ -40,6 +40,14 @@
     th.sortable.desc .sort-arrow.desc-arrow {
         color: #fff;
     }
+    /* Apply to all table cells */
+    #myTable th,
+    #myTable td {
+        white-space: nowrap;        /* keep text on one line */
+        overflow: hidden;           /* hide overflow */
+        text-overflow: ellipsis;    /* show ... */
+        max-width: 30ch;            /* ~30 characters */
+    }
 </style>
 </head>
 
