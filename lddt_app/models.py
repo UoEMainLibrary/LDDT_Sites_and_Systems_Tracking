@@ -292,18 +292,18 @@ class Vm(models.Model):
                     version = match.group(1)
 
             if not version:
-                return 'Unknown Version'
+                return '-----'
 
             return f'MySQL {version}'
 
         except paramiko.AuthenticationException:
-            return 'Authentication Failed'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'SSH Error'
+            return f'-----'
 
         except Exception as e:
-            return f'"{e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -357,13 +357,13 @@ class Vm(models.Model):
             return os_release
 
         except paramiko.AuthenticationException:
-            return 'Authentication Failed'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'"{sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'"{e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -407,13 +407,13 @@ class Vm(models.Model):
             return f'Puppet {clean_version}'
 
         except paramiko.AuthenticationException:
-            return 'Authentication Failed'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'"{sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'"{e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -469,7 +469,7 @@ class Vm(models.Model):
                         build_date = f"{year}/{month}"
 
             if not apache_version:
-                return 'Apache "unknown version"'
+                return '-----'
 
             if build_date:
                 return f"{apache_version}\nbuilt: {build_date}"
@@ -477,13 +477,13 @@ class Vm(models.Model):
             return apache_version
 
         except paramiko.AuthenticationException:
-            return 'Authentication Failed'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'{sshException}'
+            return f'-----'
 
         except Exception as e:
-            return f'{e}'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -527,16 +527,16 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return ""
+            return "-----"
 
         except paramiko.AuthenticationException:
-            return 'VMFS "authentication failed"'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'VMFS "SSH error: {sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'VMFS "error: {e}"'
+            return f'-----"'
 
         finally:
             ssh.close()
@@ -579,16 +579,16 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return ""
+            return "-----"
 
         except paramiko.AuthenticationException:
-            return 'VMFS "authentication failed"'
+            return '------'
 
         except paramiko.SSHException as sshException:
-            return f'VMFS "SSH error: {sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'VMFS "error: {e}"'
+            return f'-----"'
 
         finally:
             ssh.close()
@@ -631,16 +631,16 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return ""
+            return "-----"
 
         except paramiko.AuthenticationException:
-            return 'VMFS "authentication failed"'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'VMFS "SSH error: {sshException}"'
+            return f'-----"'
 
         except Exception as e:
-            return f'VMFS "error: {e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -696,13 +696,13 @@ class Vm(models.Model):
                 return ("Second address not found.")
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            print("-----")
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            print(f"-----")
 
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"-----")
 
     @property
     def ssh_processors(self):
@@ -733,16 +733,16 @@ class Vm(models.Model):
             if output.isdigit():
                 return int(output)
 
-            return "Unknown"
+            return "-----"
 
         except paramiko.AuthenticationException:
-            return 'Processors "authentication failed"'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'Processors "SSH error: {sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'Processors "error: {e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -782,16 +782,16 @@ class Vm(models.Model):
                     except ValueError:
                         return "Unknown"
 
-            return "Unknown"
+            return "-----"
 
         except paramiko.AuthenticationException:
-            return 'MemTotal "authentication failed"'
+            return '------'
 
         except paramiko.SSHException as sshException:
-            return f'MemTotal "SSH error: {sshException}"'
+            return f'------'
 
         except Exception as e:
-            return f'MemTotal "error: {e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -825,16 +825,16 @@ class Vm(models.Model):
             if output.isdigit():
                 return int(output)
             else:
-                return "Unknown"
+                return "-----"
 
         except paramiko.AuthenticationException:
-            return 'Days since boot "authentication failed"'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'Days since boot "SSH error: {sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'Days since boot "error: {e}"'
+            return f'-----'
 
         finally:
             ssh.close()
