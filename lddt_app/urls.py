@@ -52,6 +52,7 @@ urlpatterns = [
    re_path(r'^vm/(\d+)/', vm_details, name='vm_details'),
    path('update_vm/<int:id>/', update_vm, name='update_vm'),
    path('delete_vm/<int:id>/', delete_vm, name='delete_vm'),
+path('run-vm-update/', run_vm_update, name='run_vm_update'),
 
    path('tutorials_home/', tutorials_home, name='tutorials_home'),
    path('what_ssl_certificate/', what_ssl_certificate, name='what_ssl_certificate'),

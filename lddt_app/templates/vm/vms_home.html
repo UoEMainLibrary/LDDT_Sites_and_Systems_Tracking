@@ -84,6 +84,7 @@
             <ul>
                 <li><a href="{% url 'vms_working_on' %}" style="color:black">WORKING ON </a> </li>
                 <li><a href="{% url 'vms_investigate' %}" style="color:black">INVESTIGATE </a> </li>
+                <li style="background-color: #4F4845"><button id="updateVmsBtn" class="btn btn-sm" style="color:white; background:none; border:none;">🔄 UPDATE VMs</button></li>
 
                 <div class="clear"></div>
             </ul>
@@ -191,6 +192,40 @@
     </tbody>
     {% endfor %}
 </table>
+<script>
+document.getElementById('updateVmsBtn').addEventListener('click', function () {
+    if (!confirm("Run VM update script? This may take a while.")) {
+        return;
+    }
+
+    this.disabled = true;
+    this.innerText = "Updating...";
+
+    fetch("{% url 'run_vm_update' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            alert("VM data updated successfully!");
+            location.reload();  // reload table
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(err => {
+        alert("Unexpected error occurred");
+        console.error(err);
+    })
+    .finally(() => {
+        this.disabled = false;
+        this.innerText = "🔄 UPDATE VMs";
+    });
+});
+</script>
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
