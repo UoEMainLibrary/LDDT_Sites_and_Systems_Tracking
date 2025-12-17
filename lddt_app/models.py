@@ -274,13 +274,15 @@ class Vm(models.Model):
                 return 'MySQL "not installed"'
 
             # Example output:
-            # mysql  Ver 14.14 Distrib 5.7.41, for Linux (x86_64) using EditLine wrapper
+            # mysql  Ver 14.14 Distrib 10.6.24-MariaDB, for Linux (x86_64) using EditLine wrapper
 
             version = None
 
             # Extract version after "Distrib "
             if "Distrib" in output:
-                version = output.split("Distrib")[1].split(",")[0].strip()
+                version_part = output.split("Distrib")[1].split(",")[0].strip()
+                # Remove any suffix like -MariaDB etc.
+                version = version_part.split('-')[0]
 
             if not version:
                 # fallback: try numeric extraction
@@ -290,9 +292,9 @@ class Vm(models.Model):
                     version = match.group(1)
 
             if not version:
-                return f'MySQL "unknown version"'
+                return 'MySQL "unknown version"'
 
-            return f'MySQL - {version}'
+            return f'MySQL {version}'
 
         except paramiko.AuthenticationException:
             return 'MySQL "authentication failed"'
