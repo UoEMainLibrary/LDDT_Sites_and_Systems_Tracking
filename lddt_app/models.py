@@ -335,7 +335,7 @@ class Vm(models.Model):
             output = stdout.read().decode().strip()
 
             if not output:
-                return 'OS ""'
+                return 'OS "unknown"'
 
             # First line should contain the OS release text
             lines = output.splitlines()
@@ -545,7 +545,7 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return "Unknown"
+            return ""
 
         except paramiko.AuthenticationException:
             return 'VMFS "authentication failed"'
@@ -597,7 +597,7 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return "Unknown"
+            return ""
 
         except paramiko.AuthenticationException:
             return 'VMFS "authentication failed"'
