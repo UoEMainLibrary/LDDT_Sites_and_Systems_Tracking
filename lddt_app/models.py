@@ -536,7 +536,7 @@ class Vm(models.Model):
             return f'-----'
 
         except Exception as e:
-            return f'-----"'
+            return f'-----'
 
         finally:
             ssh.close()
