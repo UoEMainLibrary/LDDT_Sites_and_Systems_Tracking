@@ -292,18 +292,18 @@ class Vm(models.Model):
                     version = match.group(1)
 
             if not version:
-                return 'MySQL "unknown version"'
+                return 'unknown Version'
 
             return f'MySQL {version}'
 
         except paramiko.AuthenticationException:
-            return ''
+            return 'Authentication Failed'
 
         except paramiko.SSHException as sshException:
-            return f''
+            return f'SSH Error'
 
         except Exception as e:
-            return f''
+            return f'"{e}"'
 
         finally:
             ssh.close()
