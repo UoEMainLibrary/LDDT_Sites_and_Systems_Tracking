@@ -15,7 +15,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Open+Sans&display=swap');
 
         html, body {
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             font-family: 'Open Sans', sans-serif;
             background: #0f111a;
             color: #c0c4cc;
@@ -23,138 +24,84 @@
             overflow-x: hidden;
         }
 
-        h1, h2, h3, h4, h5 {
+        h1, h2, h3, h4 {
             font-family: 'Orbitron', sans-serif;
             color: #00ffea;
             letter-spacing: 2px;
-            margin: 0;
+            margin-bottom: .75rem;
         }
 
-        /* ------------------------------------ */
         /* NAVBAR */
-        /* ------------------------------------ */
-
         .w3-top .w3-bar {
-            background: linear-gradient(90deg, #0fffdc, #0fffdc 30%, #004d40 100%);
+            background: linear-gradient(90deg, #0fffdc, #004d40);
             border-bottom: 1px solid #00ffea;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 1rem;
             height: 56px;
+            padding: 0 1rem;
             box-shadow: 0 2px 12px rgba(0,255,234,0.6);
         }
-        .w3-bar-left { display: flex; gap: 1rem; align-items: center; }
-        .w3-bar-right { display: flex; gap: .5rem; align-items: center; }
 
         .w3-bar-item.w3-button {
             color: #00ffea;
-            font-weight: 700;
-            letter-spacing: 1px;
+            font-weight: bold;
             border-radius: 12px;
-            box-shadow: 0 0 8px #00ffea88;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            padding: 0 1rem;
-            height: 36px;
         }
-        .w3-bar-item.w3-button:hover {
-            background-color: #00ffe4;
-            color: #000;
-        }
-        .btn-back { background-color: #004d40; }
-        .btn-update { background-color: #00796b; }
-        .btn-delete { background-color: #ff4d4d; color: white !important; }
-        .btn-delete:hover { background-color: #ff1a1a; }
 
-        /* ------------------------------------ */
-        /* CARD STYLING */
-        /* ------------------------------------ */
-
-        .w3-card {
+        /* CARD */
+        .card {
             background: linear-gradient(145deg, #1a1c29, #121424);
             border: 1px solid #00ffe4;
             border-radius: 16px;
             box-shadow: 0 0 8px #00ffe4, inset 0 0 15px #00ffe4;
-            display: flex;
-            flex-direction: column;
+            padding: 1.5rem;
         }
-        .w3-container { padding: 1rem 1.5rem; flex: 1; }
 
-        /* WRAPPER */
-        .content-wrapper {
+        /* LAYOUT */
+        .wrapper {
             max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 5vw;
+            margin: 100px auto 40px;
+            padding: 0 2rem;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
-        /* ------------------------------------ */
-        /* SERVER NAME SECTION */
-        /* ------------------------------------ */
+        .grid {
+            display: grid;
+            grid-template-columns: 35% 65%;
+            gap: 20px;
+        }
 
-        .server-name-section {
-            padding: 1rem 2rem;
-            border-radius: 16px;
-            border: 1px solid #00ffe4;
-            box-shadow: 0 0 8px #00ffe4, inset 0 0 15px #00ffe4;
+        .right-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* SERVER HEADER */
+        .server-header {
             display: flex;
             align-items: center;
             gap: 20px;
-            background: linear-gradient(145deg, #1a1c29, #121424);
         }
-        .server-name-section img {
-            width: 60px; border-radius: 12px;
-        }
-        .server-name {
-            flex: 1;
-            font-size: 1.75rem;
-            font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .server-ip { font-size: 14px; color: #6ef9f1; white-space: nowrap; }
 
-        /* ------------------------------------ */
-        /* MAIN LAYOUT (LEFT + RIGHT) */
-        /* ------------------------------------ */
-
-        .content-row {
-            display: flex;
-            gap: 20px;
+        .server-header img {
+            width: 60px;
+            border-radius: 12px;
         }
-        .left-column { flex: 1 1 35%; }
-        .right-column { flex: 1 1 65%; display: flex; gap: 20px; flex-direction: column; }
 
-        /* ------------------------------------ */
-        /* MEMORY DETAILS (60/40 SPLIT) */
-        /* ------------------------------------ */
-
-        .memory-split {
-            display: flex;
-            gap: 20px;
-        }
-        .memory-graphs {
-            flex: 0 0 60%;
-        }
-        .memory-info {
-            flex: 0 0 40%;
-            color: #a3a8b5;
+        .server-ip {
             font-size: 14px;
-            padding-top: 10px;
+
         }
 
-        .memory-bar { margin-bottom: 1rem; }
-        .memory-bar label {
-            font-weight: 700;
-            color: #00ffe4;
-            margin-bottom: 6px;
-            display: block;
+        /* MEMORY */
+        .memory-bar {
+            margin-bottom: 1rem;
         }
+
         .progress-bar {
             position: relative;
             width: 100%;
@@ -163,48 +110,53 @@
             border: 1px solid #00ffe4;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: inset 0 0 6px #00ffe4cc;
         }
+
         .progress-fill {
             height: 100%;
             border-radius: 12px 0 0 12px;
-            transition: width .5s ease;
         }
+
         .root { background: linear-gradient(90deg, #00ffc8, #008060); }
         .apps { background: linear-gradient(90deg, #00aaff, #004d99); }
-        .data { background: linear-gradient(90deg, #ff4d4d, #b30000); }
+        .data { background: linear-gradient(90deg, #ff4d4d, #990000); }
 
         .progress-label {
             position: absolute;
             right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            color: white;
-            font-weight: bold;
             font-size: 12px;
-            text-shadow: 0 0 3px black;
+            font-weight: bold;
+            color: #fff;
         }
 
-        /* ------------------------------------ */
-        /* OS & HTTPD SPLIT (NEW — 50/50) */
-        /* ------------------------------------ */
-
-        .os-httpd-split {
+        /* SPLITS */
+        .split {
             display: flex;
-            margin-top: 1rem;
+            gap: 20px;
         }
-        .os-httpd-panel {
-            flex: 1;
-            padding: 1rem;
-            font-size: 14px;
-            color: #a3a8b5;
-        }
-        .os-httpd-divider {
+
+        .divider {
             width: 1px;
             background: #00ffe4;
-            box-shadow: 0 0 8px #00ffe4, inset 0 0 12px #00ffe4;
-            margin: 0 10px;
-            border-radius: 2px;
+            box-shadow: 0 0 8px #00ffe4;
+        }
+        .equal-columns {
+        display: flex;
+        width: 100%;
+        }
+
+        .equal-columns .panel {
+        flex: 1;                 /* ← each takes equal width */
+        padding: 0.5rem 1rem;
+        text-align: center;      /* optional, looks cleaner */
+        }
+
+        .equal-columns .divider {
+        width: 1px;
+        background: #00ffe4;
+        box-shadow: 0 0 8px #00ffe4;
         }
     </style>
 </head>
@@ -214,185 +166,161 @@
 <!-- NAVBAR -->
 <div class="w3-top">
     <div class="w3-bar">
-        <div class="w3-bar-left">
-            <img src="/static/img/uni_logo_1.jpg" style="width:50px;">
-            <h3 style="color:#00ffea;">Digital Library Tracking App</h3>
+        <div>
+            <img src="/static/img/uni_logo_1.jpg" style="width:45px;">
+            <strong>Digital Library Tracking App</strong>
         </div>
-
-        <div class="w3-bar-right">
-            <a href="{% url 'vms_home' %}" class="w3-bar-item w3-button btn-back">Back</a>
-            <a href="{% url 'update_vm' vm.id %}" class="w3-bar-item w3-button btn-update">Update</a>
-            <a href="{% url 'delete_vm' vm.id %}" class="w3-bar-item w3-button btn-delete">Delete</a>
+        <div>
+            <a href="{% url 'vms_home' %}" class="w3-bar-item w3-button">Back</a>
+            <a href="{% url 'update_vm' vm.id %}" class="w3-bar-item w3-button">Update</a>
+            <a href="{% url 'delete_vm' vm.id %}" class="w3-bar-item w3-button" style="background:#ff4d4d;color:#000;">Delete</a>
         </div>
     </div>
 </div>
 
-<br><br><br>
-
-<!-- CONTENT -->
-<div class="content-wrapper">
+<div class="wrapper">
 
     <!-- SERVER NAME -->
-    <div class="server-name-section">
+    <div class="card server-header">
         <img src="/static/img/vms/server_icon_2.png">
-        <h1 class="server-name">{{ vm.hostname }}</h1>
-        <p class="server-ip">IP ADDRESS: {{ vm.ip_address }}</p>
-    </div>
-
-    <div class="content-row">
-
-        <!-- LEFT COLUMN -->
-        <div class="left-column">
-            <div class="w3-card">
-                <div class="w3-container">
-
-                    <h4 class="w3-center">STATUS</h4>
-                    <p>
-                        <strong>SERVER STATUS:</strong> {{ vm.vm_status }}<br/>
-                        <strong>TYPE:</strong> {{ vm.vm_type }}<br/>
-                        <strong>PING:</strong> &lt;--EMPTY--&gt;
-                    </p>
-
-                    <h4 class="w3-center">DETAILS</h4>
-                    <p class="details">
-                        <strong>APPLICATION:</strong> {{ vm.application }}<br/>
-                        <strong>SSH in LP:</strong> {{ vm.ssh_in_lp }}<br/>
-                        <strong>PUPPET CONTROLLED:</strong> {{ vm.puppet_controlled }}<br/>
-                        <strong>DATA CENTRE:</strong> {{ vm.data_centre }}<br/>
-                        <strong>POODLE CHECKED:</strong> {{ vm.poodle_checked }}<br/>
-                        <strong>LOG4SHELL RISK:</strong> {{ vm.log4shell_risk }}<br/>
-                        <strong>TRACE RISK:</strong> {{ vm.trace_risk }}<br/>
-                        <strong>OS CENTOS ASSUMED:</strong> {{ vm.os_centos_assumed }}<br/>
-                        <strong>TOMCAT:</strong> {{ vm.tomcat }}<br/>
-                        <strong>RAM:</strong> {{ vm.ram }}<br/>
-                        <strong>DB:</strong> {{ vm.db }}<br/>
-                        <strong>PHP:</strong> {{ vm.php }}<br/>
-                        <strong>JAVA:</strong> {{ vm.java }}<br/>
-                        <strong>VM STORAGE:</strong> {{ vm.vm_storage }}<br/>
-                        <strong>SPECIAL MOUNTS:</strong> {{ vm.special_mounts }}<br/>
-                        <strong>PYTHON:</strong> {{ vm.python }}<br/>
-                        <strong>NPM:</strong> {{ vm.npm }}<br/>
-                        <strong>SHIBBOLETH:</strong> {{ vm.shibboleth }}<br/>
-                        <strong>SSL:</strong> {{ vm.ssl }}<br/>
-                        <strong>TESRSA:</strong> {{ vm.testrsa }}<br/>
-
-                    </p>
-                </div>
+        <div>
+            <h1>{{ vm.hostname }}</h1>
+            <div class="server-ip">
+                <strong style="color:#00ffea;">IP ADDRESS:</strong> {{ vm.ip_address }}
             </div>
         </div>
+    </div>
 
-        <!-- RIGHT COLUMN -->
-        <div class="right-column">
+    <!-- GRID -->
+    <div class="grid">
+
+        <!-- LEFT: STATUS + DETAILS -->
+        <div class="card">
+
+            <h3>STATUS</h3>
+            <p>
+                <strong style="color:#00ffea;">SERVER STATUS:</strong> {{ vm.vm_status }}<br/>
+                <strong style="color:#00ffea;">TYPE:</strong> {{ vm.vm_type }}<br/>
+                <strong style="color:#00ffea;">PING:</strong> &lt;--EMPTY--&gt;
+            </p>
+
+            <h3>DETAILS</h3>
+            <p>
+                <strong style="color:#00ffea;">APPLICATION:</strong> {{ vm.application }}<br/>
+                <strong style="color:#00ffea;">SSH in LP:</strong> {{ vm.ssh_in_lp }}<br/>
+                <strong style="color:#00ffea;">PUPPET CONTROLLED:</strong> {{ vm.puppet_controlled }}<br/>
+                <strong style="color:#00ffea;">DATA CENTRE:</strong> {{ vm.data_centre }}<br/>
+                <strong style="color:#00ffea;">POODLE CHECKED:</strong> {{ vm.poodle_checked }}<br/>
+                <strong style="color:#00ffea;">LOG4SHELL RISK:</strong> {{ vm.log4shell_risk }}<br/>
+                <strong style="color:#00ffea;">TRACE RISK:</strong> {{ vm.trace_risk }}<br/>
+                <strong style="color:#00ffea;">OS CENTOS ASSUMED:</strong> {{ vm.os_centos_assumed }}<br/>
+                <strong style="color:#00ffea;">TOMCAT:</strong> {{ vm.tomcat }}<br/>
+                <strong style="color:#00ffea;">RAM:</strong> {{ vm.ram }}<br/>
+                <strong style="color:#00ffea;">DB:</strong> {{ vm.db }}<br/>
+                <strong style="color:#00ffea;">PHP:</strong> {{ vm.php }}<br/>
+                <strong style="color:#00ffea;">JAVA:</strong> {{ vm.java }}<br/>
+                <strong style="color:#00ffea;">VM STORAGE:</strong> {{ vm.vm_storage }}<br/>
+                <strong style="color:#00ffea;">SPECIAL MOUNTS:</strong> {{ vm.special_mounts }}<br/>
+                <strong style="color:#00ffea;">PYTHON:</strong> {{ vm.python }}<br/>
+                <strong style="color:#00ffea;">NPM:</strong> {{ vm.npm }}<br/>
+                <strong style="color:#00ffea;">SHIBBOLETH:</strong> {{ vm.shibboleth }}<br/>
+                <strong style="color:#00ffea;">SSL:</strong> {{ vm.ssl }}<br/>
+                <strong style="color:#00ffea;">TESRSA:</strong> {{ vm.testrsa }}<br/>
+                <strong style="color:#00ffea;">LAST PATCH DAYS AGO:</strong> {{ vm.last_patch_days_ago }}<br/>
+            </p>
+        </div>
+
+        <!-- RIGHT STACK -->
+        <div class="right-stack">
 
             <!-- MEMORY DETAILS -->
-            <div class="w3-card">
-                <div class="w3-container">
-                    <h4 class="w3-center">MEMORY DETAILS</h4>
+            <div class="card">
+                <h3>MEMORY DETAILS</h3>
 
-                    <div class="memory-split">
-
-                        <!-- GRAPH AREA -->
-                        <div class="memory-graphs">
-
-                            <div class="memory-bar">
-                                <label>VMFS-ROOT USED</label>
-                                <div class="progress-bar">
-                                    <div class="progress-fill root" style="width: {{ vm.vmfs_root_used }};"></div>
-                                    <span class="progress-label">{{ vm.vmfs_root_used }}</span>
-                                </div>
-                            </div>
-
-                            <div class="memory-bar">
-                                <label>VMFS-APPS USED</label>
-                                <div class="progress-bar">
-                                    <div class="progress-fill apps" style="width: {{ vm.vmfs_apps_used }};"></div>
-                                    <span class="progress-label">{{ vm.vmfs_apps_used }}</span>
-                                </div>
-                            </div>
-
-                            <div class="memory-bar">
-                                <label>VMFS-DATA USED</label>
-                                <div class="progress-bar">
-                                    <div class="progress-fill data" style="width: {{ vm.vmfs_data_used }};"></div>
-                                    <span class="progress-label">{{ vm.vmfs_data_used }}</span>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="os-httpd-divider"></div>
-
-                        <!-- INFO AREA -->
-                        <div class="memory-info">
-                            <strong style="color:#00ffe4 ">Memory:</strong> {{ vm.memory }}<br>
-                            <strong style="color:#00ffe4 ">Processors:</strong> {{ vm.processors }}<br>
-                        </div>
-
-                    </div>
-
+                <div class="memory-bar">
+                    <strong>VMFS-ROOT USED</strong>
+                    <div class="progress-bar">
+                    {% if vm.vmfs_root_used %}
+                        <div class="progress-fill root" style="width: {{ vm.vmfs_root_used }};"></div>
+                    <span class="progress-label">{{ vm.vmfs_root_used }}</span>
+                    {% else %}
+                        <!-- empty bar, no fill -->
+                    {% endif %}
                 </div>
+                </div>
+
+                <div class="memory-bar">
+                    <strong>VMFS-APPS USED</strong>
+                    <div class="progress-bar">
+                        {% if vm.vmfs_apps_used %}
+                            <div class="progress-fill apps" style="width: {{ vm.vmfs_apps_used }};"></div>
+                            <span class="progress-label">{{ vm.vmfs_apps_used }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="memory-bar">
+                    <strong>VMFS-DATA USED</strong>
+                    <div class="progress-bar">
+                        {% if vm.vmfs_data_used %}
+                            <div class="progress-fill data" style="width: {{ vm.vmfs_data_used }};"></div>
+                            <span class="progress-label">{{ vm.vmfs_data_used }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <p>
+                    <strong style="color:#00ffea;">Memory:</strong> {{ vm.memory }}<br/>
+                    <strong style="color:#00ffea;">Processors:</strong> {{ vm.processors }}
+                </p>
             </div>
 
-            <!-- OS & HTTPD (NEW SPLIT SECTION) -->
-            <div class="w3-card">
-                <div class="w3-container">
-                    <h4 class="w3-center">OS & HTTPD</h4>
-
-                    <div class="os-httpd-split">
-
-                        <!-- LEFT 50% -->
-                        <div class="os-httpd-panel">
-
-                                <strong style="color:#00ffe4 ">OPERATING SYSTEM</strong><br>
-                                 {{ vm.nginx }}<br/>
-
-                        </div>
-
-                        <!-- DIVIDER -->
-                        <div class="os-httpd-divider"></div>
-
-                        <!-- RIGHT 50% -->
-                        <div class="os-httpd-panel">
-                            <strong style="color:#00ffe4 ">HTTPD</strong><br>
-                                {{ vm.httpd }}
-                        </div>
-
-                        <!-- DIVIDER -->
-                        <div class="os-httpd-divider"></div>
-                        <div class="os-httpd-panel">
-                            <strong style="color:#00ffe4 ">LAST PATH {{ vm.last_patch_days_ago }} DAYS AGO</strong><br>
-
-                        </div>
-
+            <!-- OS & HTTPD -->
+            <div class="card">
+                <h3>OS & HTTPD</h3>
+                <div class="split equal-columns">
+                    <div class="panel">
+                        <strong style="color:#00ffea;">OPERATING SYSTEM</strong><br/>
+                        {{ vm.nginx }}
                     </div>
 
+                    <div class="divider"></div>
+
+                    <div class="panel">
+                        <strong style="color:#00ffea;">HTTPD</strong><br/>
+                        {{ vm.httpd }}
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="panel">
+                        <strong style="color:#00ffea;">
+                            LAST PATCH {{ vm.last_patch_days_ago }} DAYS AGO
+                        </strong>
+                    </div>
                 </div>
             </div>
 
             <!-- EXTRA DETAILS -->
-            <div class="w3-card">
-                <div class="w3-container">
-                    <h4 class="w3-center">EXTRA DETAILS</h4>
-                    <p>
-                        <strong>Security Status:</strong> {{ vm.security_status }}<br/>
-                        <strong>Last Audit:</strong> {{ vm.last_audit_date }}<br/>
-                        <strong>Compliance:</strong> {{ vm.compliance }}<br/>
-                        <strong>Custom Notes:</strong> {{ vm.custom_notes }}<br/>
-                    </p>
-                </div>
-            </div>
-
-            <!-- NOTES -->
-            <div class="w3-card">
-                <div class="w3-container">
-                    <h4 class="w3-center">NOTES</h4>
-                    <p>{{ vm.notes }}</p>
-                </div>
+            <div class="card">
+                <h3>EXTRA DETAILS</h3>
+                <p>
+                    <strong>Security Status:</strong> {{ vm.security_status }}<br/>
+                    <strong>Last Audit:</strong> {{ vm.last_audit_date }}<br/>
+                    <strong>Compliance:</strong> {{ vm.compliance }}<br/>
+                    <strong>Custom Notes:</strong> {{ vm.custom_notes }}<br/>
+                </p>
             </div>
 
         </div>
-
     </div>
+
+    <!-- NOTES (UNCHANGED CONTENT, SEPARATE CARD) -->
+    <div class="card">
+        <h3>NOTES</h3>
+        <p>{{ vm.notes }}</p>
+    </div>
+
 </div>
 </body>
 </html>
