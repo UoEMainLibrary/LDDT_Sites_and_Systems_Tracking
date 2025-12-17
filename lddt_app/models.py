@@ -335,7 +335,7 @@ class Vm(models.Model):
             output = stdout.read().decode().strip()
 
             if not output:
-                return 'OS "unknown"'
+                return 'OS ""'
 
             # First line should contain the OS release text
             lines = output.splitlines()
