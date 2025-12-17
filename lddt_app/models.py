@@ -527,16 +527,16 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return "-----"
+            return ""
 
         except paramiko.AuthenticationException:
-            return '-----'
+            return ''
 
         except paramiko.SSHException as sshException:
-            return f'-----'
+            return f''
 
         except Exception as e:
-            return f'-----'
+            return f''
 
         finally:
             ssh.close()
@@ -579,16 +579,16 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return "-----"
+            return ""
 
         except paramiko.AuthenticationException:
-            return '------'
+            return ''
 
         except paramiko.SSHException as sshException:
-            return f'-----'
+            return f''
 
         except Exception as e:
-            return f'-----'
+            return f''
 
         finally:
             ssh.close()
@@ -631,16 +631,16 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return "-----"
+            return ""
 
         except paramiko.AuthenticationException:
-            return '-----'
+            return ''
 
         except paramiko.SSHException as sshException:
-            return f'-----'
+            return f''
 
         except Exception as e:
-            return f'-----'
+            return f''
 
         finally:
             ssh.close()
