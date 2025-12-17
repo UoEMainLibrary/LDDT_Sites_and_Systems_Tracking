@@ -493,7 +493,7 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return "Unknown"
+            return ""
 
         except paramiko.AuthenticationException:
             return 'VMFS "authentication failed"'
