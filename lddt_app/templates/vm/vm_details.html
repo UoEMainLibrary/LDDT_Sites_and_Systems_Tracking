@@ -94,10 +94,9 @@
 
         .server-ip {
             font-size: 14px;
-
         }
 
-        /* MEMORY */
+        /* MEMORY BARS */
         .memory-bar {
             margin-bottom: 1rem;
         }
@@ -134,7 +133,7 @@
         /* SPLITS */
         .split {
             display: flex;
-            gap: 20px;
+            width: 100%;
         }
 
         .divider {
@@ -142,21 +141,37 @@
             background: #00ffe4;
             box-shadow: 0 0 8px #00ffe4;
         }
-        .equal-columns {
-        display: flex;
-        width: 100%;
+
+        /* MEMORY 70 / 30 */
+        .memory-split {
+            align-items: stretch;
         }
 
+        .memory-bars {
+            flex: 0 0 70%;
+            padding-right: 1rem;
+        }
+
+        .memory-info {
+            flex: 0 0 30%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 14px;
+            color: #a3a8b5;
+            padding-left: 1rem;
+        }
+
+        .memory-split .divider {
+            align-self: stretch;
+        }
+
+        /* EQUAL COLUMNS */
         .equal-columns .panel {
-        flex: 1;                 /* ← each takes equal width */
-        padding: 0.5rem 1rem;
-        text-align: center;      /* optional, looks cleaner */
-        }
-
-        .equal-columns .divider {
-        width: 1px;
-        background: #00ffe4;
-        box-shadow: 0 0 8px #00ffe4;
+            flex: 1;
+            padding: 0.5rem 1rem;
+            text-align: center;
         }
     </style>
 </head>
@@ -180,7 +195,7 @@
 
 <div class="wrapper">
 
-    <!-- SERVER NAME -->
+    <!-- SERVER HEADER -->
     <div class="card server-header">
         <img src="/static/img/vms/server_icon_2.png">
         <div>
@@ -194,9 +209,8 @@
     <!-- GRID -->
     <div class="grid">
 
-        <!-- LEFT: STATUS + DETAILS -->
+        <!-- LEFT -->
         <div class="card">
-
             <h3>STATUS</h3>
             <p>
                 <strong style="color:#00ffea;">SERVER STATUS:</strong> {{ vm.vm_status }}<br/>
@@ -224,55 +238,66 @@
                 <strong style="color:#00ffea;">PYTHON:</strong> {{ vm.python }}<br/>
                 <strong style="color:#00ffea;">NPM:</strong> {{ vm.npm }}<br/>
                 <strong style="color:#00ffea;">SHIBBOLETH:</strong> {{ vm.shibboleth }}<br/>
-                <strong style="color:#00ffea;">SSL:</strong> {{ vm.ssl }}<br/>
-                <strong style="color:#00ffea;">TESRSA:</strong> {{ vm.testrsa }}<br/>
-                <strong style="color:#00ffea;">LAST PATCH DAYS AGO:</strong> {{ vm.last_patch_days_ago }}<br/>
             </p>
         </div>
 
-        <!-- RIGHT STACK -->
+        <!-- RIGHT -->
         <div class="right-stack">
 
             <!-- MEMORY DETAILS -->
             <div class="card">
                 <h3>MEMORY DETAILS</h3>
 
-                <div class="memory-bar">
-                    <strong>VMFS-ROOT USED</strong>
-                    <div class="progress-bar">
-                    {% if vm.vmfs_root_used %}
-                        <div class="progress-fill root" style="width: {{ vm.vmfs_root_used }};"></div>
-                    <span class="progress-label">{{ vm.vmfs_root_used }}</span>
-                    {% else %}
-                        <!-- empty bar, no fill -->
-                    {% endif %}
-                </div>
-                </div>
+                <div class="split memory-split">
 
-                <div class="memory-bar">
-                    <strong>VMFS-APPS USED</strong>
-                    <div class="progress-bar">
-                        {% if vm.vmfs_apps_used %}
-                            <div class="progress-fill apps" style="width: {{ vm.vmfs_apps_used }};"></div>
-                            <span class="progress-label">{{ vm.vmfs_apps_used }}</span>
-                        {% endif %}
+                    <div class="memory-bars">
+                        <div class="memory-bar">
+                            <strong>VMFS-ROOT USED</strong>
+                            <div class="progress-bar">
+                                {% if vm.vmfs_root_used %}
+                                    <div class="progress-fill root" style="width: {{ vm.vmfs_root_used }};"></div>
+                                    <span class="progress-label">{{ vm.vmfs_root_used }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="memory-bar">
+                            <strong>VMFS-APPS USED</strong>
+                            <div class="progress-bar">
+                                {% if vm.vmfs_apps_used %}
+                                    <div class="progress-fill apps" style="width: {{ vm.vmfs_apps_used }};"></div>
+                                    <span class="progress-label">{{ vm.vmfs_apps_used }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="memory-bar">
+                            <strong>VMFS-DATA USED</strong>
+                            <div class="progress-bar">
+                                {% if vm.vmfs_data_used %}
+                                    <div class="progress-fill data" style="width: {{ vm.vmfs_data_used }};"></div>
+                                    <span class="progress-label">{{ vm.vmfs_data_used }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="memory-bar">
-                    <strong>VMFS-DATA USED</strong>
-                    <div class="progress-bar">
-                        {% if vm.vmfs_data_used %}
-                            <div class="progress-fill data" style="width: {{ vm.vmfs_data_used }};"></div>
-                            <span class="progress-label">{{ vm.vmfs_data_used }}</span>
-                        {% endif %}
+                    <div class="divider"></div>
+
+                    <div class="memory-info">
+                        <div>
+                            <p>
+                                <strong style="color:#00ffea;">Memory</strong><br/>
+                                {{ vm.memory }}
+                            </p>
+                            <p>
+                                <strong style="color:#00ffea;">Processors</strong><br/>
+                                {{ vm.processors }}
+                            </p>
+                        </div>
                     </div>
-                </div>
 
-                <p>
-                    <strong style="color:#00ffea;">Memory:</strong> {{ vm.memory }}<br/>
-                    <strong style="color:#00ffea;">Processors:</strong> {{ vm.processors }}
-                </p>
+                </div>
             </div>
 
             <!-- OS & HTTPD -->
@@ -283,20 +308,14 @@
                         <strong style="color:#00ffea;">OPERATING SYSTEM</strong><br/>
                         {{ vm.nginx }}
                     </div>
-
                     <div class="divider"></div>
-
                     <div class="panel">
                         <strong style="color:#00ffea;">HTTPD</strong><br/>
                         {{ vm.httpd }}
                     </div>
-
                     <div class="divider"></div>
-
                     <div class="panel">
-                        <strong style="color:#00ffea;">
-                            LAST PATCH {{ vm.last_patch_days_ago }} DAYS AGO
-                        </strong>
+                        <strong style="color:#00ffea;">LAST PATCH {{ vm.last_patch_days_ago }} DAYS AGO</strong>
                     </div>
                 </div>
             </div>
@@ -315,7 +334,7 @@
         </div>
     </div>
 
-    <!-- NOTES (UNCHANGED CONTENT, SEPARATE CARD) -->
+    <!-- NOTES -->
     <div class="card">
         <h3>NOTES</h3>
         <p>{{ vm.notes }}</p>
