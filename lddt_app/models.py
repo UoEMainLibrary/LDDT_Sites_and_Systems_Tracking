@@ -271,7 +271,7 @@ class Vm(models.Model):
             output = stdout.read().decode().strip()
 
             if not output:
-                return ''
+                return '-----'
 
             # Example output:
             # mysql  Ver 14.14 Distrib 10.6.24-MariaDB, for Linux (x86_64) using EditLine wrapper
@@ -292,7 +292,7 @@ class Vm(models.Model):
                     version = match.group(1)
 
             if not version:
-                return 'unknown Version'
+                return 'Unknown Version'
 
             return f'MySQL {version}'
 
