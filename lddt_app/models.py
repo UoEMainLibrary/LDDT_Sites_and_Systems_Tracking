@@ -399,18 +399,21 @@ class Vm(models.Model):
             version = stdout.read().decode().strip()
 
             if not version:
-                return 'Puppet "not installed"'
+                return '-----'
 
-            return f'Puppet - {version} '
+            # Extract only the version part before the first dash
+            clean_version = version.split('-')[0]
+
+            return f'Puppet {clean_version}'
 
         except paramiko.AuthenticationException:
-            return 'Puppet "authentication failed"'
+            return 'Authentication Failed'
 
         except paramiko.SSHException as sshException:
-            return f'Puppet "SSH error: {sshException}"'
+            return f'"{sshException}"'
 
         except Exception as e:
-            return f'Puppet "error: {e}"'
+            return f'"{e}"'
 
         finally:
             ssh.close()
