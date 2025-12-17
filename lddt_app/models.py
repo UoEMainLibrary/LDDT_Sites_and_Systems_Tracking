@@ -424,46 +424,68 @@ class Vm(models.Model):
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
-            stdin, stdout, stderr = ssh.exec_command("httpd -v;")
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
+            stdin, stdout, stderr = ssh.exec_command("httpd -v")
+            output = stdout.read().decode().strip()
 
-            # Print the output
-            output = stdout.read().decode()
+            if not output:
+                return '-----'
 
-            return output
+            # Example output:
+            # Server version: Apache/2.4.37 (Rocky Linux)
+            # Server built:   Sep 8 2025 14:18:35
+
+            lines = output.splitlines()
+
+            apache_version = None
+            build_date = None
+
+            for line in lines:
+                if "Server version:" in line:
+                    # Extract Apache/2.4.37
+                    apache_version = line.split("Server version:")[1].strip().split()[0]
+
+                if "Server built:" in line:
+                    # Extract "Sep 8 2025"
+                    parts = line.split("Server built:")[1].strip().split()
+                    if len(parts) >= 3:
+                        month = parts[0]
+                        year = parts[2]
+                        build_date = f"{year}/{month}"
+
+            if not apache_version:
+                return 'Apache "unknown version"'
+
+            if build_date:
+                return f"{apache_version}\nbuilt: {build_date}"
+
+            return apache_version
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return 'Authentication Failed'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'{sshException}'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'{e}'
 
         finally:
-            # Close the SSH connection
             ssh.close()
 
     @property
