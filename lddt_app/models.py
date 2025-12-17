@@ -331,15 +331,13 @@ class Vm(models.Model):
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
             # Get OS and nginx info
-            # cat -t is unnecessary here; removed for clean output
             stdin, stdout, stderr = ssh.exec_command("cat /etc/centos-release; nginx -v")
 
             output = stdout.read().decode().strip()
 
             if not output:
-                return 'OS "unknown"'
+                return '-----'
 
-            # First line should contain the OS release text
             lines = output.splitlines()
             os_release = lines[0]
 
@@ -347,16 +345,25 @@ class Vm(models.Model):
             if "(" in os_release:
                 os_release = os_release.split("(")[0].strip()
 
+            # Remove the word "release" to get format "Rocky Linux 8.10"
+            # Usually, the output is like: "Rocky Linux release 8.10"
+            parts = os_release.split()
+            if "release" in parts:
+                release_index = parts.index("release")
+                # Remove "release"
+                parts.pop(release_index)
+                os_release = " ".join(parts)
+
             return os_release
 
         except paramiko.AuthenticationException:
-            return 'OS "authentication failed"'
+            return 'Authentication Failed'
 
         except paramiko.SSHException as sshException:
-            return f'OS "SSH error: {sshException}"'
+            return f'"{sshException}"'
 
         except Exception as e:
-            return f'OS "error: {e}"'
+            return f'"{e}"'
 
         finally:
             ssh.close()
