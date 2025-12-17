@@ -271,7 +271,7 @@ class Vm(models.Model):
             output = stdout.read().decode().strip()
 
             if not output:
-                return 'MySQL "not installed"'
+                return ''
 
             # Example output:
             # mysql  Ver 14.14 Distrib 10.6.24-MariaDB, for Linux (x86_64) using EditLine wrapper
