@@ -174,6 +174,31 @@
             padding: 0.5rem 1rem;
             text-align: center;
         }
+        /* LAST PATCH CALENDAR */
+        .patch-calendar {
+            margin-top: 8px;
+            background: #0f111a;
+            border: 1px solid #00ffea;
+            border-radius: 10px;
+            box-shadow: inset 0 0 12px rgba(0,255,234,0.4);
+            padding: 10px;
+            width: 120px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .patch-calendar .days {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 42px;
+            color: #00ffea;
+            line-height: 1;
+        }
+
+        .patch-calendar .label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #a3a8b5;
+        }
     </style>
 </head>
 
@@ -316,7 +341,13 @@
                     </div>
                     <div class="divider"></div>
                     <div class="panel">
-                        <strong style="color:#00ffea;">LAST PATCH {{ vm.last_patch_days_ago }} DAYS AGO</strong>
+
+
+                        <div class="patch-calendar">
+                            <strong style="color:#00ffea;">LAST PATCH</strong>
+                            <div class="days">{{ vm.last_patch_days_ago }}</div>
+                            <div class="label">DAYS AGO</div>
+                        </div>
                     </div>
                 </div>
             </div>
