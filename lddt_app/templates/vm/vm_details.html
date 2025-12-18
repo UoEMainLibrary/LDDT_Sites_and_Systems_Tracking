@@ -292,33 +292,33 @@
 
         <!-- LEFT -->
         <div class="card">
-            <h3>STATUS</h3>
+            <h3>DETAILS</h3>
             <p>
                 <strong style="color:#00ffea;">SERVER STATUS:</strong> {{ vm.vm_status }}<br/>
                 <strong style="color:#00ffea;">TYPE:</strong> {{ vm.vm_type }}<br/>
-                <strong style="color:#00ffea;">PING:</strong> &lt;--EMPTY--&gt;
-            </p>
-
-            <h3>DETAILS</h3>
-            <p>
                 <strong style="color:#00ffea;">APPLICATION:</strong> {{ vm.application }}<br/>
                 <strong style="color:#00ffea;">SSH in LP:</strong> {{ vm.ssh_in_lp }}<br/>
-                <strong style="color:#00ffea;">PUPPET CONTROLLED:</strong> {{ vm.puppet_controlled }}<br/>
                 <strong style="color:#00ffea;">DATA CENTRE:</strong> {{ vm.data_centre }}<br/>
-                <strong style="color:#00ffea;">POODLE CHECKED:</strong> {{ vm.poodle_checked }}<br/>
                 <strong style="color:#00ffea;">LOG4SHELL RISK:</strong> {{ vm.log4shell_risk }}<br/>
                 <strong style="color:#00ffea;">TRACE RISK:</strong> {{ vm.trace_risk }}<br/>
-                <strong style="color:#00ffea;">OS CENTOS ASSUMED:</strong> {{ vm.os_centos_assumed }}<br/>
-                <strong style="color:#00ffea;">TOMCAT:</strong> {{ vm.tomcat }}<br/>
-                <strong style="color:#00ffea;">RAM:</strong> {{ vm.ram }}<br/>
-                <strong style="color:#00ffea;">DB:</strong> {{ vm.db }}<br/>
                 <strong style="color:#00ffea;">PHP:</strong> {{ vm.php }}<br/>
                 <strong style="color:#00ffea;">JAVA:</strong> {{ vm.java }}<br/>
-                <strong style="color:#00ffea;">VM STORAGE:</strong> {{ vm.vm_storage }}<br/>
                 <strong style="color:#00ffea;">SPECIAL MOUNTS:</strong> {{ vm.special_mounts }}<br/>
                 <strong style="color:#00ffea;">PYTHON:</strong> {{ vm.python }}<br/>
-                <strong style="color:#00ffea;">NPM:</strong> {{ vm.npm }}<br/>
                 <strong style="color:#00ffea;">SHIBBOLETH:</strong> {{ vm.shibboleth }}<br/>
+            </p>
+            <h3>TO BE REMOVED?</h3>
+            <p>
+                <strong style="color:#00ffea;">POODLE CHECKED:</strong> {{ vm.poodle_checked }}<br/>
+                <strong style="color:#00ffea;">NPM:</strong> {{ vm.npm }}<br/>
+                <strong style="color:#00ffea;">RAM:</strong> {{ vm.ram }}<br/>
+                <strong style="color:#00ffea;">OS CENTOS ASSUMED:</strong> {{ vm.os_centos_assumed }}<br/>
+            </p>
+            <h3>TO BE ADDED?</h3>
+            <p>
+                <strong style="color:#00ffea;">GENERAL HEALTH:</strong> {{ vm.poodle_checked }}<br/>
+                <strong style="color:#00ffea;">EXTRA MOUNTS:</strong> {{ vm.poodle_checked }}<br/>
+
             </p>
         </div>
 
@@ -394,9 +394,15 @@
                     </div>
                     <div class="divider"></div>
                     <div class="panel">
+                        <strong style="color:#00ffea;">PUPPET</strong><br/>
+                        {{ vm.puppet_controlled }}
+                    </div>
+                    <div class="divider"></div>
+                    <div class="panel">
                         <strong style="color:#00ffea;">DATABASE</strong><br/>
                         {{ vm.db }}
                     </div>
+
                 </div>
             </div>
 
@@ -404,10 +410,8 @@
             <div class="card">
                 <h3>EXTRA DETAILS</h3>
                 <p>
-                    <strong>Security Status:</strong> {{ vm.security_status }}<br/>
-                    <strong>Last Audit:</strong> {{ vm.last_audit_date }}<br/>
-                    <strong>Compliance:</strong> {{ vm.compliance }}<br/>
-                    <strong>Custom Notes:</strong> {{ vm.custom_notes }}<br/>
+                    <strong>Empty:</strong> {{ vm.security_status }}<br/>
+                    <strong>Empty:</strong> {{ vm.last_audit_date }}<br/>
                 </p>
             </div>
 
