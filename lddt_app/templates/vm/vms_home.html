@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Websites</title>
+    <title>VM's Section</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'table_style.css' %}" >
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -18,6 +18,37 @@
             //alert(document.documentElement.clientHeight);
          });
       </script>
+
+<style>
+    /* Small styles for sorting arrows */
+    th.sortable {
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+    }
+    th.sortable .sort-arrow {
+        font-size: 0.7em;
+        margin-left: 5px;
+        display: inline-block;
+        width: 10px;
+        text-align: center;
+        color: #ccc;
+    }
+    th.sortable.asc .sort-arrow.asc-arrow {
+        color: #fff;
+    }
+    th.sortable.desc .sort-arrow.desc-arrow {
+        color: #fff;
+    }
+    /* Apply to all table cells */
+    #myTable th,
+    #myTable td {
+        white-space: nowrap;        /* keep text on one line */
+        overflow: hidden;           /* hide overflow */
+        text-overflow: ellipsis;    /* show ... */
+        max-width: 30ch;            /* ~30 characters */
+    }
+</style>
 </head>
 
 <body style="background-color: #0a0c11">
@@ -61,6 +92,7 @@
             <ul>
                 <li><a href="{% url 'vms_working_on' %}" style="color:black">WORKING ON </a> </li>
                 <li><a href="{% url 'vms_investigate' %}" style="color:black">INVESTIGATE </a> </li>
+                <li style="background-color: #4F4845"><button id="updateVmsBtn" class="btn btn-sm" style="color:white; background:none; border:none;">🔄 UPDATE VMs</button></li>
 
                 <div class="clear"></div>
             </ul>
@@ -72,8 +104,9 @@
 <br>
 <br>
 <table class="table" id="myTable" style="background-color:#1e2431; margin: 0 auto; width: 96%; border-radius: 10px; overflow: hidden;">
+    <thead>
         <tr class="header" style="position:sticky; z-index:1; top:0; background-color: #323c4e; color: white">
-    <!-- STATUS column ------------------------------------------------------------------------------------------->
+            <!-- STATUS column ------------------------------------------------------------------------------------------->
             <th scope="col" style="font-size: 18px">Hostname <br>
                 <label for="myInput1" style="font-size: 12px">
                     Search for Hostname:
@@ -86,7 +119,7 @@
                     title="Search for a name">
             </th>
 
-    <!-- IP_Address column ----------------------------------------------------------------------------------------->
+            <!-- IP_Address column ----------------------------------------------------------------------------------------->
             <th scope="col" style="font-size: 18px">IP Address <br>
                 <label for="myInput2" style="font-size: 12px">
                     Search for IP Address:
@@ -99,27 +132,57 @@
                     title="Search for a name">
             </th>
 
-
-
-     <!-- VM Status column ----------------------------------------------------------------------------------------->
-            <th scope="col" style="font-size: 18px; vertical-align: middle;">Status</th>
-            <th scope="col" style="font-size: 16px; vertical-align: middle;">DB</th>
-            <th scope="col" style="font-size: 16px; vertical-align: middle;">OS</th>
-            <th scope="col" style="font-size: 16px; vertical-align: middle;">PUPPET</th>
-            <th scope="col" style="font-size: 16px; vertical-align: middle;">HTTPD</th>
-            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">ROOT<br>space<br>left<br></th>
-            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">APPS<br>space<br>left<br></th>
-            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">DATA<br>space<br>left<br></th>
-            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">Proc's</th>
-            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">MEMORY<br> (GB)</th>
-            <th scope="col" style="font-size: 16px; vertical-align: middle; text-align: center;">LAST<br> PATCH<br>days ago<br></th>
-    </tr>
+            <!-- Other columns with sorting controls ----------------------------------------------------------------------------------------->
+            <th scope="col" class="sortable" data-index="2" style="font-size: 18px; vertical-align: middle;">
+                Status <br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+            <th scope="col" class="sortable" data-index="3" style="font-size: 16px; vertical-align: middle;">
+                DB <br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+            <th scope="col" class="sortable" data-index="4" style="font-size: 16px; vertical-align: middle;">
+                OS<br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+            <th scope="col" class="sortable" data-index="5" style="font-size: 16px; vertical-align: middle;">
+                PUPPET<br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+            <th scope="col" class="sortable" data-index="6" style="font-size: 16px; vertical-align: middle;">
+                HTTPD<br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+            <th scope="col" class="sortable" data-index="7" style="font-size: 16px; vertical-align: middle; text-align: center;">
+                ROOT<br>space<br>left<br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+            <th scope="col" class="sortable" data-index="8" style="font-size: 16px; vertical-align: middle; text-align: center;">
+                APPS<br>space<br>left<br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+            <th scope="col" class="sortable" data-index="9" style="font-size: 16px; vertical-align: middle; text-align: center;">
+                DATA<br>space<br>left<br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+            <th scope="col" class="sortable" data-index="10" style="font-size: 16px; vertical-align: middle; text-align: center;">
+                PROC's<br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+            <th scope="col" class="sortable" data-index="11" style="font-size: 16px; vertical-align: middle; text-align: center;">
+                MEMORY<br> (GB)<br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+            <th scope="col" class="sortable" data-index="12" style="font-size: 16px; vertical-align: middle; text-align: center;">
+                LAST<br> PATCH<br>days ago<br>
+                <span class="sort-arrow asc-arrow">&#9650;</span><span class="sort-arrow desc-arrow">&#9660;</span>
+            </th>
+        </tr>
+    </thead>
 
     {% for vm in vms %}
     <tbody style="border-top: 2px solid #0a0c11 !important; ">
         <tr data-href = "{% url 'vm_details' vm.id %}" style="font-size: 12px; vertical-align: top; padding-top:10px; color: #6e9fa6">
-
-
             <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important;">{{ vm.hostname|default_if_none:"" }} </th>
             <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.ip_address|default_if_none:"" }} </th>
             <th style="vertical-align: middle; padding-top: 5px !important; padding-bottom: 5px !important">{{ vm.vm_status|default_if_none:"" }}</th>
@@ -137,7 +200,40 @@
     </tbody>
     {% endfor %}
 </table>
+<script>
+document.getElementById('updateVmsBtn').addEventListener('click', function () {
+    if (!confirm("Run VM update script? This may take a while.")) {
+        return;
+    }
 
+    this.disabled = true;
+    this.innerText = "Updating...";
+
+    fetch("{% url 'run_vm_update' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            alert("VM data updated successfully!");
+            location.reload();  // reload table
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(err => {
+        alert("Unexpected error occurred");
+        console.error(err);
+    })
+    .finally(() => {
+        this.disabled = false;
+        this.innerText = "🔄 UPDATE VMs";
+    });
+});
+</script>
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -148,8 +244,57 @@
                 window.location.href = row.dataset.href;
             });
         });
+
+        // Sorting logic
+        const table = document.getElementById('myTable');
+        const headers = table.querySelectorAll('th.sortable');
+
+        let sortDirection = {}; // keep track of current sort directions by column index
+
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const index = parseInt(header.dataset.index);
+                const currentDirection = sortDirection[index] === 'asc' ? 'desc' : 'asc';
+                sortDirection = {}; // reset other columns
+                sortDirection[index] = currentDirection;
+
+                // Update header classes for arrows
+                headers.forEach(h => h.classList.remove('asc', 'desc'));
+                header.classList.add(currentDirection);
+
+                sortTableByColumn(index, currentDirection);
+            });
+        });
+
+        function sortTableByColumn(colIndex, direction) {
+            const tbodyArray = Array.from(table.querySelectorAll('tbody'));
+            tbodyArray.sort((a, b) => {
+                const aText = a.querySelector(`tr > *:nth-child(${colIndex + 1})`).textContent.trim();
+                const bText = b.querySelector(`tr > *:nth-child(${colIndex + 1})`).textContent.trim();
+
+                // Try to convert to number if possible for numeric sorting
+                const aNum = parseFloat(aText.replace(/[^0-9.\-]/g, ''));
+                const bNum = parseFloat(bText.replace(/[^0-9.\-]/g, ''));
+
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    // Numeric sort
+                    if (aNum < bNum) return direction === 'asc' ? -1 : 1;
+                    if (aNum > bNum) return direction === 'asc' ? 1 : -1;
+                    return 0;
+                } else {
+                    // Textual sort, case-insensitive
+                    return direction === 'asc'
+                        ? aText.localeCompare(bText)
+                        : bText.localeCompare(aText);
+                }
+            });
+
+            // Append sorted rows back to table
+            tbodyArray.forEach(tbody => table.appendChild(tbody));
+        }
     });
 </script>
+
 <script>
     const filterHostname = () => {
      const columns = [
@@ -192,130 +337,7 @@
 
       trs.forEach(setTrStyleDisplay)
     }
-
-    const filterApplication = () => {
-     const columns = [
-        { name: 'Hostname', index: 0, isFilter: false },
-        { name: 'IP Address', index: 1, isFilter: false },
-        { name: 'Application', index: 2, isFilter: true },
-      ]
-      const filterColumns = columns.filter(c => c.isFilter).map(c => c.index)
-      const trs = document.querySelectorAll(`#myTable tr:not(.header)`)
-      const filter = document.querySelector('#myInput3').value
-      const regex = new RegExp(escape(filter), 'i')
-      const isFoundInTds = td => regex.test(td.innerHTML)
-      const isFound = childrenArr => childrenArr.some(isFoundInTds)
-      const setTrStyleDisplay = ({ style, children }) => {
-        style.display = isFound([
-          ...filterColumns.map(c => children[c]) // <-- filter Columns
-        ]) ? '' : 'none'
-      }
-
-      trs.forEach(setTrStyleDisplay)
-    }
 </script>
-
-
-
-
 </body>
 
 </html>
-
-
-<!--
-
-
-
-
-<body>
-<h1>This is home for VM's</h1>
-<button style="margin-left: 10px">
-    <a href="{% url 'home' %}" style="text-decoration: none; color:black; font-size: 20px; ">BACK HOME</a>
-</button>
-<br>
-<br>
-<button style="margin-left: 10px">
-    <a href="{% url 'create_vm' %}" style="text-decoration: none; color:black; font-size: 20px; ">CREATE A NEW VM</a>
-</button>
-<br>
-<br>
-
-
-
-<table class="main_table" style="width:150%; font-size:12px">
-    <tr>
-        <th>HOSTNAME</th>
-        <th>IP ADDRESS</th>
-        <th>APPLICATION</th>
-        <th>SSH in LP</th>
-        <th>PUPPET CONTROLLED</th>
-        <th>DATA CENTRE</th>
-        <th>POODLE CHECKED</th>
-        <th>LOG FOR SHELL RISK</th>
-        <th>HTTPD LAST PATCH</th>
-        <th>OS CENTOS ASSUMED</th>
-        <th>HTTPD</th>
-        <th>TOMCAT</th>
-        <th>NGINX</th>
-        <th>RAM</th>
-        <th>CPU</th>
-        <th>DB</th>
-        <th>PHP</th>
-        <th>JAVA</th>
-        <th>VM STORAGE</th>
-        <th>SPECIAL MOUNTS</th>
-        <th>PYTHON</th>
-        <th>NPM</th>
-        <th>SHIBBOLETH</th>
-        <th>SSL</th>
-        <th>NOTES</th>
-    </tr>
-    {% for vm in vms %}
-
-    <tr data-href = "{% url 'vm_details' vm.id %}" >
-        <td>{{ vm.hostname|default_if_none:"-----" }}</td>
-        <td>{{ vm.ip_address|default_if_none:"-----" }}</td>
-        <td>{{ vm.application|default_if_none:"-----" }}</td>
-        <td>{{ vm.ssh_in_lp|default_if_none:"-----" }}</td>
-        <td>{{ vm.puppet_controlled|default_if_none:"-----" }}</td>
-        <td>{{ vm.data_centre|default_if_none:"-----" }}</td>
-        <td>{{ vm.poodle_checked|default_if_none:"-----" }}</td>
-        <td>{{ vm.log4shell_risk|default_if_none:"-----" }}</td>
-        <td>{{ vm.httpd_last_patch|default_if_none:"-----" }}</td>
-        <td>{{ vm.os_centos_assumed|default_if_none:"-----" }}</td>
-        <td>{{ vm.httpd|default_if_none:"-----" }}</td>
-        <td>{{ vm.tomcat|default_if_none:"-----" }}</td>
-        <td>{{ vm.nginx|default_if_none:"-----" }}</td>
-        <td>{{ vm.ram|default_if_none:"-----" }}</td>
-        <td style="width: 20px">{{ vm.cpu|default_if_none:"-----" }}</td>
-        <td>{{ vm.db|default_if_none:"-----" }}</td>
-        <td>{{ vm.php|default_if_none:"-----" }}</td>
-        <td>{{ vm.java|default_if_none:"-----" }}</td>
-        <td>{{ vm.vm_storage|default_if_none:"-----" }}</td>
-        <td>{{ vm.special_mounts|default_if_none:"------" }}</td>
-        <td>{{ vm.python|default_if_none:"-----" }}</td>
-        <td>{{ vm.npm|default_if_none:"-----" }}</td>
-        <td>{{ vm.shibboleth|default_if_none:"-----" }}</td>
-        <td>{{ vm.ssl|default_if_none:"-----" }}</td>
-        <td>{{ vm.notes|default_if_none:"-----" }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const rows = document.querySelectorAll("tr[data-href]");
-
-        rows.forEach(row => {
-            row.addEventListener("click", () => {
-                window.location.href = row.dataset.href;
-            });
-        });
-    });
-</script>
-
-</body>
-
-</html>
--->

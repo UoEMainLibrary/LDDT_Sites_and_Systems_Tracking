@@ -17,7 +17,9 @@ from datetime import date, timedelta, datetime
 import calendar
 from django.core.cache import cache
 from django.utils import timezone  # ✅  correct import
-
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.core.management import call_command
 
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -311,6 +313,14 @@ def vm_home(request):
         'shortFilter': shortFilter,
         'table_item_count_vms': table_item_count_vms,
     })
+
+@require_POST
+def run_vm_update(request):
+    try:
+        call_command('script_copy_properties')
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
 def vms_working_on(request):

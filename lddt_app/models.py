@@ -271,16 +271,18 @@ class Vm(models.Model):
             output = stdout.read().decode().strip()
 
             if not output:
-                return 'MySQL "not installed"'
+                return '-----'
 
             # Example output:
-            # mysql  Ver 14.14 Distrib 5.7.41, for Linux (x86_64) using EditLine wrapper
+            # mysql  Ver 14.14 Distrib 10.6.24-MariaDB, for Linux (x86_64) using EditLine wrapper
 
             version = None
 
             # Extract version after "Distrib "
             if "Distrib" in output:
-                version = output.split("Distrib")[1].split(",")[0].strip()
+                version_part = output.split("Distrib")[1].split(",")[0].strip()
+                # Remove any suffix like -MariaDB etc.
+                version = version_part.split('-')[0]
 
             if not version:
                 # fallback: try numeric extraction
@@ -290,18 +292,18 @@ class Vm(models.Model):
                     version = match.group(1)
 
             if not version:
-                return f'MySQL "unknown version"'
+                return '-----'
 
-            return f'MySQL - {version}'
+            return f'MySQL {version}'
 
         except paramiko.AuthenticationException:
-            return 'MySQL "authentication failed"'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'MySQL "SSH error: {sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'MySQL "error: {e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -329,15 +331,13 @@ class Vm(models.Model):
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
             # Get OS and nginx info
-            # cat -t is unnecessary here; removed for clean output
             stdin, stdout, stderr = ssh.exec_command("cat /etc/centos-release; nginx -v")
 
             output = stdout.read().decode().strip()
 
             if not output:
-                return 'OS "unknown"'
+                return '-----'
 
-            # First line should contain the OS release text
             lines = output.splitlines()
             os_release = lines[0]
 
@@ -345,16 +345,25 @@ class Vm(models.Model):
             if "(" in os_release:
                 os_release = os_release.split("(")[0].strip()
 
+            # Remove the word "release" to get format "Rocky Linux 8.10"
+            # Usually, the output is like: "Rocky Linux release 8.10"
+            parts = os_release.split()
+            if "release" in parts:
+                release_index = parts.index("release")
+                # Remove "release"
+                parts.pop(release_index)
+                os_release = " ".join(parts)
+
             return os_release
 
         except paramiko.AuthenticationException:
-            return 'OS "authentication failed"'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'OS "SSH error: {sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'OS "error: {e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -390,18 +399,21 @@ class Vm(models.Model):
             version = stdout.read().decode().strip()
 
             if not version:
-                return 'Puppet "not installed"'
+                return '-----'
 
-            return f'Puppet - {version} '
+            # Extract only the version part before the first dash
+            clean_version = version.split('-')[0]
+
+            return f'Puppet {clean_version}'
 
         except paramiko.AuthenticationException:
-            return 'Puppet "authentication failed"'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'Puppet "SSH error: {sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'Puppet "error: {e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -412,46 +424,68 @@ class Vm(models.Model):
         ssh_passphrase = settings.SSH_PASSPHRASE
 
         hostname = self.hostname
-        port = 22  # Default SSH port
+        port = 22
         username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"  # e.g., "/home/user/.ssh/id_rsa"
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
         passphrase = ssh_passphrase
 
-        # Initialize the SSH client
         ssh = paramiko.SSHClient()
-
-        # Add the remote server's SSH key automatically to known hosts
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Load the private key
-        # private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path, password=passphrase)
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
 
         try:
-            # Connect to the remote server using the private key
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            # Execute a command (example: list files in home directory)
-            stdin, stdout, stderr = ssh.exec_command("httpd -v;")
-            # stdin, stdout, stderr = ssh.exec_command("hostname;")
+            stdin, stdout, stderr = ssh.exec_command("httpd -v")
+            output = stdout.read().decode().strip()
 
-            # Print the output
-            output = stdout.read().decode()
+            if not output:
+                return '-----'
 
-            return output
+            # Example output:
+            # Server version: Apache/2.4.37 (Rocky Linux)
+            # Server built:   Sep 8 2025 14:18:35
+
+            lines = output.splitlines()
+
+            apache_version = None
+            build_date = None
+
+            for line in lines:
+                if "Server version:" in line:
+                    # Extract Apache/2.4.37
+                    apache_version = line.split("Server version:")[1].strip().split()[0]
+
+                if "Server built:" in line:
+                    # Extract "Sep 8 2025"
+                    parts = line.split("Server built:")[1].strip().split()
+                    if len(parts) >= 3:
+                        month = parts[0]
+                        year = parts[2]
+                        build_date = f"{year}/{month}"
+
+            if not apache_version:
+                return '-----'
+
+            if build_date:
+                return f"{apache_version}\nbuilt: {build_date}"
+
+            return apache_version
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            return f'-----'
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-
+            return f'-----'
 
         finally:
-            # Close the SSH connection
             ssh.close()
 
     @property
@@ -493,16 +527,16 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return "Unknown"
+            return ""
 
         except paramiko.AuthenticationException:
-            return 'VMFS "authentication failed"'
+            return ''
 
         except paramiko.SSHException as sshException:
-            return f'VMFS "SSH error: {sshException}"'
+            return f''
 
         except Exception as e:
-            return f'VMFS "error: {e}"'
+            return f''
 
         finally:
             ssh.close()
@@ -545,16 +579,16 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return "Unknown"
+            return ""
 
         except paramiko.AuthenticationException:
-            return 'VMFS "authentication failed"'
+            return ''
 
         except paramiko.SSHException as sshException:
-            return f'VMFS "SSH error: {sshException}"'
+            return f''
 
         except Exception as e:
-            return f'VMFS "error: {e}"'
+            return f''
 
         finally:
             ssh.close()
@@ -597,16 +631,16 @@ class Vm(models.Model):
                             free = 100 - used
                             return f"{free}%"
 
-            return "Unknown"
+            return ""
 
         except paramiko.AuthenticationException:
-            return 'VMFS "authentication failed"'
+            return ''
 
         except paramiko.SSHException as sshException:
-            return f'VMFS "SSH error: {sshException}"'
+            return f''
 
         except Exception as e:
-            return f'VMFS "error: {e}"'
+            return f''
 
         finally:
             ssh.close()
@@ -662,13 +696,13 @@ class Vm(models.Model):
                 return ("Second address not found.")
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verify your credentials or key.")
+            print("-----")
 
         except paramiko.SSHException as sshException:
-            print(f"Unable to establish SSH connection: {sshException}")
+            print(f"-----")
 
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"-----")
 
     @property
     def ssh_processors(self):
@@ -699,16 +733,16 @@ class Vm(models.Model):
             if output.isdigit():
                 return int(output)
 
-            return "Unknown"
+            return "-----"
 
         except paramiko.AuthenticationException:
-            return 'Processors "authentication failed"'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'Processors "SSH error: {sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'Processors "error: {e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -748,16 +782,16 @@ class Vm(models.Model):
                     except ValueError:
                         return "Unknown"
 
-            return "Unknown"
+            return "-----"
 
         except paramiko.AuthenticationException:
-            return 'MemTotal "authentication failed"'
+            return '------'
 
         except paramiko.SSHException as sshException:
-            return f'MemTotal "SSH error: {sshException}"'
+            return f'------'
 
         except Exception as e:
-            return f'MemTotal "error: {e}"'
+            return f'-----'
 
         finally:
             ssh.close()
@@ -791,16 +825,16 @@ class Vm(models.Model):
             if output.isdigit():
                 return int(output)
             else:
-                return "Unknown"
+                return "-----"
 
         except paramiko.AuthenticationException:
-            return 'Days since boot "authentication failed"'
+            return '-----'
 
         except paramiko.SSHException as sshException:
-            return f'Days since boot "SSH error: {sshException}"'
+            return f'-----'
 
         except Exception as e:
-            return f'Days since boot "error: {e}"'
+            return f'-----'
 
         finally:
             ssh.close()
