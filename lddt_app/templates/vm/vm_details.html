@@ -241,6 +241,46 @@
             letter-spacing: 2px;
             color: #a3a8b5;
         }
+        /* MEMORY INFO ICON CARDS — scoped only to memory section */
+        .memory-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .memory-card {
+            flex: 0 0 80px;      /* 🔑 fixed narrow width */
+    max-width: 60%;
+    padding: 6px 4px;
+            background: linear-gradient(145deg, #121424, #0f111a);
+            border: 1px solid #00ffe4;
+            border-radius: 12px;
+            padding: 8px 5px;
+            text-align: center;
+            box-shadow:
+                0 0 6px rgba(0,255,228,0.6),
+                inset 0 0 10px rgba(0,255,228,0.25);
+        }
+
+        .memory-card i {
+            font-size: 22px;
+            color: #00ffea;
+            margin-bottom: 6px;
+        }
+
+        .memory-card .label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #a3a8b5;
+            margin-bottom: 4px;
+        }
+
+        .memory-card .value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #ffffff;
+        }
     </style>
 </head>
 
@@ -364,18 +404,20 @@
                     </div>
 
                     <div class="divider"></div>
+                    <div class="memory-info memory-cards">
 
-                    <div class="memory-info">
-                        <p>
-                            <strong style="color:#00ffea;">Memory (GB):</strong><br/>
-                            {{ vm.memory }}
-                        </p>
-                        <p>
-                            <strong style="color:#00ffea;">Processors:</strong><br/>
-                            {{ vm.processors }}
-                        </p>
+                        <div class="memory-card">
+                            <i class="fa fa-microchip"></i>
+                            <div class="label">MEMORY (GB)</div>
+                            <div class="value">{{ vm.memory }}</div>
+                        </div>
+
+                        <div class="memory-card">
+                            <i class="fa fa-cogs"></i>
+                            <div class="label">PROCESSORS</div>
+                            <div class="value">{{ vm.processors }}</div>
+                        </div>
                     </div>
-
                 </div>
             </div>
 
