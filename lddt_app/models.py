@@ -240,6 +240,7 @@ class Vm(models.Model):
     processors = models.CharField('Processors', blank=True, null=True, max_length=150)
     memory = models.CharField('Memory', blank=True, null=True, max_length=150)
     last_patch_days_ago = models.CharField('Last Patch in days ago', blank=True, null=True, max_length=150)
+    system_check = models.CharField('System Check', blank=True, null=True, max_length=150)
     @property
     def print_hostname(self):
         return self.hostname

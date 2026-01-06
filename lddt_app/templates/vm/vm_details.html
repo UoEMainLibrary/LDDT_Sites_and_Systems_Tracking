@@ -241,6 +241,50 @@
             letter-spacing: 2px;
             color: #a3a8b5;
         }
+
+
+
+
+
+
+        .security-card {
+            background: #0f111a;
+            border: 1px solid #00ffea;
+            border-radius: 14px;
+            box-shadow: inset 0 0 12px rgba(0,255,234,0.4);
+            padding: 12px 16px;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .security-card .title {
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: #a3a8b5;
+        }
+
+        .security-card .status {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 36px;
+            color: #00ffea;
+            line-height: 1;
+            margin: 4px 0;
+        }
+
+        .security-card .label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #a3a8b5;
+        }
+
+
+
+
+
+
+
+
+
         /* MEMORY INFO ICON CARDS — scoped only to memory section */
         .memory-cards {
             display: flex;
@@ -302,14 +346,11 @@
 </div>
 
 <div class="wrapper">
-
     <!-- SERVER NAME -->
     <div class="aligned-wrapper">
         <div class="card server-header">
-
     <div class="server-main">
         <img src="/static/img/vms/server_icon_2.png" alt="Server Icon" />
-
         <div>
             <h1>{{ vm.hostname }}</h1>
             <div class="server-ip">
@@ -317,14 +358,17 @@
             </div>
         </div>
     </div>
-
-    <div class="patch-card">
-        <div class="title">LAST PATCH</div>
-        <div class="days">{{ vm.last_patch_days_ago }}</div>
-        <div class="label">DAYS AGO</div>
-    </div>
-
-</div>
+            <div class="security-card">
+                <div class="title">SYSTEM CHECK</div>
+                <div class="status">{{ vm.system_check }}</div>
+                <div class="label">DAYS AGO</div>
+            </div>
+            <div class="patch-card">
+                <div class="title">LAST PATCH</div>
+                <div class="days">{{ vm.last_patch_days_ago }}</div>
+                <div class="label">DAYS AGO</div>
+            </div>
+        </div>
     </div>
 
     <!-- GRID -->
