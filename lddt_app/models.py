@@ -905,8 +905,21 @@ class Vm(models.Model):
     def days_since_last_health_check(self):
         if not self.last_health_check:
             return "Never checked"
+
         delta = now() - self.last_health_check
-        return f"{delta.days} day(s) ago"
+        seconds = delta.total_seconds()
+
+        if seconds < 60:
+            return "Just now"
+        elif seconds < 3600:
+            minutes = int(seconds // 60)
+            return f"{minutes} min ago"
+        elif seconds < 86400:
+            hours = int(seconds // 3600)
+            return f"{hours} hour{'s' if hours > 1 else ''} ago"
+        else:
+            days = delta.days
+            return f"{days} day{'s' if days > 1 else ''} ago"
 
 class Testing_Status_r(models.Model):
     name = models.CharField(max_length=150)
