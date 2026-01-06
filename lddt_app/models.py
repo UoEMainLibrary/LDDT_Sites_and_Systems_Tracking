@@ -899,7 +899,7 @@ class Vm(models.Model):
                 last_run_str = "No journal entries found"
 
             if status == "HEALTHY":
-                return f"HEALTHY\nLast run: {last_run_str}"
+                return f"HEALTHY"
 
             return f"ERRORS\nLast run: {last_run_str}\n\n{logs}"
 
