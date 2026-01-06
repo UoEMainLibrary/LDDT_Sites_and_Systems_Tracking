@@ -6,6 +6,7 @@ import paramiko
 import subprocess
 from django.conf import settings
 from django.http import JsonResponse
+from django.utils.timezone import now
 
 
 
@@ -241,6 +242,7 @@ class Vm(models.Model):
     memory = models.CharField('Memory', blank=True, null=True, max_length=150)
     last_patch_days_ago = models.CharField('Last Patch in days ago', blank=True, null=True, max_length=150)
     system_check = models.CharField('System Check', blank=True, null=True, max_length=150)
+    last_health_check = models.DateTimeField(null=True, blank=True)
     @property
     def print_hostname(self):
         return self.hostname
@@ -898,6 +900,13 @@ class Vm(models.Model):
 
         finally:
             ssh.close()
+
+    @property
+    def days_since_last_health_check(self):
+        if not self.last_health_check:
+            return "Never checked"
+        delta = now() - self.last_health_check
+        return f"{delta.days} day(s) ago"
 
 class Testing_Status_r(models.Model):
     name = models.CharField(max_length=150)

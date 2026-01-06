@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from lddt_app.models import Vm
+from django.utils import timezone
 
 class Command(BaseCommand):
     help = 'Copies the value from the property field to the standard field'
@@ -28,6 +29,7 @@ class Command(BaseCommand):
             obj.memory = obj.ssh_mem_total_gb
             obj.last_patch_days_ago = obj.ssh_last_patch_days_ago
             obj.system_check = obj.ssh_healthy_check
+            obj.last_health_check = timezone.now()
 
             obj.save()
 
