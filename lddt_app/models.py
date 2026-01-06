@@ -840,6 +840,65 @@ class Vm(models.Model):
         finally:
             ssh.close()
 
+    @property
+    def ssh_healthy_check(self):
+        ssh_user_name = settings.SSH_USER_NAME
+        ssh_passphrase = settings.SSH_PASSPHRASE
+
+        hostname = self.hostname
+        port = 22
+        username = ssh_user_name
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
+        passphrase = ssh_passphrase
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
+
+        # Command MUST be run via bash
+        command = (
+            'bash -c \''
+            'errors=$(journalctl -p err -n 20); '
+            'echo "$errors"; '
+            'if [ -z "$errors" ]; then echo "HEALTHY"; else echo "ERRORS"; fi'
+            '\''
+        )
+
+        try:
+            ssh.connect(hostname, port=port, username=username, pkey=private_key)
+
+            stdin, stdout, stderr = ssh.exec_command(command)
+            output = stdout.read().decode().strip()
+
+            if not output:
+                return '-----'
+
+            lines = output.splitlines()
+
+            status = lines[-1]  # HEALTHY or ERRORS
+            logs = "\n".join(lines[:-1])
+
+            if status == "HEALTHY":
+                return "HEALTHY"
+
+            return f"ERRORS\n{logs}"
+
+        except paramiko.AuthenticationException:
+            return '-----'
+
+        except paramiko.SSHException:
+            return '-----'
+
+        except Exception:
+            return '-----'
+
+        finally:
+            ssh.close()
+
 class Testing_Status_r(models.Model):
     name = models.CharField(max_length=150)
     def __str__(self):

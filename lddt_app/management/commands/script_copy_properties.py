@@ -19,6 +19,7 @@ class Command(BaseCommand):
             obj.processors = obj.ssh_processors
             obj.memory = obj.ssh_mem_total_gb
             obj.last_patch_days_ago = obj.ssh_last_patch_days_ago
+            obj.system_check = obj.ssh_healthy_check
             obj.save()
             name = obj.ssh_db
             print( 'Updated ' + str(obj.hostname))
