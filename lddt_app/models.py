@@ -841,7 +841,7 @@ class Vm(models.Model):
             ssh.close()
 
     @property
-    def ssh_healthy_check(self):
+    def ssh_health_summary(self):
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -854,46 +854,56 @@ class Vm(models.Model):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        private_key = paramiko.RSAKey.from_private_key_file(
-            private_key_path,
-            password=passphrase
-        )
-
-        # Command MUST be run via bash
-        command = (
-            'bash -c \''
-            'errors=$(journalctl -p err -n 20); '
-            'echo "$errors"; '
-            'if [ -z "$errors" ]; then echo "HEALTHY"; else echo "ERRORS"; fi'
-            '\''
-        )
-
         try:
+            private_key = paramiko.RSAKey.from_private_key_file(
+                private_key_path,
+                password=passphrase
+            )
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
-            stdin, stdout, stderr = ssh.exec_command(command)
-            output = stdout.read().decode().strip()
-
-            if not output:
+            # Check errors & status
+            command_status = (
+                'bash -c \''
+                'errors=$(journalctl -p err -n 20); '
+                'echo "$errors"; '
+                'if [ -z "$errors" ]; then echo "HEALTHY"; else echo "ERRORS"; fi'
+                '\''
+            )
+            stdin, stdout, stderr = ssh.exec_command(command_status)
+            output_status = stdout.read().decode().strip()
+            if not output_status:
                 return '-----'
 
-            lines = output.splitlines()
-
-            status = lines[-1]  # HEALTHY or ERRORS
+            lines = output_status.splitlines()
+            status = lines[-1]
             logs = "\n".join(lines[:-1])
 
+            # Get last journal entry time (any priority)
+            command_last_entry = "journalctl -n 1 --no-pager --output=short-unix"
+            stdin, stdout, stderr = ssh.exec_command(command_last_entry)
+            output_last_entry = stdout.read().decode().strip()
+
+            if output_last_entry:
+                first_line = output_last_entry.splitlines()[0]
+                unix_ts_str = first_line.split()[0]
+                try:
+                    unix_ts = float(unix_ts_str)
+                    entry_time = datetime.fromtimestamp(unix_ts, tz=timezone.utc)
+                    now = datetime.now(timezone.utc)
+                    delta = now - entry_time
+                    days_ago = delta.days
+                    last_run_str = f"{days_ago} day(s) ago"
+                except Exception:
+                    last_run_str = "Unknown last run time"
+            else:
+                last_run_str = "No journal entries found"
+
             if status == "HEALTHY":
-                return "HEALTHY"
+                return f"HEALTHY\nLast run: {last_run_str}"
 
-            return f"ERRORS\n{logs}"
+            return f"ERRORS\nLast run: {last_run_str}\n\n{logs}"
 
-        except paramiko.AuthenticationException:
-            return '-----'
-
-        except paramiko.SSHException:
-            return '-----'
-
-        except Exception:
+        except (paramiko.AuthenticationException, paramiko.SSHException, Exception):
             return '-----'
 
         finally:
