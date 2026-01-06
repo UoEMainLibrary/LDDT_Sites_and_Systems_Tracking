@@ -841,7 +841,7 @@ class Vm(models.Model):
             ssh.close()
 
     @property
-    def ssh_health_summary(self):
+    def ssh_health_check(self):
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
