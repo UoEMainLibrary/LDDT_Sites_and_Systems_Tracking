@@ -523,6 +523,7 @@ GA_PROPERTIES = [
     {"name": "Openbooks", "id": "350304777"},
     {"name": "sjac-collection", "id": "350327347"},
     {"name": "geddes", "id": "350285942"},
+    {"name": "collections.ed.ac.uk/art", "id": "518916430"},
     # add more properties here
 ]
 
