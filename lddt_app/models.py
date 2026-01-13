@@ -10,6 +10,24 @@ from django.utils.timezone import now
 
 
 
+
+class AnalyticsStat(models.Model):
+    date = models.DateField()
+    active_users = models.IntegerField()
+    sessions = models.IntegerField()
+    page_views = models.IntegerField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.date}"
+
+
+
+
+
+
+
 # Create your models here.
 class Group(models.Model):
     name = models.CharField(max_length=50)

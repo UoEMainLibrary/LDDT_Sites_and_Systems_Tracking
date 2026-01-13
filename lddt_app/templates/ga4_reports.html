@@ -27,77 +27,33 @@
 </head>
 <body>
 
-<h2>Google Analytics Dashboard</h2>
 
-<div class="button-bar">
-    <button class="btn btn-refresh" id="refreshBtn">🔄 Refresh Data</button>
-    <button id="exportExcelBtn" class="btn btn-export">⬇️ Export to Excel</button>
-</div>
+<h1>Analytics Dashboard</h1>
 
-<p class="status" id="status">
-    {% if last_updated %}
-        Last updated: {{ last_updated }}
-    {% else %}
-        No data yet — click "🔄 Refresh Data" to load the dashboard.
-    {% endif %}
-</p>
-
-<table id="mainTable" class="display">
+<table border="1" cellpadding="6">
     <thead>
         <tr>
-            <th>Service</th>
-            <th>Connection</th>
-            <th>Receiving</th>
-            <th>Trend</th>
-            <th>Active (30m)</th>
-            <th>30 Days</th>
-            <th>6 Months</th>
-            <th>1 Year</th>
-            <th>First Data</th>
+            <th>Date</th>
+            <th>Active Users</th>
+            <th>Sessions</th>
+            <th>Page Views</th>
         </tr>
     </thead>
     <tbody>
-        {% for r in dashboard_data %}
+        {% for stat in stats %}
         <tr>
-            <td>{{ r.property_name }}</td>
-            <td>{{ r.connection_status }}</td>
-            <td>{{ r.receiving_status }}</td>
-            <td>{{ r.trend }}</td>
-            <td>{{ r.active_30min }}</td>
-            <td>{{ r.visits_30days }}</td>
-            <td>{{ r.visits_6months }}</td>
-            <td>{{ r.visits_year }}</td>
-            <td>{{ r.first_recorded_date }}</td>
+            <td>{{ stat.date }}</td>
+            <td>{{ stat.active_users }}</td>
+            <td>{{ stat.sessions }}</td>
+            <td>{{ stat.page_views }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No analytics data available</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
-<h2>Monthly Visits (Last 12 Months)</h2>
-<table id="monthlyTable" class="display">
-    <thead>
-        <tr id="monthHeader">
-            <th>Service</th>
-            {% for m in months_list %}
-                <th>{{ m }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        {% for r in monthly_dashboard %}
-            <tr>
-                <td>{{ r.property_name }}</td>
-                {% for v in r.monthly_visits %}
-                    <td>{{ v }}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<div class="chart-container">
-    <canvas id="monthlyChart"></canvas>
-</div>
 
 <script>
 let chart = null;

@@ -66,7 +66,7 @@ class WebsiteForm(forms.ModelForm):
                 "* Cert-Manager"
             ),
             "common_name": (
-                "* Common name examp. test.service.collections.ed.ac.uk"
+                "* Common name examp. test.services.collections.ed.ac.uk"
             ),
             "server": (
                 "lac-serv-live21.is.ed.ac.uk"

@@ -2,7 +2,7 @@ from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import RunReportRequest, DateRange, Metric, Dimension
 from google.oauth2 import service_account
 
-# 1️⃣ Path to your service account key file
+# 1️⃣ Path to your services account key file
 KEY_FILE = "../../ga4access.json"
 
 # 2️⃣ Your GA4 property ID

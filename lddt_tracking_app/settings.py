@@ -9,8 +9,6 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
-
 import os
 import json
 from pathlib import Path
@@ -19,6 +17,19 @@ pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Settings for the new GA4. Fetching stats into models field
+GOOGLE_APPLICATION_CREDENTIALS = os.path.join(
+    BASE_DIR,
+    "credentials",
+    "ga_service_account.json"
+)
+
+GA4_PROPERTY_ID = "518916430"  # your GA4 property ID
+
+
+
 
 # Load secrets.json
 try:
