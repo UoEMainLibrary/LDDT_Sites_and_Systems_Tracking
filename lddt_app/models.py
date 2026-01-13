@@ -12,15 +12,16 @@ from django.utils.timezone import now
 
 
 class AnalyticsStat(models.Model):
+    property_id = models.CharField(max_length=32)
+    property_name = models.CharField(max_length=255)
+
     date = models.DateField()
     active_users = models.IntegerField()
     sessions = models.IntegerField()
     page_views = models.IntegerField()
 
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.date}"
+    class Meta:
+        unique_together = ("property_id", "date")
 
 
 

@@ -26,7 +26,7 @@ GOOGLE_APPLICATION_CREDENTIALS = os.path.join(
     "ga_service_account.json"
 )
 
-GA4_PROPERTY_ID = "518916430"  # your GA4 property ID
+#GA4_PROPERTY_ID = "518916430"  # your GA4 property ID
 
 
 

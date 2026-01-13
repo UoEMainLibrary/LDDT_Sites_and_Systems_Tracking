@@ -55,6 +55,42 @@
     </tbody>
 </table>
 
+
+{% for property_stat in properties_stats %}
+  <h2>{{ property_stat.property_name }}</h2>
+
+  <table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Active Users</th>
+        <th>Sessions</th>
+        <th>Page Views</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for stat in property_stat.stats %}
+        <tr>
+          <td>{{ stat.date }}</td>
+          <td>{{ stat.active_users }}</td>
+          <td>{{ stat.sessions }}</td>
+          <td>{{ stat.page_views }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="4">No analytics data available</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <br>
+{% empty %}
+  <p>No properties or analytics data found.</p>
+{% endfor %}
+
+
+
+
 <script>
 let chart = null;
 

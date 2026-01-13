@@ -9,7 +9,7 @@ from google.oauth2 import service_account
 from django.conf import settings
 
 
-def fetch_ga4_stats(start_date="7daysAgo", end_date="today"):
+def fetch_ga4_stats(property_id, start_date="7daysAgo", end_date="today"):
     credentials = service_account.Credentials.from_service_account_file(
         settings.GOOGLE_APPLICATION_CREDENTIALS
     )
@@ -17,7 +17,7 @@ def fetch_ga4_stats(start_date="7daysAgo", end_date="today"):
     client = BetaAnalyticsDataClient(credentials=credentials)
 
     request = RunReportRequest(
-        property=f"properties/{settings.GA4_PROPERTY_ID}",
+        property=f"properties/{property_id}",
         dimensions=[Dimension(name="date")],
         metrics=[
             Metric(name="activeUsers"),

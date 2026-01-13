@@ -20,6 +20,7 @@ from django.utils import timezone  # ✅  correct import
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.management import call_command
+from collections import defaultdict
 
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -35,7 +36,8 @@ from google.analytics.data_v1beta import (
     Metric,
     Dimension,  # ✅  ADDED
 )
-
+from .services.ga4 import fetch_ga4_stats  # your function to fetch stats for a property
+from .services.ga_admin import get_all_ga4_properties
 import logging
 logger = logging.getLogger(__name__)
 
@@ -672,8 +674,27 @@ def _fetch_ga4_data():
 
 
 # === Main view ===
+from collections import defaultdict
+from django.shortcuts import render
+from lddt_app.models import AnalyticsStat
+
 def ga4_report(request):
-    stats = AnalyticsStat.objects.order_by("-date")
+    stats = AnalyticsStat.objects.order_by('property_name', '-date')
 
+    properties_stats = defaultdict(list)
 
-    return render(request, "ga4_reports.html", {"stats": stats},)
+    for stat in stats:
+        properties_stats[stat.property_name].append({
+            'date': stat.date,
+            'active_users': stat.active_users,
+            'sessions': stat.sessions,
+            'page_views': stat.page_views,
+        })
+
+    # Convert defaultdict to list of dicts for template
+    data_for_template = [
+        {'property_name': prop, 'stats': stats_list}
+        for prop, stats_list in properties_stats.items()
+    ]
+
+    return render(request, "ga4_reports.html", {"properties_stats": data_for_template})
