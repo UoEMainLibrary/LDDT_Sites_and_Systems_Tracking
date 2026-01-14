@@ -973,7 +973,7 @@ class GoogleAnalyticsStats(models.Model):
     property_name = models.CharField(max_length=255)
 
     date = models.DateField()
-
+    earliest_data_date = models.DateField(null=True, blank=True)
     daily_users = models.IntegerField(default=0)
     monthly_users = models.IntegerField(default=0)
 

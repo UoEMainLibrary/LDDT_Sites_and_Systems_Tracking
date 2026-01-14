@@ -7,7 +7,7 @@ from .forms import *
 from .filters import WebsiteFilter, VmFilter, shortwebsiteFilter, shortvmFilter
 from .models import *
 from datetime import *
-from django.db.models import Max
+from django.db.models import Max, Min
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image as XLImage
 from io import BytesIO
@@ -673,13 +673,16 @@ def _fetch_ga4_data():
 
 # === Main view ===
 def ga4_report(request):
-    # Get the latest date per property_id
-    latest_dates = GoogleAnalyticsStats.objects.values('property_id').annotate(latest_date=Max('date'))
+    # Get all property IDs
+    property_ids = GoogleAnalyticsStats.objects.values_list('property_id', flat=True).distinct()
 
-    # For each property_id and latest_date, get the full stat record
     latest_stats = []
-    for entry in latest_dates:
-        stat = GoogleAnalyticsStats.objects.get(property_id=entry['property_id'], date=entry['latest_date'])
+    for pid in property_ids:
+        latest_date = GoogleAnalyticsStats.objects.filter(property_id=pid).aggregate(Max('date'))['date__max']
+        earliest_date = GoogleAnalyticsStats.objects.filter(property_id=pid).aggregate(Min('earliest_data_date'))['earliest_data_date__min']
+
+        stat = GoogleAnalyticsStats.objects.get(property_id=pid, date=latest_date)
+        stat.earliest_data_date = earliest_date  # dynamically add to object for template use
         latest_stats.append(stat)
 
     context = {
