@@ -966,3 +966,23 @@ class AccessStatement(models.Model):
     notes = models.TextField('Notes', blank=True, null=True)
     def __str__(self):
         return self.url
+
+
+class GoogleAnalyticsStats(models.Model):
+    property_id = models.CharField(max_length=32)
+    property_name = models.CharField(max_length=255)
+
+    date = models.DateField()
+
+    daily_users = models.IntegerField(default=0)
+    monthly_users = models.IntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("property_id", "date")
+        verbose_name = "Google Analytics Stat"
+        verbose_name_plural = "Google Analytics Stats"
+
+    def __str__(self):
+        return f"{self.property_name} ({self.date})"
