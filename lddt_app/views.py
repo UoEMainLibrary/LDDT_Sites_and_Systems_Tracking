@@ -7,7 +7,7 @@ from .forms import *
 from .filters import WebsiteFilter, VmFilter, shortwebsiteFilter, shortvmFilter
 from .models import *
 from datetime import *
-
+from django.db.models import Max
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image as XLImage
 from io import BytesIO
@@ -673,108 +673,16 @@ def _fetch_ga4_data():
 
 # === Main view ===
 def ga4_report(request):
-    CACHE_KEY = "ga4_cached_data"
-    CACHE_TIMEOUT = None  # ♾️ Keep data until refresh
+    # Get the latest date per property_id
+    latest_dates = GoogleAnalyticsStats.objects.values('property_id').annotate(latest_date=Max('date'))
 
-    # --- AJAX refresh ---
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        dashboard_data, monthly_dashboard, months_list = _fetch_ga4_data()
-        payload = {
-            "dashboard": dashboard_data,
-            "monthly": monthly_dashboard,
-            "months": months_list,
-            "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
-        }
-        cache.set(CACHE_KEY, payload, CACHE_TIMEOUT)
-        logger.info("🧭 Refreshed GA4 data — %d rows", len(dashboard_data))
-        return JsonResponse(payload)
+    # For each property_id and latest_date, get the full stat record
+    latest_stats = []
+    for entry in latest_dates:
+        stat = GoogleAnalyticsStats.objects.get(property_id=entry['property_id'], date=entry['latest_date'])
+        latest_stats.append(stat)
 
-    # --- Excel export (with chart) ---
-    if request.GET.get("export") == "excel" or request.method == "POST":
-        logger.info("📤 Exporting GA4 Excel report...")
-
-        cached = cache.get(CACHE_KEY)
-        if cached:
-            dashboard_data = cached["dashboard"]
-            monthly_dashboard = cached["monthly"]
-            months_list = cached["months"]
-        else:
-            dashboard_data, monthly_dashboard, months_list = _fetch_ga4_data()
-
-        # Decode the chart image if provided
-        chart_image_data = None
-        if request.body:
-            try:
-                import json
-                body = json.loads(request.body.decode())
-                if body.get("chart_image"):
-                    chart_image_data = base64.b64decode(body["chart_image"].split(",")[1])
-                    logger.info("🖼️ Received chart image for export.")
-            except Exception as e:
-                logger.warning("Chart image decode failed: %s", e)
-
-        wb = Workbook()
-
-        # === Dashboard Sheet ===
-        ws1 = wb.active
-        ws1.title = "Dashboard"
-        ws1.append([
-            "Property Name", "Connection", "Receiving", "Trend",
-            "Active (30m)", "30 Days", "6 Months", "1 Year", "First Recorded Date"
-        ])
-        for row in dashboard_data:
-            ws1.append([
-                row["property_name"],
-                row["connection_status"],
-                row["receiving_status"],
-                row["trend"],
-                row["active_30min"],
-                row["visits_30days"],
-                row["visits_6months"],
-                row["visits_year"],
-                row["first_recorded_date"]
-            ])
-
-        # === Monthly Data Sheet ===
-        ws2 = wb.create_sheet("Monthly Visits")
-        header = ["Property Name"] + months_list
-        ws2.append(header)
-        for r in monthly_dashboard:
-            ws2.append([r["property_name"]] + r["monthly_visits"])
-
-        # === Chart Sheet (if available) ===
-        if chart_image_data:
-            ws3 = wb.create_sheet("Chart")
-            img_stream = BytesIO(chart_image_data)
-            img = XLImage(img_stream)
-            img.width = 900
-            img.height = 400
-            ws3.add_image(img, "A1")
-            ws3["A15"] = "GA4 Monthly Visits Chart"
-            logger.info("🖼️ Chart image embedded into Excel.")
-
-        # === Return file ===
-        response = HttpResponse(
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        response["Content-Disposition"] = 'attachment; filename="GA4_Report.xlsx"'
-        wb.save(response)
-        logger.info("✅ Excel file generated and sent.")
-        return response
-
-    # --- Normal page load ---
-    cached = cache.get(CACHE_KEY)
-    if cached:
-        dashboard_data = cached.get("dashboard", [])
-        monthly_dashboard = cached.get("monthly", [])
-        months_list = cached.get("months", [])
-        last_updated = cached.get("last_updated")
-    else:
-        dashboard_data, monthly_dashboard, months_list, last_updated = [], [], [], None
-
-    return render(request, "ga4_reports.html", {
-        "dashboard_data": dashboard_data,
-        "monthly_dashboard": monthly_dashboard,
-        "months_list": months_list,
-        "last_updated": last_updated,
-    })
+    context = {
+        'properties': latest_stats
+    }
+    return render(request, 'ga4_reports.html', context)
