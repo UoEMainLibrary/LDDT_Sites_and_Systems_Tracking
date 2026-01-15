@@ -1,13 +1,10 @@
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
-
 from django.core.management.base import BaseCommand
-
 from google.analytics.admin import AnalyticsAdminServiceClient
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import RunReportRequest, DateRange, Metric
 from google.oauth2 import service_account
-
 from lddt_app.models import GoogleAnalyticsStats
 
 

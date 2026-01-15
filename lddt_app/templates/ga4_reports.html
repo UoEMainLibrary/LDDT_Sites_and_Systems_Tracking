@@ -21,6 +21,24 @@
         .chart-container { width: 95%; margin: auto; }
         .status { text-align: center; color: #007bff; margin-top: 10px; }
     </style>
+    <style>
+.sort-icons {
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.sort-icons button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 2px;
+}
+
+.sort-icons button:hover {
+  opacity: 0.6;
+}
+</style>
 </head>
 <body>
 
@@ -29,35 +47,101 @@
 {% load static %}
 {% load ga_extras %}
 
-<table>
+<table id="ga-table" border="1">
   <thead>
     <tr>
-      <th>Property Name</th>
-      <th>Property ID</th>
-      <th>Since</th>
+      <!-- Property Name -->
+      <th>
+        Property Name <br>
+        <span class="sort-icons">
+          <button onclick="sortTable(0, 'text', 'asc')">⬆️</button>
+          <button onclick="sortTable(0, 'text', 'desc')">⬇️</button>
+        </span>
+      </th>
+
+      <!-- Property ID -->
+      <th>
+        Property ID
+        <span class="sort-icons">
+          <button onclick="sortTable(1, 'text', 'asc')">⬆️</button>
+          <button onclick="sortTable(1, 'text', 'desc')">⬇️</button>
+        </span>
+      </th>
+
+      <!-- Since -->
+      <th>
+        Since <br>
+        <span class="sort-icons">
+          <button onclick="sortTable(2, 'text', 'asc')">⬆️</button>
+          <button onclick="sortTable(2, 'text', 'desc')">⬇️</button>
+        </span>
+      </th>
+
+      <!-- Monthly columns -->
       {% for month in months %}
-      <th>{{ month }}</th>
+        <th>
+          {{ month }}
+          <span class="sort-icons">
+            <button onclick="sortTable({{ forloop.counter|add:2 }}, 'num', 'asc')">⬆️</button>
+            <button onclick="sortTable({{ forloop.counter|add:2 }}, 'num', 'desc')">⬇️</button>
+          </span>
+        </th>
       {% endfor %}
     </tr>
   </thead>
+
   <tbody>
     {% for prop in properties %}
-    <tr>
-      <td>{{ prop.property_name }}</td>
-      <td>{{ prop.property_id }}</td>
-      <td>{{ prop.earliest_data_date }}</td>
-      {% for month in months %}
-      <td>{{ prop.monthly_data|get_item:month|default:"0" }}</td>
-      {% endfor %}
-    </tr>
+      <tr>
+        <td>{{ prop.property_name }}</td>
+        <td>{{ prop.property_id }}</td>
+        <td>{{ prop.earliest_data_date|default:"—" }}</td>
+
+        {% for month in months %}
+          <td data-value="{{ prop.monthly_data|get_item:month|default:0 }}">
+            {{ prop.monthly_data|get_item:month|default:"0" }}
+          </td>
+        {% endfor %}
+      </tr>
     {% empty %}
-    <tr>
-      <td colspan="{{ months|length|add:'2' }}">No stats found.</td>
-    </tr>
+      <tr>
+        <td colspan="{{ months|length|add:'3' }}">
+          No stats found.
+        </td>
+      </tr>
     {% endfor %}
   </tbody>
 </table>
 
+
+<script>
+function sortTable(colIndex, type, direction) {
+  const table = document.getElementById("ga-table");
+  const tbody = table.tBodies[0];
+  const rows = Array.from(tbody.rows);
+
+  rows.sort((a, b) => {
+    let valA = a.cells[colIndex].innerText.trim();
+    let valB = b.cells[colIndex].innerText.trim();
+
+    if (type === 'num') {
+      valA = parseInt(valA || 0);
+      valB = parseInt(valB || 0);
+    }
+
+    if (type === 'text') {
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+    }
+
+    if (valA < valB) return direction === 'asc' ? -1 : 1;
+    if (valA > valB) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  rows.forEach(row => tbody.appendChild(row));
+}
+</script>
 
 
 
