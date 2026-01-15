@@ -971,16 +971,11 @@ class AccessStatement(models.Model):
 class GoogleAnalyticsStats(models.Model):
     property_id = models.CharField(max_length=32)
     property_name = models.CharField(max_length=255)
-
     date = models.DateField()
-
     daily_users = models.IntegerField(default=0)
     monthly_users = models.IntegerField(default=0)
-
     earliest_data_date = models.DateField(null=True, blank=True)
-
     monthly_data = models.JSONField(null=True, blank=True)  # <-- New field
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -995,10 +990,8 @@ class GoogleAnalyticsStats(models.Model):
 class GoogleAnalyticsMonthlyStats(models.Model):
     property_id = models.CharField(max_length=32)
     property_name = models.CharField(max_length=255)
-
     year_month = models.CharField(max_length=6)  # YYYYMM
     users = models.IntegerField(default=0)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
