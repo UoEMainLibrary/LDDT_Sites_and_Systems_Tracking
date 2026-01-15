@@ -987,7 +987,7 @@ class GoogleAnalyticsStats(models.Model):
         return f"{self.property_name} ({self.date})"
 
 
-class GoogleAnalyticsMonthlyStats(models.Model):
+class GoogleAnalyticsdats(models.Model):
     property_id = models.CharField(max_length=32)
     property_name = models.CharField(max_length=255)
     year_month = models.CharField(max_length=6)  # YYYYMM
