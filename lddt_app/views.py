@@ -542,3 +542,58 @@ def ga4_report(request):
 
     return render(request, "ga4_reports.html", context)
 
+def ga4_years_visits(request):
+    # ---------- LAST 12 MONTHS ----------
+    months = []
+    today = date.today()
+
+    for i in range(11, -1, -1):
+        y = today.year
+        m = today.month - i
+        while m <= 0:
+            m += 12
+            y -= 1
+        months.append(f"{y}-{m:02d}")
+
+    # ---------- GET LATEST ROW PER PROPERTY ----------
+    property_ids = GoogleAnalyticsStats.objects.values_list(
+        "property_id", flat=True
+    ).distinct()
+
+    properties = []
+    yearly_columns = set()
+
+    for pid in property_ids:
+        latest_date = (
+            GoogleAnalyticsStats.objects
+            .filter(property_id=pid)
+            .aggregate(Max("date"))["date__max"]
+        )
+
+        stat = GoogleAnalyticsStats.objects.get(
+            property_id=pid,
+            date=latest_date
+        )
+
+        # Ensure monthly_data exists
+        monthly_data = stat.monthly_data or {}
+
+        # ---------- BUILD YEARLY DATA ----------
+        yearly_data = defaultdict(int)
+        for month_key, value in monthly_data.items():
+            year = int(month_key.split("-")[0])
+            yearly_data[year] += int(value)
+            yearly_columns.add(year)
+
+        stat.monthly_data = monthly_data
+        stat.yearly_data = yearly_data
+
+        properties.append(stat)
+
+    context = {
+        "properties": properties,
+        "months": months,
+        "yearly_columns": sorted(yearly_columns),
+    }
+
+    return render(request, "ga4_pages/ga4_years_visits.html", context)

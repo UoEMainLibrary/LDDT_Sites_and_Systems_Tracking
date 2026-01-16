@@ -58,6 +58,7 @@ path('run-vm-update/', run_vm_update, name='run_vm_update'),
    path('what_ssl_certificate/', what_ssl_certificate, name='what_ssl_certificate'),
    path('renew_existing_certificate/', renew_existing_certificate, name='renew_existing_certificate'),
    path('ga4_report/', ga4_report, name='ga4_report'),
+   path('ga4_years_visits/', ga4_years_visits, name='ga4_years_visits'),
 
 
    path('tech_docs_home/', tech_docs_home, name='tech_docs_home'),
