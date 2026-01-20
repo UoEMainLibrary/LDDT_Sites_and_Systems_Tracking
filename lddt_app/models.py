@@ -969,34 +969,33 @@ class AccessStatement(models.Model):
 
 
 class GoogleAnalyticsStats(models.Model):
+    # GA4 property identity
     property_id = models.CharField(max_length=32)
     property_name = models.CharField(max_length=255)
+
+    # Snapshot date (when the sync ran)
     date = models.DateField()
-    daily_users = models.IntegerField(default=0)
-    monthly_users = models.IntegerField(default=0)
+
+    # High-level aggregates
+    daily_users = models.PositiveIntegerField(default=0)
+    monthly_users = models.PositiveIntegerField(default=0)
+
+    # First date GA has data for this property
     earliest_data_date = models.DateField(null=True, blank=True)
-    monthly_data = models.JSONField(null=True, blank=True)  # <-- New field
+
+    # Time-series data (key: YYYY-MM)
+    monthly_users_data = models.JSONField(default=dict, blank=True)
+    monthly_sessions_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ("property_id", "date")
         verbose_name = "Google Analytics Stat"
         verbose_name_plural = "Google Analytics Stats"
+        ordering = ["-date"]
 
     def __str__(self):
-        return f"{self.property_name} ({self.date})"
+        return f"{self.property_name} — {self.date}"
 
 
-class GoogleAnalyticsdats(models.Model):
-    property_id = models.CharField(max_length=32)
-    property_name = models.CharField(max_length=255)
-    year_month = models.CharField(max_length=6)  # YYYYMM
-    users = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        unique_together = ("property_id", "year_month")
-        ordering = ["year_month"]
-
-    def __str__(self):
-        return f"{self.property_name} – {self.year_month}"

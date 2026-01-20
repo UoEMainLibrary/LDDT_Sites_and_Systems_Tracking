@@ -152,7 +152,7 @@
 <div class="topnav">
   <a class="active" href="#home">Last 12 months (visits)</a>
   <a href="{% url 'ga4_years_visits' %}" >Years (visits)</a>
-  <a href="#contact">Last 12 months (sessions)</a>
+  <a href="{% url 'ga4_last_12_months_sessions' %}" >Last 12 months (sessions)</a>
   <a href="#about">Years (sessions)</a>
 </div>
 
@@ -221,47 +221,6 @@
     {% endfor %}
   </tbody>
 </table>
-
-{% load ga_extras %}
-
-<h2>Yearly Users by Property</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>Property Name</th>
-      <th>Property ID</th>
-      <th>Since</th>
-      {% for year in yearly_columns %}
-        <th>{{ year }}</th>
-      {% endfor %}
-    </tr>
-  </thead>
-
-  <tbody>
-    {% for prop in properties %}
-      <tr>
-        <td>{{ prop.property_name }}</td>
-        <td>{{ prop.property_id }}</td>
-        <td>{{ prop.earliest_data_date|default:"—" }}</td>
-
-        {% for year in yearly_columns %}
-          <td>{{ prop.yearly_data|get_item:year|default:"0" }}</td>
-        {% endfor %}
-      </tr>
-    {% empty %}
-      <tr>
-        <td colspan="{{ yearly_columns|length|add:'3' }}">
-          No yearly stats found.
-        </td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
-
-
-
-
 
 
 <script>

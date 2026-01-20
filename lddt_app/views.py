@@ -24,6 +24,7 @@ from dateutil.relativedelta import relativedelta
 from django.shortcuts import render
 from django.http import JsonResponse
 from collections import defaultdict
+import json
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import RunReportRequest, RunRealtimeReportRequest, DateRange, Metric
 from google.oauth2 import service_account
@@ -519,10 +520,9 @@ def ga4_report(request):
             date=latest_date
         )
 
-        # Ensure monthly_data exists
-        monthly_data = stat.monthly_data or {}
+        # Directly use the field assuming it's already a dict or None
+        monthly_data = stat.monthly_users_data or {}
 
-        # ---------- BUILD YEARLY DATA ----------
         yearly_data = defaultdict(int)
         for month_key, value in monthly_data.items():
             year = int(month_key.split("-")[0])
@@ -542,8 +542,8 @@ def ga4_report(request):
 
     return render(request, "ga4_reports.html", context)
 
+
 def ga4_years_visits(request):
-    # ---------- LAST 12 MONTHS ----------
     months = []
     today = date.today()
 
@@ -555,10 +555,7 @@ def ga4_years_visits(request):
             y -= 1
         months.append(f"{y}-{m:02d}")
 
-    # ---------- GET LATEST ROW PER PROPERTY ----------
-    property_ids = GoogleAnalyticsStats.objects.values_list(
-        "property_id", flat=True
-    ).distinct()
+    property_ids = GoogleAnalyticsStats.objects.values_list("property_id", flat=True).distinct()
 
     properties = []
     yearly_columns = set()
@@ -569,16 +566,11 @@ def ga4_years_visits(request):
             .filter(property_id=pid)
             .aggregate(Max("date"))["date__max"]
         )
+        stat = GoogleAnalyticsStats.objects.get(property_id=pid, date=latest_date)
 
-        stat = GoogleAnalyticsStats.objects.get(
-            property_id=pid,
-            date=latest_date
-        )
+        # Directly use the field, no json.loads needed
+        monthly_data = stat.monthly_users_data or {}
 
-        # Ensure monthly_data exists
-        monthly_data = stat.monthly_data or {}
-
-        # ---------- BUILD YEARLY DATA ----------
         yearly_data = defaultdict(int)
         for month_key, value in monthly_data.items():
             year = int(month_key.split("-")[0])
@@ -597,3 +589,50 @@ def ga4_years_visits(request):
     }
 
     return render(request, "ga4_pages/ga4_years_visits.html", context)
+
+def ga4_last_12_months_sessions(request):
+    months = []
+    today = date.today()
+
+    for i in range(11, -1, -1):
+        y = today.year
+        m = today.month - i
+        while m <= 0:
+            m += 12
+            y -= 1
+        months.append(f"{y}-{m:02d}")
+
+    property_ids = GoogleAnalyticsStats.objects.values_list("property_id", flat=True).distinct()
+
+    properties = []
+    yearly_columns = set()
+
+    for pid in property_ids:
+        latest_date = (
+            GoogleAnalyticsStats.objects
+            .filter(property_id=pid)
+            .aggregate(Max("date"))["date__max"]
+        )
+
+        stat = GoogleAnalyticsStats.objects.get(property_id=pid, date=latest_date)
+
+        monthly_sessions = stat.monthly_sessions_data or {}
+
+        yearly_data = defaultdict(int)
+        for month_key, value in monthly_sessions.items():
+            year = int(month_key.split("-")[0])
+            yearly_data[year] += int(value)
+            yearly_columns.add(year)
+
+        stat.monthly_sessions = monthly_sessions
+        stat.yearly_data_sessions = yearly_data
+
+        properties.append(stat)
+
+    context = {
+        "properties": properties,
+        "months": months,
+        "yearly_columns": sorted(yearly_columns),
+    }
+
+    return render(request, "ga4_pages/ga4_12mts_sessions.html", context)
