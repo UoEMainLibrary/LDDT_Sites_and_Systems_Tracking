@@ -986,10 +986,19 @@ class GoogleAnalyticsStats(models.Model):
     # Time-series data (key: YYYY-MM)
     monthly_users_data = models.JSONField(default=dict, blank=True)
     monthly_sessions_data = models.JSONField(default=dict, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("property_id", "date")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["property_id", "date"],
+                name="uniq_ga_stats_property_date",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["property_id", "date"], name="idx_ga_stats_prop_date"),
+        ]
         verbose_name = "Google Analytics Stat"
         verbose_name_plural = "Google Analytics Stats"
         ordering = ["-date"]
