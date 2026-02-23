@@ -1,4 +1,5 @@
 from django.contrib import admin
+from .models import GoogleAnalyticsStats
 from .models import Website, \
     Vm, \
     AccessStatement, \
@@ -19,6 +20,14 @@ from .models import Website, \
 from import_export.admin import ImportExportModelAdmin
 
 # Register your models here.
+
+@admin.register(GoogleAnalyticsStats)
+class GoogleAnalyticsStatsAdmin(admin.ModelAdmin):
+    list_display = ("property_name", "property_id", "date", "daily_users", "monthly_users")
+    list_filter = ("date", "property_id")
+    search_fields = ("property_name", "property_id")
+    ordering = ("-date",)
+
 
 @admin.register(Website)
 class WebsiteAdmin(ImportExportModelAdmin):
