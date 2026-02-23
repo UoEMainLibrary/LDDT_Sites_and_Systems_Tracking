@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Top 10 Properties - Sessions (Last 12 Months)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .wrap { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2>Top 10 Properties — Sessions (Last 12 Months)</h2>
+    <p>Metric source: <code>monthly_sessions_data</code> (GA4 engaged sessions)</p>
+
+    <div class="card">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const labels = {{ labels_json|safe }};
+    const datasets = {{ datasets_json|safe }};
+
+    const ctx = document.getElementById("chart");
+
+    new Chart(ctx, {
+      type: "line",
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { position: "bottom" }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

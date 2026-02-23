@@ -38,6 +38,15 @@ from google.analytics.data_v1beta import (
     Dimension,  # ✅  ADDED
 )
 
+import json
+from dateutil.relativedelta import relativedelta
+
+from django.db.models import OuterRef, Subquery
+from django.shortcuts import render
+from django.utils import timezone
+
+from .models import GoogleAnalyticsStats
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -636,3 +645,54 @@ def ga4_last_12_months_sessions(request):
     }
 
     return render(request, "ga4_pages/ga4_12mts_sessions.html", context)
+
+def top_properties_last12m_sessions_chart(request):
+    today = timezone.localdate()
+
+    # Last 12 months keys and labels
+    month_keys = []
+    month_labels = []
+    for i in range(11, -1, -1):
+        d = today - relativedelta(months=i)
+        month_keys.append(d.strftime("%Y-%m"))
+        month_labels.append(d.strftime("%b %Y"))
+
+    # Latest snapshot date per property
+    latest_date_subq = (
+        GoogleAnalyticsStats.objects
+        .filter(property_id=OuterRef("property_id"))
+        .order_by("-date")
+        .values("date")[:1]
+    )
+
+    # Latest row per property (so JSON reflects the most recent sync)
+    latest_rows = (
+        GoogleAnalyticsStats.objects
+        .annotate(latest_date=Subquery(latest_date_subq))
+        .filter(date=Subquery(latest_date_subq))
+        .only("property_id", "property_name", "monthly_sessions_data")
+    )
+
+    ranked = []
+    for row in latest_rows:
+        msd = row.monthly_sessions_data or {}
+        series = [int(msd.get(k, 0) or 0) for k in month_keys]
+        total_12m = sum(series)  # rank by total sessions over 12 months
+        ranked.append((total_12m, row.property_id, row.property_name, series))
+
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    top10 = ranked[:10]
+
+    datasets = []
+    for total_12m, pid, name, series in top10:
+        datasets.append({
+            "label": name,
+            "data": series,
+            "tension": 0.25,
+        })
+
+    context = {
+        "labels_json": json.dumps(month_labels),
+        "datasets_json": json.dumps(datasets),
+    }
+    return render(request, "ga4_pages/top_properties_last12m_sessions_chart.html", context)

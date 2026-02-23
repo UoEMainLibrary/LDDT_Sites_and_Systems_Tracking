@@ -52,7 +52,7 @@ urlpatterns = [
    re_path(r'^vm/(\d+)/', vm_details, name='vm_details'),
    path('update_vm/<int:id>/', update_vm, name='update_vm'),
    path('delete_vm/<int:id>/', delete_vm, name='delete_vm'),
-path('run-vm-update/', run_vm_update, name='run_vm_update'),
+   path('run-vm-update/', run_vm_update, name='run_vm_update'),
 
    path('tutorials_home/', tutorials_home, name='tutorials_home'),
    path('what_ssl_certificate/', what_ssl_certificate, name='what_ssl_certificate'),
@@ -60,7 +60,7 @@ path('run-vm-update/', run_vm_update, name='run_vm_update'),
    path('ga4_report/', ga4_report, name='ga4_report'),
    path('ga4_years_visits/', ga4_years_visits, name='ga4_years_visits'),
    path('ga4_last_12_months_sessions/', ga4_last_12_months_sessions, name='ga4_last_12_months_sessions'),
-
+   path("analytics/top-properties-sessions-12m/", top_properties_last12m_sessions_chart, name="top_properties_last12m_sessions_chart",),
 
    path('tech_docs_home/', tech_docs_home, name='tech_docs_home'),
 
