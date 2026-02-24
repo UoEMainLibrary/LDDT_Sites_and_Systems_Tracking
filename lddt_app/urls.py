@@ -61,6 +61,7 @@ urlpatterns = [
    path('ga4_years_visits/', ga4_years_visits, name='ga4_years_visits'),
    path('ga4_last_12_months_sessions/', ga4_last_12_months_sessions, name='ga4_last_12_months_sessions'),
    path("analytics/top-properties-sessions-12m/", top_properties_last12m_sessions_chart, name="top_properties_last12m_sessions_chart",),
+   path("ga4/export/excel/all/", ga4_export_all_excel, name="ga4_export_all_excel"),
 
    path('tech_docs_home/', tech_docs_home, name='tech_docs_home'),
 

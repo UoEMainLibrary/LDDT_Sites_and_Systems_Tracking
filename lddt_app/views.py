@@ -737,3 +737,171 @@ def top_properties_last12m_sessions_chart(request):
         "growth_datasets_json": json.dumps(growth_datasets),
     }
     return render(request, "ga4_pages/top_properties_last12m_sessions_chart.html", context)
+
+import json
+from collections import defaultdict
+from dateutil.relativedelta import relativedelta
+
+from django.db.models import OuterRef, Subquery
+from django.http import HttpResponse
+from django.utils import timezone
+
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+
+from lddt_app.models import GoogleAnalyticsStats
+
+
+def _pct_change_series(values):
+    out = [None]
+    for i in range(1, len(values)):
+        prev = values[i - 1]
+        curr = values[i]
+        if prev == 0:
+            out.append(None)
+        else:
+            out.append(round(((curr - prev) / prev) * 100.0, 2))
+    return out
+
+
+def _safe_sheet_title(title: str) -> str:
+    bad = ['\\', '/', '*', '?', ':', '[', ']']
+    for ch in bad:
+        title = title.replace(ch, " ")
+    return title[:31] or "Sheet"
+
+
+def _add_sheet(wb: Workbook, title: str, headers: list, rows: list):
+    ws = wb.create_sheet(title=_safe_sheet_title(title))
+    ws.append(headers)
+
+    for r in rows:
+        ws.append(r)
+
+    for col_idx, header in enumerate(headers, start=1):
+        ws.cell(row=1, column=col_idx).font = ws.cell(row=1, column=col_idx).font.copy(bold=True)
+        ws.column_dimensions[get_column_letter(col_idx)].width = min(max(len(str(header)) + 2, 12), 40)
+
+    return ws
+
+
+def ga4_export_all_excel(request):
+    today = timezone.localdate()
+
+    month_keys = [(today - relativedelta(months=i)).strftime("%Y-%m") for i in range(11, -1, -1)]
+
+    latest_date_subq = (
+        GoogleAnalyticsStats.objects
+        .filter(property_id=OuterRef("property_id"))
+        .order_by("-date")
+        .values("date")[:1]
+    )
+
+    latest_rows = (
+        GoogleAnalyticsStats.objects
+        .annotate(_latest_date=Subquery(latest_date_subq))
+        .filter(date=Subquery(latest_date_subq))
+        .only(
+            "property_id", "property_name", "date",
+            "daily_users", "monthly_users",
+            "earliest_data_date",
+            "monthly_users_data",
+            "monthly_sessions_data",
+        )
+    )
+
+    # Collect available years
+    years_set = set()
+    for r in latest_rows:
+        for k in (r.monthly_users_data or {}).keys():
+            try:
+                years_set.add(int(k.split("-")[0]))
+            except Exception:
+                pass
+    years = sorted(years_set)
+
+    # ---- Sheet 1: Visits last 12 months
+    headers_12m_visits = ["property_id", "property_name", "latest_date"] + month_keys + ["daily_users", "monthly_users"]
+    rows_12m_visits = []
+
+    for r in latest_rows.order_by("property_name"):
+        mud = r.monthly_users_data or {}
+        rows_12m_visits.append(
+            [r.property_id, r.property_name, r.date.isoformat()]
+            + [int(mud.get(m, 0) or 0) for m in month_keys]
+            + [r.daily_users, r.monthly_users]
+        )
+
+    # ---- Sheet 2: Visits by year
+    headers_year_visits = ["property_id", "property_name", "latest_date"] + [str(y) for y in years]
+    rows_year_visits = []
+
+    for r in latest_rows.order_by("property_name"):
+        mud = r.monthly_users_data or {}
+        yearly = defaultdict(int)
+
+        for mk, val in mud.items():
+            try:
+                yearly[int(mk.split("-")[0])] += int(val or 0)
+            except Exception:
+                continue
+
+        rows_year_visits.append(
+            [r.property_id, r.property_name, r.date.isoformat()] + [yearly.get(y, 0) for y in years]
+        )
+
+    # ---- Sheet 3: Sessions last 12 months
+    headers_12m_sessions = ["property_id", "property_name", "latest_date"] + month_keys
+    rows_12m_sessions = []
+
+    for r in latest_rows.order_by("property_name"):
+        msd = r.monthly_sessions_data or {}
+        rows_12m_sessions.append(
+            [r.property_id, r.property_name, r.date.isoformat()]
+            + [int(msd.get(m, 0) or 0) for m in month_keys]
+        )
+
+    # ---- Top 10 ranking (by total sessions)
+    ranked = []
+    for r in latest_rows:
+        msd = r.monthly_sessions_data or {}
+        series = [int(msd.get(m, 0) or 0) for m in month_keys]
+        ranked.append((sum(series), r, series))
+
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    top10 = ranked[:10]
+
+    # ---- Sheet 4: Top 10 sessions
+    headers_top10_sessions = ["rank", "property_id", "property_name"] + month_keys + ["total_12m"]
+    rows_top10_sessions = []
+
+    for idx, (total, r, series) in enumerate(top10, start=1):
+        rows_top10_sessions.append([idx, r.property_id, r.property_name] + series + [total])
+
+    # ---- Sheet 5: Top 10 growth %
+    headers_top10_growth = ["rank", "property_id", "property_name"] + month_keys
+    rows_top10_growth = []
+
+    for idx, (total, r, series) in enumerate(top10, start=1):
+        growth = _pct_change_series(series)
+        growth_out = ["" if g is None else g for g in growth]
+        rows_top10_growth.append([idx, r.property_id, r.property_name] + growth_out)
+
+    # ---- Build workbook
+    wb = Workbook()
+    wb.remove(wb.active)
+
+    _add_sheet(wb, "Visits 12 months", headers_12m_visits, rows_12m_visits)
+    _add_sheet(wb, "Visits by year", headers_year_visits, rows_year_visits)
+    _add_sheet(wb, "Sessions 12 months", headers_12m_sessions, rows_12m_sessions)
+    _add_sheet(wb, "Top10 Sessions 12m", headers_top10_sessions, rows_top10_sessions)
+    _add_sheet(wb, "Top10 Growth %", headers_top10_growth, rows_top10_growth)
+
+    filename = f"ga4_export_{today.isoformat()}.xlsx"
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    wb.save(response)
+
+    return response
