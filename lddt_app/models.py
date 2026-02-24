@@ -969,11 +969,11 @@ class AccessStatement(models.Model):
 
 
 class GoogleAnalyticsStats(models.Model):
-    # GA4 property identity
-    property_id = models.CharField(max_length=32)
+    # GA4 property identity (UNIQUE)
+    property_id = models.CharField(max_length=32, unique=True)
     property_name = models.CharField(max_length=255)
 
-    # Snapshot date (when the sync ran)
+    # Last sync date (not part of uniqueness anymore)
     date = models.DateField()
 
     # High-level aggregates
@@ -987,24 +987,19 @@ class GoogleAnalyticsStats(models.Model):
     monthly_users_data = models.JSONField(default=dict, blank=True)
     monthly_sessions_data = models.JSONField(default=dict, blank=True)
 
+    # Record metadata
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["property_id", "date"],
-                name="uniq_ga_stats_property_date",
-            )
-        ]
         indexes = [
-            models.Index(fields=["property_id", "date"], name="idx_ga_stats_prop_date"),
+            models.Index(fields=["property_id"], name="idx_ga_stats_prop"),
         ]
         verbose_name = "Google Analytics Stat"
         verbose_name_plural = "Google Analytics Stats"
-        ordering = ["-date"]
+        ordering = ["property_name"]
 
     def __str__(self):
-        return f"{self.property_name} — {self.date}"
+        return f"{self.property_name}"
 
 
 
