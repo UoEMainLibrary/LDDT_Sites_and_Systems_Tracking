@@ -646,6 +646,34 @@ def ga4_last_12_months_sessions(request):
 
     return render(request, "ga4_pages/ga4_12mts_sessions.html", context)
 
+
+
+import json
+from dateutil.relativedelta import relativedelta
+
+from django.db.models import OuterRef, Subquery
+from django.shortcuts import render
+from django.utils import timezone
+
+from lddt_app.models import GoogleAnalyticsStats
+
+
+def _pct_change_series(values):
+    """
+    values: list[int]
+    returns: list[float|None] same length (first None; also None if previous month is 0)
+    """
+    out = [None]
+    for i in range(1, len(values)):
+        prev = values[i - 1]
+        curr = values[i]
+        if prev == 0:
+            out.append(None)
+        else:
+            out.append(round(((curr - prev) / prev) * 100.0, 2))
+    return out
+
+
 def top_properties_last12m_sessions_chart(request):
     today = timezone.localdate()
 
@@ -676,23 +704,36 @@ def top_properties_last12m_sessions_chart(request):
     ranked = []
     for row in latest_rows:
         msd = row.monthly_sessions_data or {}
-        series = [int(msd.get(k, 0) or 0) for k in month_keys]
-        total_12m = sum(series)  # rank by total sessions over 12 months
-        ranked.append((total_12m, row.property_id, row.property_name, series))
+        sessions_series = [int(msd.get(k, 0) or 0) for k in month_keys]
+        total_12m = sum(sessions_series)  # rank by total sessions over 12 months
+        ranked.append((total_12m, row.property_id, row.property_name, sessions_series))
 
     ranked.sort(key=lambda x: x[0], reverse=True)
     top10 = ranked[:10]
 
-    datasets = []
-    for total_12m, pid, name, series in top10:
-        datasets.append({
+    # Chart 1: monthly sessions datasets
+    sessions_datasets = []
+    # Chart 2: monthly growth datasets
+    growth_datasets = []
+
+    for total_12m, pid, name, sessions_series in top10:
+        sessions_datasets.append({
             "label": name,
-            "data": series,
+            "data": sessions_series,
             "tension": 0.25,
+        })
+
+        growth_series = _pct_change_series(sessions_series)
+        growth_datasets.append({
+            "label": name,
+            "data": growth_series,
+            "tension": 0.25,
+            "spanGaps": True,  # draw across None values
         })
 
     context = {
         "labels_json": json.dumps(month_labels),
-        "datasets_json": json.dumps(datasets),
+        "datasets_json": json.dumps(sessions_datasets),
+        "growth_datasets_json": json.dumps(growth_datasets),
     }
     return render(request, "ga4_pages/top_properties_last12m_sessions_chart.html", context)
