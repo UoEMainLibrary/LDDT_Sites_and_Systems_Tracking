@@ -648,14 +648,6 @@ def ga4_last_12_months_sessions(request):
 
 
 
-import json
-from dateutil.relativedelta import relativedelta
-
-from django.db.models import OuterRef, Subquery
-from django.shortcuts import render
-from django.utils import timezone
-
-from lddt_app.models import GoogleAnalyticsStats
 
 
 def _pct_change_series(values):
@@ -738,7 +730,47 @@ def top_properties_last12m_sessions_chart(request):
     }
     return render(request, "ga4_pages/top_properties_last12m_sessions_chart.html", context)
 
-import json
+def ga4_last_12_months_active_users(request):
+    # last 12 months keys YYYY-MM
+    today = date.today()
+    months = []
+    for i in range(11, -1, -1):
+        y = today.year
+        m = today.month - i
+        while m <= 0:
+            m += 12
+            y -= 1
+        months.append(f"{y}-{m:02d}")
+
+    # latest row per property
+    property_ids = GoogleAnalyticsStats.objects.values_list("property_id", flat=True).distinct()
+
+    properties = []
+    for pid in property_ids:
+        latest_date = (
+            GoogleAnalyticsStats.objects
+            .filter(property_id=pid)
+            .aggregate(Max("date"))["date__max"]
+        )
+        stat = GoogleAnalyticsStats.objects.get(property_id=pid, date=latest_date)
+
+        # ✅ make it match the table template (dict with YYYY-MM keys)
+        stat.monthly_data = stat.monthly_users_data or {}
+
+        properties.append(stat)
+
+    context = {
+        "properties": sorted(properties, key=lambda s: (s.property_name or "").lower()),
+        "months": months,
+    }
+    return render(request, "ga4_pages/ga4_12mts_active_users.html", context)
+
+
+
+
+
+
+
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 
@@ -787,7 +819,6 @@ def _add_sheet(wb: Workbook, title: str, headers: list, rows: list):
 
 def ga4_export_all_excel(request):
     today = timezone.localdate()
-
     month_keys = [(today - relativedelta(months=i)).strftime("%Y-%m") for i in range(11, -1, -1)]
 
     latest_date_subq = (
@@ -810,7 +841,7 @@ def ga4_export_all_excel(request):
         )
     )
 
-    # Collect available years
+    # Collect available years (from monthly_users_data)
     years_set = set()
     for r in latest_rows:
         for k in (r.monthly_users_data or {}).keys():
@@ -820,10 +851,9 @@ def ga4_export_all_excel(request):
                 pass
     years = sorted(years_set)
 
-    # ---- Sheet 1: Visits last 12 months
+    # ---- Sheet 1: Visits last 12 months (your existing meaning)
     headers_12m_visits = ["property_id", "property_name", "latest_date"] + month_keys + ["daily_users", "monthly_users"]
     rows_12m_visits = []
-
     for r in latest_rows.order_by("property_name"):
         mud = r.monthly_users_data or {}
         rows_12m_visits.append(
@@ -835,17 +865,14 @@ def ga4_export_all_excel(request):
     # ---- Sheet 2: Visits by year
     headers_year_visits = ["property_id", "property_name", "latest_date"] + [str(y) for y in years]
     rows_year_visits = []
-
     for r in latest_rows.order_by("property_name"):
         mud = r.monthly_users_data or {}
         yearly = defaultdict(int)
-
         for mk, val in mud.items():
             try:
                 yearly[int(mk.split("-")[0])] += int(val or 0)
             except Exception:
                 continue
-
         rows_year_visits.append(
             [r.property_id, r.property_name, r.date.isoformat()] + [yearly.get(y, 0) for y in years]
         )
@@ -853,12 +880,21 @@ def ga4_export_all_excel(request):
     # ---- Sheet 3: Sessions last 12 months
     headers_12m_sessions = ["property_id", "property_name", "latest_date"] + month_keys
     rows_12m_sessions = []
-
     for r in latest_rows.order_by("property_name"):
         msd = r.monthly_sessions_data or {}
         rows_12m_sessions.append(
             [r.property_id, r.property_name, r.date.isoformat()]
             + [int(msd.get(m, 0) or 0) for m in month_keys]
+        )
+
+    # ✅ NEW ---- Sheet 4: Active Users last 12 months
+    headers_12m_active_users = ["property_id", "property_name", "latest_date"] + month_keys
+    rows_12m_active_users = []
+    for r in latest_rows.order_by("property_name"):
+        mud = r.monthly_users_data or {}
+        rows_12m_active_users.append(
+            [r.property_id, r.property_name, r.date.isoformat()]
+            + [int(mud.get(m, 0) or 0) for m in month_keys]
         )
 
     # ---- Top 10 ranking (by total sessions)
@@ -871,17 +907,15 @@ def ga4_export_all_excel(request):
     ranked.sort(key=lambda x: x[0], reverse=True)
     top10 = ranked[:10]
 
-    # ---- Sheet 4: Top 10 sessions
+    # ---- Sheet 5: Top 10 sessions
     headers_top10_sessions = ["rank", "property_id", "property_name"] + month_keys + ["total_12m"]
     rows_top10_sessions = []
-
     for idx, (total, r, series) in enumerate(top10, start=1):
         rows_top10_sessions.append([idx, r.property_id, r.property_name] + series + [total])
 
-    # ---- Sheet 5: Top 10 growth %
+    # ---- Sheet 6: Top 10 growth %
     headers_top10_growth = ["rank", "property_id", "property_name"] + month_keys
     rows_top10_growth = []
-
     for idx, (total, r, series) in enumerate(top10, start=1):
         growth = _pct_change_series(series)
         growth_out = ["" if g is None else g for g in growth]
@@ -894,6 +928,7 @@ def ga4_export_all_excel(request):
     _add_sheet(wb, "Visits 12 months", headers_12m_visits, rows_12m_visits)
     _add_sheet(wb, "Visits by year", headers_year_visits, rows_year_visits)
     _add_sheet(wb, "Sessions 12 months", headers_12m_sessions, rows_12m_sessions)
+    _add_sheet(wb, "Active users 12m", headers_12m_active_users, rows_12m_active_users)  # ✅ NEW
     _add_sheet(wb, "Top10 Sessions 12m", headers_top10_sessions, rows_top10_sessions)
     _add_sheet(wb, "Top10 Growth %", headers_top10_growth, rows_top10_growth)
 
@@ -903,5 +938,4 @@ def ga4_export_all_excel(request):
     )
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     wb.save(response)
-
     return response
