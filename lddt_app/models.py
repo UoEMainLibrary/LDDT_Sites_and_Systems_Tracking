@@ -281,88 +281,45 @@ class Vm(models.Model):
             )
 
             # -------------------------------------------------
-            # 1. Detect PostgreSQL SERVER
+            # 1. Check PostgreSQL (PROCESS OR SERVICE RUNNING)
             # -------------------------------------------------
             postgres_process = run_command(ssh, "ps -ef | grep '[p]ostgres'")
-            postgres_service = run_command(
-                ssh,
-                "systemctl is-active postgresql 2>/dev/null || "
-                "systemctl is-active postgresql-13 2>/dev/null || "
-                "systemctl is-active postgresql-14 2>/dev/null || "
-                "systemctl is-active postgresql-15 2>/dev/null || "
-                "systemctl is-active postgresql-16 2>/dev/null"
-            )
-            postgres_binary = run_command(ssh, "postgres --version 2>/dev/null || pg_ctl --version 2>/dev/null")
+            postgres_service = run_command(ssh, "systemctl is-active postgresql 2>/dev/null")
 
-            postgres_detected = False
-
-            if postgres_process and "postgres" in postgres_process.lower():
-                postgres_detected = True
-            elif postgres_service.strip() == "active":
-                postgres_detected = True
-            elif postgres_binary and "postgresql" in postgres_binary.lower():
-                postgres_detected = True
-
-            if postgres_detected:
-                version = extract_version(postgres_binary)
-
-                if not version:
-                    # fallback to psql version ONLY after postgres server is confirmed
-                    psql_version = run_command(ssh, "psql --version 2>/dev/null")
-                    version = extract_version(psql_version)
-
+            if postgres_process or postgres_service == "active":
+                version_output = run_command(ssh, "psql --version 2>/dev/null")
+                version = extract_version(version_output)
                 return f"PostgreSQL {version}" if version else "PostgreSQL"
 
             # -------------------------------------------------
-            # 2. Detect MySQL / MariaDB SERVER
+            # 2. Check MySQL / MariaDB (PROCESS OR SERVICE RUNNING)
             # -------------------------------------------------
             mysql_process = run_command(ssh, "ps -ef | grep '[m]ysqld\\|[m]ariadbd'")
-            mysql_service = run_command(
-                ssh,
-                "systemctl is-active mysqld 2>/dev/null || "
-                "systemctl is-active mariadb 2>/dev/null"
-            )
-            mysql_binary = run_command(ssh, "mysqld --version 2>/dev/null || mariadbd --version 2>/dev/null")
+            mysql_service = run_command(ssh,
+                                        "systemctl is-active mysqld 2>/dev/null || systemctl is-active mariadb 2>/dev/null")
 
-            mysql_detected = False
-            mysql_type = "MySQL"
+            if mysql_process or mysql_service == "active":
 
-            if mysql_process and ("mysqld" in mysql_process.lower() or "mariadbd" in mysql_process.lower()):
-                mysql_detected = True
-                if "mariadbd" in mysql_process.lower():
-                    mysql_type = "MariaDB"
-            elif mysql_service.strip() == "active":
-                mysql_detected = True
-                if "mariadb" in mysql_service.lower():
-                    mysql_type = "MariaDB"
-            elif mysql_binary and ("mysql" in mysql_binary.lower() or "mariadb" in mysql_binary.lower()):
-                mysql_detected = True
-                if "mariadb" in mysql_binary.lower():
-                    mysql_type = "MariaDB"
+                version_output = run_command(
+                    ssh,
+                    "mysqld --version 2>/dev/null || mariadbd --version 2>/dev/null"
+                )
 
-            if mysql_detected:
-                version = None
+                version = extract_version(version_output)
 
-                if "distrib" in mysql_binary.lower():
-                    try:
-                        version_part = mysql_binary.split("Distrib")[1].split(",")[0].strip()
-                        version = version_part.split("-")[0].strip()
-                    except Exception:
-                        pass
+                if "mariadb" in version_output.lower():
+                    return f"MariaDB {version}" if version else "MariaDB"
+                else:
+                    return f"MySQL {version}" if version else "MySQL"
 
-                if not version:
-                    version = extract_version(mysql_binary)
+            # -------------------------------------------------
+            # 3. No database detected
+            # -------------------------------------------------
+            return "No-DB"
 
-                return f"{mysql_type} {version}" if version else mysql_type
-
-            return "-----"
-
-        except paramiko.AuthenticationException:
-            return "-----"
-        except paramiko.SSHException:
-            return "-----"
         except Exception:
-            return "-----"
+            return "No-DB"
+
         finally:
             ssh.close()
 
