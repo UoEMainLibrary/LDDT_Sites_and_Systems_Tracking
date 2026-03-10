@@ -249,6 +249,10 @@ class Vm(models.Model):
 
     @property
     def ssh_db(self):
+        import re
+        import paramiko
+        from django.conf import settings
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -261,52 +265,97 @@ class Vm(models.Model):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        private_key = paramiko.RSAKey.from_private_key_file(
-            private_key_path,
-            password=passphrase
-        )
-
         try:
-            ssh.connect(hostname, port=port, username=username, pkey=private_key)
+            private_key = paramiko.RSAKey.from_private_key_file(
+                private_key_path,
+                password=passphrase
+            )
 
-            # Query MySQL version
-            stdin, stdout, stderr = ssh.exec_command("mysql -V")
-            output = stdout.read().decode().strip()
+            ssh.connect(
+                hostname,
+                port=port,
+                username=username,
+                pkey=private_key,
+                timeout=10
+            )
 
-            if not output:
-                return '-----'
+            # -----------------------------
+            # 1. Check MySQL / MariaDB
+            # -----------------------------
+            mysql_commands = [
+                "mysql -V",
+                "mariadb --version",
+            ]
 
-            # Example output:
-            # mysql  Ver 14.14 Distrib 10.6.24-MariaDB, for Linux (x86_64) using EditLine wrapper
+            for cmd in mysql_commands:
+                stdin, stdout, stderr = ssh.exec_command(cmd)
+                output = stdout.read().decode().strip()
+                error = stderr.read().decode().strip()
 
-            version = None
+                full_output = output or error
 
-            # Extract version after "Distrib "
-            if "Distrib" in output:
-                version_part = output.split("Distrib")[1].split(",")[0].strip()
-                # Remove any suffix like -MariaDB etc.
-                version = version_part.split('-')[0]
+                if full_output and (
+                        "mysql" in full_output.lower() or
+                        "mariadb" in full_output.lower()
+                ):
+                    version = None
 
-            if not version:
-                # fallback: try numeric extraction
-                import re
-                match = re.search(r"(\d+\.\d+\.\d+)", output)
-                if match:
-                    version = match.group(1)
+                    # Example:
+                    # mysql  Ver 14.14 Distrib 10.6.24-MariaDB, for Linux (x86_64) using EditLine wrapper
+                    if "Distrib" in full_output:
+                        version_part = full_output.split("Distrib")[1].split(",")[0].strip()
+                        version = version_part.split("-")[0].strip()
 
-            if not version:
-                return '-----'
+                    if not version:
+                        match = re.search(r"(\d+\.\d+(?:\.\d+)?)", full_output)
+                        if match:
+                            version = match.group(1)
 
-            return f'MySQL {version}'
+                    if "mariadb" in full_output.lower():
+                        return f"MariaDB {version}" if version else "MariaDB"
+                    else:
+                        return f"MySQL {version}" if version else "MySQL"
+
+            # -----------------------------
+            # 2. Check PostgreSQL
+            # -----------------------------
+            postgres_commands = [
+                "psql --version",
+                "postgres --version",
+            ]
+
+            for cmd in postgres_commands:
+                stdin, stdout, stderr = ssh.exec_command(cmd)
+                output = stdout.read().decode().strip()
+                error = stderr.read().decode().strip()
+
+                full_output = output or error
+
+                if full_output and (
+                        "postgresql" in full_output.lower() or
+                        "postgres" in full_output.lower()
+                ):
+                    version = None
+
+                    # Example:
+                    # psql (PostgreSQL) 13.11
+                    # postgres (PostgreSQL) 14.9
+                    match = re.search(r"(\d+\.\d+(?:\.\d+)?)", full_output)
+                    if match:
+                        version = match.group(1)
+
+                    return f"PostgreSQL {version}" if version else "PostgreSQL"
+
+            return "-----"
 
         except paramiko.AuthenticationException:
-            return '-----'
+            return "-----"
 
-        except paramiko.SSHException as sshException:
-            return f'-----'
+        except paramiko.SSHException:
+            return "-----"
 
-        except Exception as e:
-            return f'-----'
+        except Exception:
+            return "-----"
 
         finally:
             ssh.close()
