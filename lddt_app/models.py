@@ -243,12 +243,20 @@ class Vm(models.Model):
     last_patch_days_ago = models.CharField('Last Patch in days ago', blank=True, null=True, max_length=150)
     system_check = models.CharField('System Check', blank=True, null=True, max_length=150)
     last_health_check = models.DateTimeField(null=True, blank=True)
+    fetch_details = models.BooleanField(default=True)
+
+    @property
+    def should_fetch_details(self):
+        return self.fetch_details is True
     @property
     def print_hostname(self):
         return self.hostname
 
     @property
     def ssh_db(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         import re
         import paramiko
         from django.conf import settings
@@ -325,6 +333,9 @@ class Vm(models.Model):
 
     @property
     def ssh_nginx(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -385,6 +396,9 @@ class Vm(models.Model):
 
     @property
     def ssh_puppet_controlled(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -435,6 +449,8 @@ class Vm(models.Model):
 
     @property
     def ssh_httpd(self):
+        if not self.fetch_details:
+            return "SKIPPED"
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -505,6 +521,9 @@ class Vm(models.Model):
 
     @property
     def ssh_vmfs_root_used(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -558,6 +577,8 @@ class Vm(models.Model):
 
     @property
     def ssh_vmfs_apps_used(self):
+        if not self.fetch_details:
+            return "SKIPPED"
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -610,6 +631,9 @@ class Vm(models.Model):
 
     @property
     def ssh_vmfs_data_used(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -662,6 +686,9 @@ class Vm(models.Model):
 
     @property
     def ssh_ip_address(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -721,6 +748,9 @@ class Vm(models.Model):
 
     @property
     def ssh_processors(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -764,6 +794,9 @@ class Vm(models.Model):
 
     @property
     def ssh_mem_total_gb(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -813,6 +846,9 @@ class Vm(models.Model):
 
     @property
     def ssh_last_patch_days_ago(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -856,6 +892,9 @@ class Vm(models.Model):
 
     @property
     def ssh_healthy_check(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -915,6 +954,9 @@ class Vm(models.Model):
 
     @property
     def days_since_last_health_check(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         if not self.last_health_check:
             return "Never checked"
 
