@@ -257,7 +257,7 @@ class Vm(models.Model):
             stdin, stdout, stderr = ssh_client.exec_command(command)
             output = stdout.read().decode().strip()
             error = stderr.read().decode().strip()
-            return output.strip(), error.strip()
+            return (output or error).strip()
 
         def extract_version(text):
             match = re.search(r"(\d+\.\d+(?:\.\d+)?)", text)
@@ -281,43 +281,39 @@ class Vm(models.Model):
             )
 
             # -------------------------------------------------
-            # 1. PostgreSQL: only if postgres server process exists
+            # 1. Check PostgreSQL (PROCESS OR SERVICE RUNNING)
             # -------------------------------------------------
-            pg_output, pg_error = run_command(
-                ssh,
-                r"pgrep -fa '(^|/)(postgres)( |$)'"
-            )
+            postgres_process = run_command(ssh, "ps -ef | grep '[p]ostgres'")
+            postgres_service = run_command(ssh, "systemctl is-active postgresql 2>/dev/null")
 
-            if pg_output:
-                version_output, _ = run_command(
-                    ssh,
-                    "psql --version 2>/dev/null"
-                )
+            if postgres_process or postgres_service == "active":
+                version_output = run_command(ssh, "psql --version 2>/dev/null")
                 version = extract_version(version_output)
                 return f"PostgreSQL {version}" if version else "PostgreSQL"
 
             # -------------------------------------------------
-            # 2. MySQL / MariaDB: only if mysqld or mariadbd process exists
+            # 2. Check MySQL / MariaDB (PROCESS OR SERVICE RUNNING)
             # -------------------------------------------------
-            mysql_output, mysql_error = run_command(
-                ssh,
-                r"pgrep -fa '(^|/)(mysqld|mariadbd)( |$)'"
-            )
+            mysql_process = run_command(ssh, "ps -ef | grep '[m]ysqld\\|[m]ariadbd'")
+            mysql_service = run_command(ssh,
+                                        "systemctl is-active mysqld 2>/dev/null || systemctl is-active mariadb 2>/dev/null")
 
-            if mysql_output:
-                version_output, _ = run_command(
+            if mysql_process or mysql_service == "active":
+
+                version_output = run_command(
                     ssh,
                     "mysqld --version 2>/dev/null || mariadbd --version 2>/dev/null"
                 )
+
                 version = extract_version(version_output)
 
                 if "mariadb" in version_output.lower():
                     return f"MariaDB {version}" if version else "MariaDB"
-
-                return f"MySQL {version}" if version else "MySQL"
+                else:
+                    return f"MySQL {version}" if version else "No-DB"
 
             # -------------------------------------------------
-            # 3. No DB server running
+            # 3. No database detected
             # -------------------------------------------------
             return "No-DB"
 
