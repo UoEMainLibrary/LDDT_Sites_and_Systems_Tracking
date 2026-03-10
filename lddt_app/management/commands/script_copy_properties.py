@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from your_app.models import Vm
+from lddt_app.models import Vm
 
 
 class Command(BaseCommand):
