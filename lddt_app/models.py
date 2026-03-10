@@ -253,110 +253,136 @@ class Vm(models.Model):
         import paramiko
         from django.conf import settings
 
-        ssh_user_name = settings.SSH_USER_NAME
-        ssh_passphrase = settings.SSH_PASSPHRASE
+        def run_command(ssh_client, command):
+            stdin, stdout, stderr = ssh_client.exec_command(command)
+            output = stdout.read().decode().strip()
+            error = stderr.read().decode().strip()
+            return output, error
 
-        hostname = self.hostname
-        port = 22
-        username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
-        passphrase = ssh_passphrase
+        def get_first_match(text, pattern=r"(\d+\.\d+(?:\.\d+)?)"):
+            match = re.search(pattern, text)
+            return match.group(1) if match else None
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         try:
             private_key = paramiko.RSAKey.from_private_key_file(
-                private_key_path,
-                password=passphrase
+                "/home/lib/lacddt/.ssh/id_rsa",
+                password=settings.SSH_PASSPHRASE
             )
 
             ssh.connect(
-                hostname,
-                port=port,
-                username=username,
+                self.hostname,
+                port=22,
+                username=settings.SSH_USER_NAME,
                 pkey=private_key,
                 timeout=10
             )
 
-            # -----------------------------
-            # 1. Check MySQL / MariaDB
-            # -----------------------------
-            mysql_commands = [
-                "mysql -V",
-                "mariadb --version",
-            ]
-
-            for cmd in mysql_commands:
-                stdin, stdout, stderr = ssh.exec_command(cmd)
-                output = stdout.read().decode().strip()
-                error = stderr.read().decode().strip()
-
-                full_output = output or error
-
-                if full_output and (
-                        "mysql" in full_output.lower() or
-                        "mariadb" in full_output.lower()
-                ):
-                    version = None
-
-                    # Example:
-                    # mysql  Ver 14.14 Distrib 10.6.24-MariaDB, for Linux (x86_64) using EditLine wrapper
-                    if "Distrib" in full_output:
-                        version_part = full_output.split("Distrib")[1].split(",")[0].strip()
-                        version = version_part.split("-")[0].strip()
-
-                    if not version:
-                        match = re.search(r"(\d+\.\d+(?:\.\d+)?)", full_output)
-                        if match:
-                            version = match.group(1)
-
-                    if "mariadb" in full_output.lower():
-                        return f"MariaDB {version}" if version else "MariaDB"
-                    else:
-                        return f"MySQL {version}" if version else "MySQL"
-
-            # -----------------------------
-            # 2. Check PostgreSQL
-            # -----------------------------
-            postgres_commands = [
-                "psql --version",
+            # --------------------------------------------------
+            # 1. Check PostgreSQL SERVER first
+            # --------------------------------------------------
+            postgres_checks = [
                 "postgres --version",
+                "pg_ctl --version",
+                "ps -ef | grep '[p]ostgres'",
+                "systemctl is-active postgresql",
+                "systemctl list-units --type=service --all | grep -i postgres",
+                "rpm -qa | grep -i '^postgresql'",
+                "dpkg -l | grep -i '^ii  postgresql'",
+                "psql --version",
             ]
 
-            for cmd in postgres_commands:
-                stdin, stdout, stderr = ssh.exec_command(cmd)
-                output = stdout.read().decode().strip()
-                error = stderr.read().decode().strip()
+            postgres_found = False
+            postgres_version = None
 
-                full_output = output or error
+            for cmd in postgres_checks:
+                output, error = run_command(ssh, cmd)
+                text = f"{output}\n{error}".strip()
 
-                if full_output and (
-                        "postgresql" in full_output.lower() or
-                        "postgres" in full_output.lower()
+                if not text:
+                    continue
+
+                lower_text = text.lower()
+
+                if (
+                        "postgresql" in lower_text
+                        or "postgres" in lower_text
+                        or "active" == lower_text.strip()
                 ):
-                    version = None
+                    postgres_found = True
 
-                    # Example:
-                    # psql (PostgreSQL) 13.11
-                    # postgres (PostgreSQL) 14.9
-                    match = re.search(r"(\d+\.\d+(?:\.\d+)?)", full_output)
-                    if match:
-                        version = match.group(1)
+                    if not postgres_version:
+                        version = get_first_match(text)
+                        if version:
+                            postgres_version = version
 
-                    return f"PostgreSQL {version}" if version else "PostgreSQL"
+            if postgres_found:
+                return f"PostgreSQL {postgres_version}" if postgres_version else "PostgreSQL"
+
+            # --------------------------------------------------
+            # 2. Check MySQL / MariaDB SERVER
+            # --------------------------------------------------
+            mysql_checks = [
+                "mysqld --version",
+                "mariadbd --version",
+                "ps -ef | grep '[m]ysqld\\|[m]ariadbd'",
+                "systemctl is-active mysqld",
+                "systemctl is-active mariadb",
+                "systemctl list-units --type=service --all | grep -Ei 'mysqld|mariadb'",
+                "rpm -qa | grep -Ei 'mysql-server|mariadb-server'",
+                "dpkg -l | grep -Ei '^ii  mysql-server|^ii  mariadb-server'",
+                "mysql -V",
+            ]
+
+            mysql_found = False
+            mysql_version = None
+            mysql_type = "MySQL"
+
+            for cmd in mysql_checks:
+                output, error = run_command(ssh, cmd)
+                text = f"{output}\n{error}".strip()
+
+                if not text:
+                    continue
+
+                lower_text = text.lower()
+
+                if (
+                        "mysql" in lower_text
+                        or "mariadb" in lower_text
+                        or "active" == lower_text.strip()
+                ):
+                    mysql_found = True
+
+                    if "mariadb" in lower_text:
+                        mysql_type = "MariaDB"
+
+                    if not mysql_version:
+                        if "distrib" in lower_text:
+                            try:
+                                version_part = text.split("Distrib")[1].split(",")[0].strip()
+                                mysql_version = version_part.split("-")[0].strip()
+                            except Exception:
+                                pass
+
+                        if not mysql_version:
+                            version = get_first_match(text)
+                            if version:
+                                mysql_version = version
+
+            if mysql_found:
+                return f"{mysql_type} {mysql_version}" if mysql_version else mysql_type
 
             return "-----"
 
         except paramiko.AuthenticationException:
             return "-----"
-
         except paramiko.SSHException:
             return "-----"
-
         except Exception:
             return "-----"
-
         finally:
             ssh.close()
 
