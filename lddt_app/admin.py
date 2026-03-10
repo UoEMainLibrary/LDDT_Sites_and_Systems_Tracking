@@ -119,7 +119,8 @@ class VmAdmin(ImportExportModelAdmin):
         'db',
         'vm_storage',
         'special_mounts',
-        'npm'
+        'npm',
+        'fetch_details'
     ]
 
 @admin.register(Testing_Status_r)
