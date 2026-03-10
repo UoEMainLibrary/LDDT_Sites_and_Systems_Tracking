@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Top 10 Properties - Sessions (Last 12 Months)</title>
+  {% load ga_extras %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'statements_css/statement_top_menu.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    .wrap { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 18px; }
+
+    /* Small styles for sorting arrows */
+    th.sortable { cursor: pointer; user-select: none; position: relative; }
+    th.sortable .sort-arrow { font-size: 0.7em; margin-left: 5px; display: inline-block; width: 10px; text-align: center; color: #ccc; }
+    th.sortable.asc .sort-arrow.asc-arrow { color: #fff; }
+    th.sortable.desc .sort-arrow.desc-arrow { color: #fff; }
+
+    /* Apply to all table cells */
+    #myTable th, #myTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30ch; }
+
+    /* ✅ TOP NAV — exactly your original styling */
+    .topnav { background-color: #333; overflow: hidden; margin: 10px auto; width: 96%; border-radius: 6px; }
+    .topnav a { float: left; color: #f2f2f2; text-align: center; padding: 12px 16px; text-decoration: none; font-size: 16px; }
+    .topnav a:hover { background-color: #ddd; color: black; }
+    .topnav a.active { background-color: #04AA6D; color: white; }
+  </style>
+</head>
+
+<body style="background-color: #0a0c11">
+<section id="main" class="main">
+  <header>
+    <figure onClick="animate(this)">
+      <div id="logo">
+        <table>
+          <tr>
+            <td>
+              <h1>GA4 Section</h1>
+              <p style="font-size: 14px; color:white">
+                The table contains: {{ table_item_count_vms }} records.<br>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </figure>
+
+    <nav>
+      <ul>
+        <li style="color:black; background-color: #4F4845">
+          <a href="{% url 'home' %}" style="color:white"><i class="fa fa-fw fa-home"></i>Home</a>
+        </li>
+        <li style="background-color: #4F4845">
+          <a href="{% url 'ga4_export_all_excel' %}" style="color:white">
+            <i class="fa fa-fw fa-file-excel-o"></i>Export Excel
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <div class="clear"></div>
+  </header>
+</section>
+
+<br>
+
+
+
+<br>
+<br>
+<br>
+
+<div class="topnav">
+  <a href="{% url 'ga4_report' %}">Last 12 months (visits)</a>
+  <a href="{% url 'ga4_years_visits' %}">Years (visits)</a>
+  <a href="{% url 'ga4_last_12_months_sessions' %}">Last 12 months (sessions)</a>
+  <a href="{% url 'ga4_last_12_months_active_users' %}" >Last 12 (active users)</a>
+  <a class="active" href="{% url 'top_properties_last12m_sessions_chart' %}">10 Top Chart's</a>
+</div>
+
+<div class="wrap">
+  <h2 style="color:white">Top 10 Properties — Sessions (Last 12 Months)</h2>
+  <p style="color:white">Metric source: <code>monthly_sessions_data</code> (GA4 engaged sessions)</p>
+
+  <!-- Chart 1: Sessions -->
+  <div class="card">
+    <canvas id="sessionsChart"></canvas>
+  </div>
+
+  <!-- Chart 2: Growth -->
+  <h2 style="margin-top: 28px; color: white">Top 10 Properties — Monthly Growth Rate (% Change)</h2>
+  <p style="color: white">Growth is calculated month-over-month from sessions.</p>
+
+  <div class="card">
+    <canvas id="growthChart"></canvas>
+  </div>
+</div>
+
+<script>
+  const labels = {{ labels_json|safe }};
+  const sessionsDatasets = {{ datasets_json|safe }};
+  const growthDatasets = {{ growth_datasets_json|safe }};
+
+  // Sessions chart
+  new Chart(document.getElementById("sessionsChart"), {
+    type: "line",
+    data: { labels, datasets: sessionsDatasets },
+    options: {
+      responsive: true,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "bottom" } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  // Growth chart
+  new Chart(document.getElementById("growthChart"), {
+    type: "line",
+    data: { labels, datasets: growthDatasets },
+    options: {
+      responsive: true,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed.y;
+              if (v === null || typeof v === "undefined") return `${ctx.dataset.label}: n/a`;
+              return `${ctx.dataset.label}: ${v}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: { callback: (val) => `${val}%` }
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

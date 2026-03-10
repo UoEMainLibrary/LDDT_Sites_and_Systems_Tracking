@@ -1,4 +1,5 @@
 from django.contrib import admin
+from .models import GoogleAnalyticsStats
 from .models import Website, \
     Vm, \
     AccessStatement, \
@@ -19,6 +20,14 @@ from .models import Website, \
 from import_export.admin import ImportExportModelAdmin
 
 # Register your models here.
+
+@admin.register(GoogleAnalyticsStats)
+class GoogleAnalyticsStatsAdmin(admin.ModelAdmin):
+    list_display = ("property_name", "property_id", "date", "daily_users", "monthly_users")
+    list_filter = ("date", "property_id")
+    search_fields = ("property_name", "property_id")
+    ordering = ("-date",)
+
 
 @admin.register(Website)
 class WebsiteAdmin(ImportExportModelAdmin):
@@ -46,7 +55,6 @@ class WebsiteAdmin(ImportExportModelAdmin):
         'expected_response',
         'handle_prefix',
         'accessibility_statement',
-        #'group',
         'notes',
         'calc_ping_field',
         'ga4_y_n',
@@ -92,33 +100,26 @@ class ga4_requiredAdmin(admin.ModelAdmin):
 @admin.register(Vm)
 class VmAdmin(ImportExportModelAdmin):
     list_display = [
-        'ip_address',
-        'application',
+        'hostname',
         'vm_type',
         'vm_status',
-        'ssh_in_lp',
+        'vmfs_root_used',
+        'vmfs_apps_used',
+        'vmfs_data_used',
+        'processors',
+        'memory',
+        'last_patch_days_ago',
+        'system_check',
         'puppet_controlled',
-        'data_centre',
-        'poodle_checked',
-        'log4shell_risk',
-        'trace_risk',
         'httpd_last_patch',
-        'os_centos_assumed',
         'httpd',
         'tomcat',
         'nginx',
-        'ram',
         'cpu',
         'db',
-        'php',
-        'java',
         'vm_storage',
         'special_mounts',
-        'python',
-        'npm',
-        'shibboleth',
-        'ssl',
-        'notes'
+        'npm'
     ]
 
 @admin.register(Testing_Status_r)

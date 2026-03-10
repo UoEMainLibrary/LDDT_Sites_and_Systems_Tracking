@@ -1,13 +1,22 @@
 from django.core.management.base import BaseCommand
 from lddt_app.models import Vm
+from django.utils import timezone
 
 class Command(BaseCommand):
     help = 'Copies the value from the property field to the standard field'
+
     def handle(self, *args, **kwargs):
-        # Fetch all objects of MyModel
+        total = Vm.objects.count()
+        current = 0
+
         for obj in Vm.objects.all():
-            # Copy the value from the property field to the standard field
-            print('Updating ' + str(obj.hostname) + ' id number=' + str(obj.id) + ' ..... of 1055')
+            current += 1
+
+            print(
+                f'Updating {obj.hostname} '
+                f'({current} of {total})'
+            )
+
             obj.db = obj.ssh_db
             obj.nginx = obj.ssh_nginx
             obj.puppet_controlled = obj.ssh_puppet_controlled
@@ -19,10 +28,16 @@ class Command(BaseCommand):
             obj.processors = obj.ssh_processors
             obj.memory = obj.ssh_mem_total_gb
             obj.last_patch_days_ago = obj.ssh_last_patch_days_ago
-            obj.save()
-            name = obj.ssh_db
-            print( 'Updated ' + str(obj.hostname))
-            print ('***********************************')
-            print ('                                    ')
+            obj.system_check = obj.ssh_healthy_check
+            obj.last_health_check = timezone.now()
 
-        self.stdout.write(self.style.SUCCESS('Successfully copied property values to standard fields.'))
+            obj.save()
+
+            print(f'Updated {obj.hostname}')
+            print('***********************************\n')
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f'Successfully updated {total} servers.'
+            )
+        )

@@ -241,6 +241,90 @@
             letter-spacing: 2px;
             color: #a3a8b5;
         }
+
+
+
+
+
+
+        .security-card {
+            background: #0f111a;
+            border: 1px solid #00ffea;
+            border-radius: 14px;
+            box-shadow: inset 0 0 12px rgba(0,255,234,0.4);
+            padding: 12px 16px;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .security-card .title {
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: #a3a8b5;
+        }
+
+        .security-card .status {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 36px;
+            color: #00ffea;
+            line-height: 1;
+            margin: 4px 0;
+        }
+
+        .security-card .label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #a3a8b5;
+        }
+
+
+
+
+
+
+
+
+
+        /* MEMORY INFO ICON CARDS — scoped only to memory section */
+        .memory-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .memory-card {
+            flex: 0 0 80px;      /* 🔑 fixed narrow width */
+    max-width: 80%;
+    padding: 6px 4px;
+            background: linear-gradient(145deg, #121424, #0f111a);
+            border: 1px solid #00ffe4;
+            border-radius: 12px;
+            padding: 8px 5px;
+            text-align: center;
+            box-shadow:
+                0 0 6px rgba(0,255,228,0.6),
+                inset 0 0 10px rgba(0,255,228,0.25);
+        }
+
+        .memory-card i {
+            font-size: 22px;
+            color: #00ffea;
+            margin-bottom: 6px;
+        }
+
+        .memory-card .label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #a3a8b5;
+            margin-bottom: 4px;
+        }
+
+        .memory-card .value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #ffffff;
+        }
     </style>
 </head>
 
@@ -262,14 +346,11 @@
 </div>
 
 <div class="wrapper">
-
     <!-- SERVER NAME -->
     <div class="aligned-wrapper">
         <div class="card server-header">
-
     <div class="server-main">
         <img src="/static/img/vms/server_icon_2.png" alt="Server Icon" />
-
         <div>
             <h1>{{ vm.hostname }}</h1>
             <div class="server-ip">
@@ -277,14 +358,17 @@
             </div>
         </div>
     </div>
-
-    <div class="patch-card">
-        <div class="title">LAST PATCH</div>
-        <div class="days">{{ vm.last_patch_days_ago }}</div>
-        <div class="label">DAYS AGO</div>
-    </div>
-
-</div>
+            <div class="security-card">
+                <div class="title">SYSTEM CHECK</div>
+                <div class="status">{{ vm.system_check }}</div>
+                <div class="label">LAST CHECK: {{ vm.days_since_last_health_check }} </div>
+            </div>
+            <div class="patch-card">
+                <div class="title">LAST PATCH</div>
+                <div class="days">{{ vm.last_patch_days_ago }}</div>
+                <div class="label">DAYS AGO</div>
+            </div>
+        </div>
     </div>
 
     <!-- GRID -->
@@ -299,26 +383,20 @@
                 <strong style="color:#00ffea;">APPLICATION:</strong> {{ vm.application }}<br/>
                 <strong style="color:#00ffea;">SSH in LP:</strong> {{ vm.ssh_in_lp }}<br/>
                 <strong style="color:#00ffea;">DATA CENTRE:</strong> {{ vm.data_centre }}<br/>
-                <strong style="color:#00ffea;">LOG4SHELL RISK:</strong> {{ vm.log4shell_risk }}<br/>
-                <strong style="color:#00ffea;">TRACE RISK:</strong> {{ vm.trace_risk }}<br/>
-                <strong style="color:#00ffea;">PHP:</strong> {{ vm.php }}<br/>
-                <strong style="color:#00ffea;">JAVA:</strong> {{ vm.java }}<br/>
+                <strong style="color:#00ffea;">NPM (npm -v:</strong> {{ vm.npm }}<br/>
+                <strong style="color:#00ffea;">PHP (front page):</strong> {{ vm.php }}<br/>
+                <strong style="color:#00ffea;">JAVA (on front page):</strong> {{ vm.java }}<br/>
                 <strong style="color:#00ffea;">SPECIAL MOUNTS:</strong> {{ vm.special_mounts }}<br/>
-                <strong style="color:#00ffea;">PYTHON:</strong> {{ vm.python }}<br/>
-                <strong style="color:#00ffea;">SHIBBOLETH:</strong> {{ vm.shibboleth }}<br/>
+                <strong style="color:#00ffea;">SHIBBOLETH keep:</strong> {{ vm.shibboleth }}<br/>
             </p>
             <h3>TO BE REMOVED?</h3>
             <p>
-                <strong style="color:#00ffea;">POODLE CHECKED:</strong> {{ vm.poodle_checked }}<br/>
-                <strong style="color:#00ffea;">NPM:</strong> {{ vm.npm }}<br/>
                 <strong style="color:#00ffea;">RAM:</strong> {{ vm.ram }}<br/>
                 <strong style="color:#00ffea;">OS CENTOS ASSUMED:</strong> {{ vm.os_centos_assumed }}<br/>
             </p>
             <h3>TO BE ADDED?</h3>
             <p>
                 <strong style="color:#00ffea;">GENERAL HEALTH:</strong> {{ vm.poodle_checked }}<br/>
-                <strong style="color:#00ffea;">EXTRA MOUNTS:</strong> {{ vm.poodle_checked }}<br/>
-
             </p>
         </div>
 
@@ -364,18 +442,20 @@
                     </div>
 
                     <div class="divider"></div>
+                    <div class="memory-info memory-cards">
 
-                    <div class="memory-info">
-                        <p>
-                            <strong style="color:#00ffea;">Memory (GB):</strong><br/>
-                            {{ vm.memory }}
-                        </p>
-                        <p>
-                            <strong style="color:#00ffea;">Processors:</strong><br/>
-                            {{ vm.processors }}
-                        </p>
+                        <div class="memory-card">
+                            <i class="fa fa-microchip"></i>
+                            <div class="label">MEMORY (GB)</div>
+                            <div class="value">{{ vm.memory }}</div>
+                        </div>
+
+                        <div class="memory-card">
+                            <i class="fa fa-cogs"></i>
+                            <div class="label">PROCESSORS</div>
+                            <div class="value">{{ vm.processors }}</div>
+                        </div>
                     </div>
-
                 </div>
             </div>
 

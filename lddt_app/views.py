@@ -7,7 +7,7 @@ from .forms import *
 from .filters import WebsiteFilter, VmFilter, shortwebsiteFilter, shortvmFilter
 from .models import *
 from datetime import *
-
+from django.db.models import Max, Min
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image as XLImage
 from io import BytesIO
@@ -20,9 +20,11 @@ from django.utils import timezone  # ✅  correct import
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.management import call_command
-
+from dateutil.relativedelta import relativedelta
 from django.shortcuts import render
 from django.http import JsonResponse
+from collections import defaultdict
+import json
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import RunReportRequest, RunRealtimeReportRequest, DateRange, Metric
 from google.oauth2 import service_account
@@ -35,6 +37,15 @@ from google.analytics.data_v1beta import (
     Metric,
     Dimension,  # ✅  ADDED
 )
+
+import json
+from dateutil.relativedelta import relativedelta
+
+from django.db.models import OuterRef, Subquery
+from django.shortcuts import render
+from django.utils import timezone
+
+from .models import GoogleAnalyticsStats
 
 import logging
 logger = logging.getLogger(__name__)
@@ -484,296 +495,447 @@ def delete_statement(request, id):
 # ---------------------------------------------------------------------------------------------------------------------
 #######################################################################################################################
 
-# === CONFIG ===
-GA_PROPERTIES = [
-    {"name": "Exampapers", "id": "382924447"},
-    {"name": "Archives Collections", "id": "367934488"},
-    {"name": "Collections", "id": "347147610"},
-    {"name": "Lyell", "id": "511195520"},
-    {"name": "LHSA", "id": "511237856"},
-    {"name": "Walter Scott", "id": "511168474"},
-    {"name": "LUCID", "id": "511244975"},
-    {"name": "IllustratingScott", "id": "511214007"},
-    {"name": "Archives.lib", "id": "511778179"},
-    {"name": "Arsanatomica.lib", "id": "511751914"},
-    {"name": "Chartingthenation.lib", "id": "511749816"},
-    {"name": "Luna", "id": "383741097"},
-    {"name": "Leganto", "id": "384843296"},
-    {"name": "Library Blogs", "id": "347071499"},
-    {"name": "DiscoverED", "id": "370799052"},
-    {"name": "Aura", "id": "382911188"},
-    {"name": "Era", "id": "391408836"},
-    {"name": "HWU", "id": "382928678"},
-    {"name": "QMU", "id": "382912134"},
-    {"name": "RSC", "id": "382918256"},
-    {"name": "STA", "id": "382918682"},
-    {"name": "DataShare", "id": "389022533"},
-    {"name": "Exhibitions", "id": "384908156"},
-    {"name": "Our History", "id": "345202489"},
-    {"name": "Statacc", "id": "447420661"},
-    {"name": "Ideas", "id": "451235618"},
-    {"name": "Digital Colletions", "id": "507278994"},
-    {"name": "Images Teaching", "id": "450459257"},
-    {"name": "Pizan", "id": "455961874"},
-    {"name": "Library Registration", "id": "386789431"},
-    {"name": "Mantra", "id": "391409531"},
-    {"name": "Pointsofarrival", "id": "350302368"},
-    {"name": "Fairbairn", "id": "350314353"},
-    {"name": "HIV-aids-resources", "id": "347189427"},
-    {"name": "Openbooks", "id": "350304777"},
-    {"name": "sjac-collection", "id": "350327347"},
-    {"name": "geddes", "id": "350285942"},
-    # add more properties here
-]
-
-KEY_FILE = os.path.join(os.path.dirname(__file__), "../../ga4access.json")
-
-
-# === Helper functions ===
-def _get_report(client, property_id, metric_name, start_date, end_date):
-    """Run a standard GA4 report for sessions, etc."""
-    try:
-        request = RunReportRequest(
-            property=f"properties/{property_id}",
-            metrics=[Metric(name=metric_name)],
-            date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
-        )
-        response = client.run_report(request)
-        return int(response.rows[0].metric_values[0].value) if response.rows else 0
-    except Exception as e:
-        print(f"⚠️ GA4 error for {property_id}: {e}")
-        return 0
-
-
-def _get_first_recorded_date(client, property_id):
-    """Get first available date for property data."""
-    try:
-        request = RunReportRequest(
-            property=f"properties/{property_id}",
-            dimensions=[Dimension(name="date")],
-            metrics=[Metric(name="sessions")],
-            date_ranges=[DateRange(start_date="2015-08-14", end_date="today")],
-            order_bys=[{"dimension": {"dimension_name": "date"}, "desc": False}],
-            limit=1,
-        )
-        response = client.run_report(request)
-        if response.rows:
-            first_date_str = response.rows[0].dimension_values[0].value
-            return datetime.strptime(first_date_str, "%Y%m%d").strftime("%Y-%m-%d")
-    except Exception as e:
-        print(f"⚠️ Error getting first recorded date for {property_id}: {e}")
-    return None
-
-
-def _fetch_ga4_data():
-    """Fetch GA4 analytics data for all properties and return dashboard + monthly summaries."""
-    logger.info("=== Starting GA4 data fetch ===")
-
-    credentials = service_account.Credentials.from_service_account_file(KEY_FILE)
-    client = BetaAnalyticsDataClient(credentials=credentials)
-
-    dashboard_data = []
-    monthly_dashboard = []
-
-    today = datetime.today()
-    months_list = []
-
-    # ✅ Real 12-month list, from oldest to newest
-    for i in range(11, -1, -1):
-        dt = (today.replace(day=1) - timedelta(days=i * 30))
-        month_start = datetime(dt.year, dt.month, 1)
-        months_list.append(month_start.strftime("%Y-%m"))
-    logger.info("Months list prepared: %s", months_list)
-
-    for prop in GA_PROPERTIES:
-        prop_id = prop["id"]
-        prop_name = prop["name"]
-        logger.info("Fetching GA4 data for property: %s (%s)", prop_name, prop_id)
-
-        # === Realtime active users ===
-        try:
-            realtime_request = RunRealtimeReportRequest(
-                property=f"properties/{prop_id}",
-                metrics=[Metric(name="activeUsers")]
-            )
-            realtime_response = client.run_realtime_report(realtime_request)
-            active_30min = int(realtime_response.rows[0].metric_values[0].value) if realtime_response.rows else 0
-            connection_status = "🟢 Connected"
-        except Exception as e:
-            logger.warning("Realtime report failed for %s: %s", prop_name, e)
-            active_30min = 0
-            connection_status = "🔴 Not Connected"
-
-        # === Sessions over time ===
-        visits_30days = _get_report(client, prop_id, "sessions", "30daysAgo", "today")
-        visits_6months = _get_report(client, prop_id, "sessions", "180daysAgo", "today")
-        visits_year = _get_report(client, prop_id, "sessions", "365daysAgo", "today")
-        first_recorded_date = _get_first_recorded_date(client, prop_id)
-
-        # === Receiving status ===
-        if active_30min > 0:
-            receiving_status = "🟢 Receiving data now"
-        elif visits_30days > 0:
-            receiving_status = "🟡 Received data recently"
-        else:
-            receiving_status = "🔴 No recent data"
-
-        # === Trend analysis ===
-        trend = "➖ Steady"
-        try:
-            if first_recorded_date and visits_30days > 0:
-                start_date = datetime.strptime(first_recorded_date, "%Y-%m-%d")
-                days_since_start = max((today - start_date).days, 1)
-                historical_avg = visits_year / days_since_start
-                recent_avg = visits_30days / 30
-                if recent_avg > historical_avg * 1.1:
-                    trend = "📈 Up"
-                elif recent_avg < historical_avg * 0.9:
-                    trend = "📉 Down"
-        except Exception as e:
-            logger.warning("Trend calc error for %s: %s", prop_name, e)
-
-        # === Append to dashboard table ===
-        row = {
-            "property_name": prop_name,
-            "connection_status": connection_status,
-            "active_30min": active_30min,
-            "visits_30days": visits_30days,
-            "visits_6months": visits_6months,
-            "visits_year": visits_year,
-            "first_recorded_date": first_recorded_date or "N/A",
-            "receiving_status": receiving_status,
-            "trend": trend,
-        }
-        dashboard_data.append(row)
-        logger.info("Added dashboard row: %s", row)
-
-        # === Monthly visits for chart ===
-        monthly_visits = []
-        for month_str in months_list:
-            year, month = map(int, month_str.split("-"))
-            start_of_month = datetime(year, month, 1)
-            end_of_month = datetime(year, month, calendar.monthrange(year, month)[1])
-            visits = _get_report(
-                client, prop_id, "sessions",
-                start_of_month.strftime("%Y-%m-%d"),
-                end_of_month.strftime("%Y-%m-%d")
-            )
-            monthly_visits.append(visits)
-        monthly_dashboard.append({
-            "property_name": prop_name,
-            "monthly_visits": monthly_visits
-        })
-        logger.info("Added monthly data for %s: %s", prop_name, monthly_visits)
-
-    logger.info("=== GA4 data fetch complete — %d properties ===", len(dashboard_data))
-    return dashboard_data, monthly_dashboard, months_list
-
-
 # === Main view ===
 def ga4_report(request):
-    CACHE_KEY = "ga4_cached_data"
-    CACHE_TIMEOUT = None  # ♾️ Keep data until refresh
+    # ---------- LAST 12 MONTHS ----------
+    months = []
+    today = date.today()
 
-    # --- AJAX refresh ---
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        dashboard_data, monthly_dashboard, months_list = _fetch_ga4_data()
-        payload = {
-            "dashboard": dashboard_data,
-            "monthly": monthly_dashboard,
-            "months": months_list,
-            "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
-        }
-        cache.set(CACHE_KEY, payload, CACHE_TIMEOUT)
-        logger.info("🧭 Refreshed GA4 data — %d rows", len(dashboard_data))
-        return JsonResponse(payload)
+    for i in range(11, -1, -1):
+        y = today.year
+        m = today.month - i
+        while m <= 0:
+            m += 12
+            y -= 1
+        months.append(f"{y}-{m:02d}")
 
-    # --- Excel export (with chart) ---
-    if request.GET.get("export") == "excel" or request.method == "POST":
-        logger.info("📤 Exporting GA4 Excel report...")
+    # ---------- GET LATEST ROW PER PROPERTY ----------
+    property_ids = GoogleAnalyticsStats.objects.values_list(
+        "property_id", flat=True
+    ).distinct()
 
-        cached = cache.get(CACHE_KEY)
-        if cached:
-            dashboard_data = cached["dashboard"]
-            monthly_dashboard = cached["monthly"]
-            months_list = cached["months"]
-        else:
-            dashboard_data, monthly_dashboard, months_list = _fetch_ga4_data()
+    properties = []
+    yearly_columns = set()
 
-        # Decode the chart image if provided
-        chart_image_data = None
-        if request.body:
-            try:
-                import json
-                body = json.loads(request.body.decode())
-                if body.get("chart_image"):
-                    chart_image_data = base64.b64decode(body["chart_image"].split(",")[1])
-                    logger.info("🖼️ Received chart image for export.")
-            except Exception as e:
-                logger.warning("Chart image decode failed: %s", e)
-
-        wb = Workbook()
-
-        # === Dashboard Sheet ===
-        ws1 = wb.active
-        ws1.title = "Dashboard"
-        ws1.append([
-            "Property Name", "Connection", "Receiving", "Trend",
-            "Active (30m)", "30 Days", "6 Months", "1 Year", "First Recorded Date"
-        ])
-        for row in dashboard_data:
-            ws1.append([
-                row["property_name"],
-                row["connection_status"],
-                row["receiving_status"],
-                row["trend"],
-                row["active_30min"],
-                row["visits_30days"],
-                row["visits_6months"],
-                row["visits_year"],
-                row["first_recorded_date"]
-            ])
-
-        # === Monthly Data Sheet ===
-        ws2 = wb.create_sheet("Monthly Visits")
-        header = ["Property Name"] + months_list
-        ws2.append(header)
-        for r in monthly_dashboard:
-            ws2.append([r["property_name"]] + r["monthly_visits"])
-
-        # === Chart Sheet (if available) ===
-        if chart_image_data:
-            ws3 = wb.create_sheet("Chart")
-            img_stream = BytesIO(chart_image_data)
-            img = XLImage(img_stream)
-            img.width = 900
-            img.height = 400
-            ws3.add_image(img, "A1")
-            ws3["A15"] = "GA4 Monthly Visits Chart"
-            logger.info("🖼️ Chart image embedded into Excel.")
-
-        # === Return file ===
-        response = HttpResponse(
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    for pid in property_ids:
+        latest_date = (
+            GoogleAnalyticsStats.objects
+            .filter(property_id=pid)
+            .aggregate(Max("date"))["date__max"]
         )
-        response["Content-Disposition"] = 'attachment; filename="GA4_Report.xlsx"'
-        wb.save(response)
-        logger.info("✅ Excel file generated and sent.")
-        return response
 
-    # --- Normal page load ---
-    cached = cache.get(CACHE_KEY)
-    if cached:
-        dashboard_data = cached.get("dashboard", [])
-        monthly_dashboard = cached.get("monthly", [])
-        months_list = cached.get("months", [])
-        last_updated = cached.get("last_updated")
-    else:
-        dashboard_data, monthly_dashboard, months_list, last_updated = [], [], [], None
+        stat = GoogleAnalyticsStats.objects.get(
+            property_id=pid,
+            date=latest_date
+        )
 
-    return render(request, "ga4_reports.html", {
-        "dashboard_data": dashboard_data,
-        "monthly_dashboard": monthly_dashboard,
-        "months_list": months_list,
-        "last_updated": last_updated,
-    })
+        # Directly use the field assuming it's already a dict or None
+        monthly_data = stat.monthly_users_data or {}
+
+        yearly_data = defaultdict(int)
+        for month_key, value in monthly_data.items():
+            year = int(month_key.split("-")[0])
+            yearly_data[year] += int(value)
+            yearly_columns.add(year)
+
+        stat.monthly_data = monthly_data
+        stat.yearly_data = yearly_data
+
+        properties.append(stat)
+
+    context = {
+        "properties": properties,
+        "months": months,
+        "yearly_columns": sorted(yearly_columns),
+    }
+
+    return render(request, "ga4_reports.html", context)
+
+
+def ga4_years_visits(request):
+    months = []
+    today = date.today()
+
+    for i in range(11, -1, -1):
+        y = today.year
+        m = today.month - i
+        while m <= 0:
+            m += 12
+            y -= 1
+        months.append(f"{y}-{m:02d}")
+
+    property_ids = GoogleAnalyticsStats.objects.values_list("property_id", flat=True).distinct()
+
+    properties = []
+    yearly_columns = set()
+
+    for pid in property_ids:
+        latest_date = (
+            GoogleAnalyticsStats.objects
+            .filter(property_id=pid)
+            .aggregate(Max("date"))["date__max"]
+        )
+        stat = GoogleAnalyticsStats.objects.get(property_id=pid, date=latest_date)
+
+        # Directly use the field, no json.loads needed
+        monthly_data = stat.monthly_users_data or {}
+
+        yearly_data = defaultdict(int)
+        for month_key, value in monthly_data.items():
+            year = int(month_key.split("-")[0])
+            yearly_data[year] += int(value)
+            yearly_columns.add(year)
+
+        stat.monthly_data = monthly_data
+        stat.yearly_data = yearly_data
+
+        properties.append(stat)
+
+    context = {
+        "properties": properties,
+        "months": months,
+        "yearly_columns": sorted(yearly_columns),
+    }
+
+    return render(request, "ga4_pages/ga4_years_visits.html", context)
+
+def ga4_last_12_months_sessions(request):
+    months = []
+    today = date.today()
+
+    for i in range(11, -1, -1):
+        y = today.year
+        m = today.month - i
+        while m <= 0:
+            m += 12
+            y -= 1
+        months.append(f"{y}-{m:02d}")
+
+    property_ids = GoogleAnalyticsStats.objects.values_list("property_id", flat=True).distinct()
+
+    properties = []
+    yearly_columns = set()
+
+    for pid in property_ids:
+        latest_date = (
+            GoogleAnalyticsStats.objects
+            .filter(property_id=pid)
+            .aggregate(Max("date"))["date__max"]
+        )
+
+        stat = GoogleAnalyticsStats.objects.get(property_id=pid, date=latest_date)
+
+        monthly_sessions = stat.monthly_sessions_data or {}
+
+        yearly_data = defaultdict(int)
+        for month_key, value in monthly_sessions.items():
+            year = int(month_key.split("-")[0])
+            yearly_data[year] += int(value)
+            yearly_columns.add(year)
+
+        stat.monthly_sessions = monthly_sessions
+        stat.yearly_data_sessions = yearly_data
+
+        properties.append(stat)
+
+    context = {
+        "properties": properties,
+        "months": months,
+        "yearly_columns": sorted(yearly_columns),
+    }
+
+    return render(request, "ga4_pages/ga4_12mts_sessions.html", context)
+
+
+
+
+
+def _pct_change_series(values):
+    """
+    values: list[int]
+    returns: list[float|None] same length (first None; also None if previous month is 0)
+    """
+    out = [None]
+    for i in range(1, len(values)):
+        prev = values[i - 1]
+        curr = values[i]
+        if prev == 0:
+            out.append(None)
+        else:
+            out.append(round(((curr - prev) / prev) * 100.0, 2))
+    return out
+
+
+def top_properties_last12m_sessions_chart(request):
+    today = timezone.localdate()
+
+    # Last 12 months keys and labels
+    month_keys = []
+    month_labels = []
+    for i in range(11, -1, -1):
+        d = today - relativedelta(months=i)
+        month_keys.append(d.strftime("%Y-%m"))
+        month_labels.append(d.strftime("%b %Y"))
+
+    # Latest snapshot date per property
+    latest_date_subq = (
+        GoogleAnalyticsStats.objects
+        .filter(property_id=OuterRef("property_id"))
+        .order_by("-date")
+        .values("date")[:1]
+    )
+
+    # Latest row per property (so JSON reflects the most recent sync)
+    latest_rows = (
+        GoogleAnalyticsStats.objects
+        .annotate(latest_date=Subquery(latest_date_subq))
+        .filter(date=Subquery(latest_date_subq))
+        .only("property_id", "property_name", "monthly_sessions_data")
+    )
+
+    ranked = []
+    for row in latest_rows:
+        msd = row.monthly_sessions_data or {}
+        sessions_series = [int(msd.get(k, 0) or 0) for k in month_keys]
+        total_12m = sum(sessions_series)  # rank by total sessions over 12 months
+        ranked.append((total_12m, row.property_id, row.property_name, sessions_series))
+
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    top10 = ranked[:10]
+
+    # Chart 1: monthly sessions datasets
+    sessions_datasets = []
+    # Chart 2: monthly growth datasets
+    growth_datasets = []
+
+    for total_12m, pid, name, sessions_series in top10:
+        sessions_datasets.append({
+            "label": name,
+            "data": sessions_series,
+            "tension": 0.25,
+        })
+
+        growth_series = _pct_change_series(sessions_series)
+        growth_datasets.append({
+            "label": name,
+            "data": growth_series,
+            "tension": 0.25,
+            "spanGaps": True,  # draw across None values
+        })
+
+    context = {
+        "labels_json": json.dumps(month_labels),
+        "datasets_json": json.dumps(sessions_datasets),
+        "growth_datasets_json": json.dumps(growth_datasets),
+    }
+    return render(request, "ga4_pages/top_properties_last12m_sessions_chart.html", context)
+
+def ga4_last_12_months_active_users(request):
+    # last 12 months keys YYYY-MM
+    today = date.today()
+    months = []
+    for i in range(11, -1, -1):
+        y = today.year
+        m = today.month - i
+        while m <= 0:
+            m += 12
+            y -= 1
+        months.append(f"{y}-{m:02d}")
+
+    # latest row per property
+    property_ids = GoogleAnalyticsStats.objects.values_list("property_id", flat=True).distinct()
+
+    properties = []
+    for pid in property_ids:
+        latest_date = (
+            GoogleAnalyticsStats.objects
+            .filter(property_id=pid)
+            .aggregate(Max("date"))["date__max"]
+        )
+        stat = GoogleAnalyticsStats.objects.get(property_id=pid, date=latest_date)
+
+        # ✅ make it match the table template (dict with YYYY-MM keys)
+        stat.monthly_data = stat.monthly_users_data or {}
+
+        properties.append(stat)
+
+    context = {
+        "properties": sorted(properties, key=lambda s: (s.property_name or "").lower()),
+        "months": months,
+    }
+    return render(request, "ga4_pages/ga4_12mts_active_users.html", context)
+
+
+
+
+
+
+
+from collections import defaultdict
+from dateutil.relativedelta import relativedelta
+
+from django.db.models import OuterRef, Subquery
+from django.http import HttpResponse
+from django.utils import timezone
+
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+
+from lddt_app.models import GoogleAnalyticsStats
+
+
+def _pct_change_series(values):
+    out = [None]
+    for i in range(1, len(values)):
+        prev = values[i - 1]
+        curr = values[i]
+        if prev == 0:
+            out.append(None)
+        else:
+            out.append(round(((curr - prev) / prev) * 100.0, 2))
+    return out
+
+
+def _safe_sheet_title(title: str) -> str:
+    bad = ['\\', '/', '*', '?', ':', '[', ']']
+    for ch in bad:
+        title = title.replace(ch, " ")
+    return title[:31] or "Sheet"
+
+
+def _add_sheet(wb: Workbook, title: str, headers: list, rows: list):
+    ws = wb.create_sheet(title=_safe_sheet_title(title))
+    ws.append(headers)
+
+    for r in rows:
+        ws.append(r)
+
+    for col_idx, header in enumerate(headers, start=1):
+        ws.cell(row=1, column=col_idx).font = ws.cell(row=1, column=col_idx).font.copy(bold=True)
+        ws.column_dimensions[get_column_letter(col_idx)].width = min(max(len(str(header)) + 2, 12), 40)
+
+    return ws
+
+
+def ga4_export_all_excel(request):
+    today = timezone.localdate()
+    month_keys = [(today - relativedelta(months=i)).strftime("%Y-%m") for i in range(11, -1, -1)]
+
+    latest_date_subq = (
+        GoogleAnalyticsStats.objects
+        .filter(property_id=OuterRef("property_id"))
+        .order_by("-date")
+        .values("date")[:1]
+    )
+
+    latest_rows = (
+        GoogleAnalyticsStats.objects
+        .annotate(_latest_date=Subquery(latest_date_subq))
+        .filter(date=Subquery(latest_date_subq))
+        .only(
+            "property_id", "property_name", "date",
+            "daily_users", "monthly_users",
+            "earliest_data_date",
+            "monthly_users_data",
+            "monthly_sessions_data",
+        )
+    )
+
+    # Collect available years (from monthly_users_data)
+    years_set = set()
+    for r in latest_rows:
+        for k in (r.monthly_users_data or {}).keys():
+            try:
+                years_set.add(int(k.split("-")[0]))
+            except Exception:
+                pass
+    years = sorted(years_set)
+
+    # ---- Sheet 1: Visits last 12 months (your existing meaning)
+    headers_12m_visits = ["property_id", "property_name", "latest_date"] + month_keys + ["daily_users", "monthly_users"]
+    rows_12m_visits = []
+    for r in latest_rows.order_by("property_name"):
+        mud = r.monthly_users_data or {}
+        rows_12m_visits.append(
+            [r.property_id, r.property_name, r.date.isoformat()]
+            + [int(mud.get(m, 0) or 0) for m in month_keys]
+            + [r.daily_users, r.monthly_users]
+        )
+
+    # ---- Sheet 2: Visits by year
+    headers_year_visits = ["property_id", "property_name", "latest_date"] + [str(y) for y in years]
+    rows_year_visits = []
+    for r in latest_rows.order_by("property_name"):
+        mud = r.monthly_users_data or {}
+        yearly = defaultdict(int)
+        for mk, val in mud.items():
+            try:
+                yearly[int(mk.split("-")[0])] += int(val or 0)
+            except Exception:
+                continue
+        rows_year_visits.append(
+            [r.property_id, r.property_name, r.date.isoformat()] + [yearly.get(y, 0) for y in years]
+        )
+
+    # ---- Sheet 3: Sessions last 12 months
+    headers_12m_sessions = ["property_id", "property_name", "latest_date"] + month_keys
+    rows_12m_sessions = []
+    for r in latest_rows.order_by("property_name"):
+        msd = r.monthly_sessions_data or {}
+        rows_12m_sessions.append(
+            [r.property_id, r.property_name, r.date.isoformat()]
+            + [int(msd.get(m, 0) or 0) for m in month_keys]
+        )
+
+    # ✅ NEW ---- Sheet 4: Active Users last 12 months
+    headers_12m_active_users = ["property_id", "property_name", "latest_date"] + month_keys
+    rows_12m_active_users = []
+    for r in latest_rows.order_by("property_name"):
+        mud = r.monthly_users_data or {}
+        rows_12m_active_users.append(
+            [r.property_id, r.property_name, r.date.isoformat()]
+            + [int(mud.get(m, 0) or 0) for m in month_keys]
+        )
+
+    # ---- Top 10 ranking (by total sessions)
+    ranked = []
+    for r in latest_rows:
+        msd = r.monthly_sessions_data or {}
+        series = [int(msd.get(m, 0) or 0) for m in month_keys]
+        ranked.append((sum(series), r, series))
+
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    top10 = ranked[:10]
+
+    # ---- Sheet 5: Top 10 sessions
+    headers_top10_sessions = ["rank", "property_id", "property_name"] + month_keys + ["total_12m"]
+    rows_top10_sessions = []
+    for idx, (total, r, series) in enumerate(top10, start=1):
+        rows_top10_sessions.append([idx, r.property_id, r.property_name] + series + [total])
+
+    # ---- Sheet 6: Top 10 growth %
+    headers_top10_growth = ["rank", "property_id", "property_name"] + month_keys
+    rows_top10_growth = []
+    for idx, (total, r, series) in enumerate(top10, start=1):
+        growth = _pct_change_series(series)
+        growth_out = ["" if g is None else g for g in growth]
+        rows_top10_growth.append([idx, r.property_id, r.property_name] + growth_out)
+
+    # ---- Build workbook
+    wb = Workbook()
+    wb.remove(wb.active)
+
+    _add_sheet(wb, "Visits 12 months", headers_12m_visits, rows_12m_visits)
+    _add_sheet(wb, "Visits by year", headers_year_visits, rows_year_visits)
+    _add_sheet(wb, "Sessions 12 months", headers_12m_sessions, rows_12m_sessions)
+    _add_sheet(wb, "Active users 12m", headers_12m_active_users, rows_12m_active_users)  # ✅ NEW
+    _add_sheet(wb, "Top10 Sessions 12m", headers_top10_sessions, rows_top10_sessions)
+    _add_sheet(wb, "Top10 Growth %", headers_top10_growth, rows_top10_growth)
+
+    filename = f"ga4_export_{today.isoformat()}.xlsx"
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    wb.save(response)
+    return response

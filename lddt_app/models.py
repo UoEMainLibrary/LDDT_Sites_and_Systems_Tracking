@@ -6,6 +6,7 @@ import paramiko
 import subprocess
 from django.conf import settings
 from django.http import JsonResponse
+from django.utils.timezone import now
 
 
 
@@ -240,6 +241,8 @@ class Vm(models.Model):
     processors = models.CharField('Processors', blank=True, null=True, max_length=150)
     memory = models.CharField('Memory', blank=True, null=True, max_length=150)
     last_patch_days_ago = models.CharField('Last Patch in days ago', blank=True, null=True, max_length=150)
+    system_check = models.CharField('System Check', blank=True, null=True, max_length=150)
+    last_health_check = models.DateTimeField(null=True, blank=True)
     @property
     def print_hostname(self):
         return self.hostname
@@ -839,6 +842,85 @@ class Vm(models.Model):
         finally:
             ssh.close()
 
+    @property
+    def ssh_healthy_check(self):
+        ssh_user_name = settings.SSH_USER_NAME
+        ssh_passphrase = settings.SSH_PASSPHRASE
+
+        hostname = self.hostname
+        port = 22
+        username = ssh_user_name
+        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
+        passphrase = ssh_passphrase
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        private_key = paramiko.RSAKey.from_private_key_file(
+            private_key_path,
+            password=passphrase
+        )
+
+        # Command MUST be run via bash
+        command = (
+            'bash -c \''
+            'errors=$(journalctl -p err -n 20); '
+            'echo "$errors"; '
+            'if [ -z "$errors" ]; then echo "HEALTHY"; else echo "ERRORS"; fi'
+            '\''
+        )
+
+        try:
+            ssh.connect(hostname, port=port, username=username, pkey=private_key)
+
+            stdin, stdout, stderr = ssh.exec_command(command)
+            output = stdout.read().decode().strip()
+
+            if not output:
+                return '-----'
+
+            lines = output.splitlines()
+
+            status = lines[-1]  # HEALTHY or ERRORS
+            logs = "\n".join(lines[:-1])
+
+            if status == "HEALTHY":
+                return "HEALTHY"
+
+            return f"ERRORS\n{logs}"
+
+        except paramiko.AuthenticationException:
+            return '-----'
+
+        except paramiko.SSHException:
+            return '-----'
+
+        except Exception:
+            return '-----'
+
+        finally:
+            ssh.close()
+
+    @property
+    def days_since_last_health_check(self):
+        if not self.last_health_check:
+            return "Never checked"
+
+        delta = now() - self.last_health_check
+        seconds = delta.total_seconds()
+
+        if seconds < 60:
+            return "Just now"
+        elif seconds < 3600:
+            minutes = int(seconds // 60)
+            return f"{minutes} min ago"
+        elif seconds < 86400:
+            hours = int(seconds // 3600)
+            return f"{hours} hour{'s' if hours > 1 else ''} ago"
+        else:
+            days = delta.days
+            return f"{days} day{'s' if days > 1 else ''} ago"
+
 class Testing_Status_r(models.Model):
     name = models.CharField(max_length=150)
     def __str__(self):
@@ -884,3 +966,40 @@ class AccessStatement(models.Model):
     notes = models.TextField('Notes', blank=True, null=True)
     def __str__(self):
         return self.url
+
+
+class GoogleAnalyticsStats(models.Model):
+    # GA4 property identity (UNIQUE)
+    property_id = models.CharField(max_length=32, unique=True)
+    property_name = models.CharField(max_length=255)
+
+    # Last sync date (not part of uniqueness anymore)
+    date = models.DateField()
+
+    # High-level aggregates
+    daily_users = models.PositiveIntegerField(default=0)
+    monthly_users = models.PositiveIntegerField(default=0)
+
+    # First date GA has data for this property
+    earliest_data_date = models.DateField(null=True, blank=True)
+
+    # Time-series data (key: YYYY-MM)
+    monthly_users_data = models.JSONField(default=dict, blank=True)
+    monthly_sessions_data = models.JSONField(default=dict, blank=True)
+
+    # Record metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["property_id"], name="idx_ga_stats_prop"),
+        ]
+        verbose_name = "Google Analytics Stat"
+        verbose_name_plural = "Google Analytics Stats"
+        ordering = ["property_name"]
+
+    def __str__(self):
+        return f"{self.property_name}"
+
+
+

@@ -2,84 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GA4 Dashboard</title>
-    {% load ga_extras %}
+    <title>Last 12 months sessions</title>
+  {% load ga_extras %}
     {% load static %}
+  <link rel="stylesheet" href="{% static 'statements_css/statement_top_menu.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
-      <link rel="stylesheet" href="{% static '/statements_css/statement_top_menu.css' %}">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 
     <style>
-    /* Small styles for sorting arrows */
-    th.sortable {
-      cursor: pointer;
-      user-select: none;
-      position: relative;
-    }
+        /* Small styles for sorting arrows */
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
 
-    th.sortable .sort-arrow {
-      font-size: 0.7em;
-      margin-left: 5px;
-      display: inline-block;
-      width: 10px;
-      text-align: center;
-      color: #ccc;
-    }
+        th.sortable .sort-arrow {
+            font-size: 0.7em;
+            margin-left: 5px;
+            display: inline-block;
+            width: 10px;
+            text-align: center;
+            color: #ccc;
+        }
 
-    th.sortable.asc .sort-arrow.asc-arrow {
-      color: #fff;
-    }
+        th.sortable.asc .sort-arrow.asc-arrow {
+            color: #fff;
+        }
 
-    th.sortable.desc .sort-arrow.desc-arrow {
-      color: #fff;
-    }
+        th.sortable.desc .sort-arrow.desc-arrow {
+            color: #fff;
+        }
 
-    /* Apply to all table cells */
-    #myTable th,
-    #myTable td {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 30ch;
-    }
+        /* Apply to all table cells */
+        #myTable th,
+        #myTable td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 30ch;
+        }
 
-    /* ✅ TOP NAV — now correctly scoped */
-    .topnav {
-      background-color: #333;
-      overflow: hidden;
-      margin: 10px auto;
-      width: 96%;
-      border-radius: 6px;
-    }
+        /* ✅ TOP NAV — exactly your original styling */
+        .topnav {
+            background-color: #333;
+            overflow: hidden;
+            margin: 10px auto;
+            width: 96%;
+            border-radius: 6px;
+        }
 
-    .topnav a {
-      float: left;
-      color: #f2f2f2;
-      text-align: center;
-      padding: 12px 16px;
-      text-decoration: none;
-      font-size: 16px;
-    }
+        .topnav a {
+            float: left;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 12px 16px;
+            text-decoration: none;
+            font-size: 16px;
+        }
 
-    .topnav a:hover {
-      background-color: #ddd;
-      color: black;
-    }
+        .topnav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
 
-    .topnav a.active {
-      background-color: #04AA6D;
-      color: white;
-    }
-</style>
+        .topnav a.active {
+            background-color: #04AA6D;
+            color: white;
+        }
+    </style>
 </head>
-
 <body style="background-color: #0a0c11">
-
-{% load static %}
-{% load ga_extras %}
-
 <section id="main" class="main">
     <header>
         <figure onClick="animate(this)">
@@ -107,11 +103,7 @@
                         <i class="fa fa-fw fa-file-excel-o"></i>Export Excel
                     </a>
                 </li>
-
-                <div class="clear"></div>
             </ul>
-
-
         </nav>
         <div class="clear"></div>
     </header>
@@ -119,36 +111,38 @@
 <br>
 
 <div style="width:96%; margin: 10px auto;">
-  <input
-    type="text"
-    id="globalSearch"
-    placeholder="🔍 Search properties, IDs, dates, numbers..."
-    onkeyup="filterTable()"
-    style="
-      width: 300px;
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid #555;
-      background-color: #1e2431;
-      color: white;
-    "
-  >
+    <input
+        type="text"
+        id="globalSearch"
+        placeholder="🔍 Search properties, IDs, dates, numbers..."
+        onkeyup="filterTable()"
+        style="
+          width: 300px;
+          padding: 6px 10px;
+          border-radius: 6px;
+          border: 1px solid #555;
+          background-color: #1e2431;
+          color: white;
+        "
+    >
 </div>
 <br>
 
 <div class="topnav">
-  <a class="active" href="#home">Last 12 months (visits)</a>
-  <a href="{% url 'ga4_years_visits' %}" >Years (visits)</a>
-  <a href="{% url 'ga4_last_12_months_sessions' %}" >Last 12 months (sessions)</a>
-  <a href="{% url 'ga4_last_12_months_active_users' %}" >Last 12 (active users)</a>
-  <a href="{% url 'top_properties_last12m_sessions_chart' %}">10 Top Charts</a>
+    <a href="{% url 'ga4_report' %}">Last 12 months (visits)</a>
+    <a href="{% url 'ga4_years_visits' %}">Years (visits)</a>
+    <a class="active" href="{% url 'ga4_last_12_months_sessions' %}">Last 12 months (sessions)</a>
+    <a href="{% url 'ga4_last_12_months_active_users' %}" >Last 12 (active users)</a>
+    <a href="{% url 'top_properties_last12m_sessions_chart' %}">10 Top Charts</a>
 </div>
+
 
 <table class="table" id="myTable" style="background-color:#1e2431; margin: 0 auto; width: 96%; border-radius: 10px; overflow: hidden;">
   <thead>
-    <tr class="header" style="position:sticky; z-index:1; top:0; background-color: #323c4e; color: white">
+    <tr class="header" style="position:sticky; z-index:1; top:0; background-color:#323c4e; color:white">
+
       <!-- Property Name -->
-      <th scope="col" style="font-size: 18px">
+      <th scope="col" style="font-size:18px">
         Property Name <br>
         <span class="sort-icons">
           <button onclick="sortTable(0, 'text', 'asc')">⬆️</button>
@@ -157,7 +151,7 @@
       </th>
 
       <!-- Property ID -->
-      <th scope="col" style="font-size: 18px">
+      <th scope="col" style="font-size:18px">
         Property ID <br>
         <span class="sort-icons">
           <button onclick="sortTable(1, 'text', 'asc')">⬆️</button>
@@ -166,7 +160,7 @@
       </th>
 
       <!-- Since -->
-      <th scope="col" style="font-size: 18px">
+      <th scope="col" style="font-size:18px">
         Since <br>
         <span class="sort-icons">
           <button onclick="sortTable(2, 'text', 'asc')">⬆️</button>
@@ -176,7 +170,7 @@
 
       <!-- Monthly columns -->
       {% for month in months %}
-        <th scope="col" style="font-size: 18px">
+        <th scope="col" style="font-size:18px">
           {{ month }} <br>
           <span class="sort-icons">
             <button onclick="sortTable({{ forloop.counter|add:2 }}, 'num', 'asc')">⬆️</button>
@@ -184,31 +178,36 @@
           </span>
         </th>
       {% endfor %}
+
     </tr>
   </thead>
 
   <tbody>
     {% for prop in properties %}
-      <tr style="font-size: 12px; vertical-align: top; padding-top:10px; color: #6e9fa6">
+      <tr style="font-size:12px; vertical-align:top; padding-top:10px; color:#6e9fa6">
+
         <td>{{ prop.property_name }}</td>
         <td>{{ prop.property_id }}</td>
         <td>{{ prop.earliest_data_date|default:"—" }}</td>
 
         {% for month in months %}
-          <td data-value="{{ prop.monthly_data|get_item:month|default:0 }}">
-            {{ prop.monthly_data|get_item:month|default:"0" }}
+          <td data-value="{{ prop.monthly_sessions|get_item:month|default:0 }}">
+            {{ prop.monthly_sessions|get_item:month|default:"0" }}
           </td>
         {% endfor %}
+
       </tr>
     {% empty %}
       <tr>
         <td colspan="{{ months|length|add:'3' }}">
-          No stats found.
+          No sessions data found.
         </td>
       </tr>
     {% endfor %}
   </tbody>
 </table>
+
+
 
 
 <script>
@@ -266,6 +265,3 @@ rows[i].style.display = rowText.includes(filter) ? "" : "none";
 
 </body>
 </html>
-
-
-
