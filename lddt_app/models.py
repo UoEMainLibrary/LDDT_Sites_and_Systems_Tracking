@@ -334,7 +334,7 @@ class Vm(models.Model):
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
             # Get OS and nginx info
-            stdin, stdout, stderr = ssh.exec_command("cat /etc/centos-release; nginx -v")
+            stdin, stdout, stderr = ssh.exec_command("cat /etc/rocky-release; nginx -v")
 
             output = stdout.read().decode().strip()
 
