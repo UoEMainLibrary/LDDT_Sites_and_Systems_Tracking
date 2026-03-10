@@ -1,21 +1,30 @@
 from django.core.management.base import BaseCommand
-from lddt_app.models import Vm
 from django.utils import timezone
 
+from lddt_app.models import Vm
+
+
 class Command(BaseCommand):
-    help = 'Copies the value from the property field to the standard field'
+    help = "Copies the value from the property field to the standard field"
 
     def handle(self, *args, **kwargs):
         total = Vm.objects.count()
         current = 0
+        updated = 0
+        skipped = 0
 
         for obj in Vm.objects.all():
             current += 1
 
-            print(
-                f'Updating {obj.hostname} '
-                f'({current} of {total})'
-            )
+            print(f"Checking {obj.hostname} ({current} of {total})")
+
+            if not obj.fetch_details:
+                skipped += 1
+                print(f"Skipped {obj.hostname} because fetch_details is disabled")
+                print("***********************************\n")
+                continue
+
+            print(f"Updating {obj.hostname} ({current} of {total})")
 
             obj.db = obj.ssh_db
             obj.nginx = obj.ssh_nginx
@@ -32,12 +41,13 @@ class Command(BaseCommand):
             obj.last_health_check = timezone.now()
 
             obj.save()
+            updated += 1
 
-            print(f'Updated {obj.hostname}')
-            print('***********************************\n')
+            print(f"Updated {obj.hostname}")
+            print("***********************************\n")
 
         self.stdout.write(
             self.style.SUCCESS(
-                f'Successfully updated {total} servers.'
+                f"Finished. Total: {total}, Updated: {updated}, Skipped: {skipped}"
             )
         )

@@ -243,76 +243,99 @@ class Vm(models.Model):
     last_patch_days_ago = models.CharField('Last Patch in days ago', blank=True, null=True, max_length=150)
     system_check = models.CharField('System Check', blank=True, null=True, max_length=150)
     last_health_check = models.DateTimeField(null=True, blank=True)
+    fetch_details = models.BooleanField(default=True)
+
+    @property
+    def should_fetch_details(self):
+        return self.fetch_details is True
     @property
     def print_hostname(self):
         return self.hostname
 
     @property
     def ssh_db(self):
-        ssh_user_name = settings.SSH_USER_NAME
-        ssh_passphrase = settings.SSH_PASSPHRASE
+        if not self.fetch_details:
+            return "SKIPPED"
 
-        hostname = self.hostname
-        port = 22
-        username = ssh_user_name
-        private_key_path = "/home/lib/lacddt/.ssh/id_rsa"
-        passphrase = ssh_passphrase
+        import re
+        import paramiko
+        from django.conf import settings
+
+        def run_command(ssh_client, command):
+            stdin, stdout, stderr = ssh_client.exec_command(command)
+            output = stdout.read().decode().strip()
+            error = stderr.read().decode().strip()
+            return (output or error).strip()
+
+        def extract_version(text):
+            match = re.search(r"(\d+\.\d+(?:\.\d+)?)", text)
+            return match.group(1) if match else None
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        private_key = paramiko.RSAKey.from_private_key_file(
-            private_key_path,
-            password=passphrase
-        )
-
         try:
-            ssh.connect(hostname, port=port, username=username, pkey=private_key)
+            private_key = paramiko.RSAKey.from_private_key_file(
+                "/home/lib/lacddt/.ssh/id_rsa",
+                password=settings.SSH_PASSPHRASE
+            )
 
-            # Query MySQL version
-            stdin, stdout, stderr = ssh.exec_command("mysql -V")
-            output = stdout.read().decode().strip()
+            ssh.connect(
+                self.hostname,
+                port=22,
+                username=settings.SSH_USER_NAME,
+                pkey=private_key,
+                timeout=10
+            )
 
-            if not output:
-                return '-----'
+            # -------------------------------------------------
+            # 1. Check PostgreSQL (PROCESS OR SERVICE RUNNING)
+            # -------------------------------------------------
+            postgres_process = run_command(ssh, "ps -ef | grep '[p]ostgres'")
+            postgres_service = run_command(ssh, "systemctl is-active postgresql 2>/dev/null")
 
-            # Example output:
-            # mysql  Ver 14.14 Distrib 10.6.24-MariaDB, for Linux (x86_64) using EditLine wrapper
+            if postgres_process or postgres_service == "active":
+                version_output = run_command(ssh, "psql --version 2>/dev/null")
+                version = extract_version(version_output)
+                return f"PostgreSQL {version}" if version else "PostgreSQL"
 
-            version = None
+            # -------------------------------------------------
+            # 2. Check MySQL / MariaDB (PROCESS OR SERVICE RUNNING)
+            # -------------------------------------------------
+            mysql_process = run_command(ssh, "ps -ef | grep '[m]ysqld\\|[m]ariadbd'")
+            mysql_service = run_command(ssh,
+                                        "systemctl is-active mysqld 2>/dev/null || systemctl is-active mariadb 2>/dev/null")
 
-            # Extract version after "Distrib "
-            if "Distrib" in output:
-                version_part = output.split("Distrib")[1].split(",")[0].strip()
-                # Remove any suffix like -MariaDB etc.
-                version = version_part.split('-')[0]
+            if mysql_process or mysql_service == "active":
 
-            if not version:
-                # fallback: try numeric extraction
-                import re
-                match = re.search(r"(\d+\.\d+\.\d+)", output)
-                if match:
-                    version = match.group(1)
+                version_output = run_command(
+                    ssh,
+                    "mysqld --version 2>/dev/null || mariadbd --version 2>/dev/null"
+                )
 
-            if not version:
-                return '-----'
+                version = extract_version(version_output)
 
-            return f'MySQL {version}'
+                if "mariadb" in version_output.lower():
+                    return f"MariaDB {version}" if version else "MariaDB"
+                else:
+                    return f"MySQL {version}" if version else "No-DB"
 
-        except paramiko.AuthenticationException:
-            return '-----'
+            # -------------------------------------------------
+            # 3. No database detected
+            # -------------------------------------------------
+            return "No-DB"
 
-        except paramiko.SSHException as sshException:
-            return f'-----'
-
-        except Exception as e:
-            return f'-----'
+        except Exception:
+            return "No-DB"
 
         finally:
             ssh.close()
 
     @property
     def ssh_nginx(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -334,7 +357,7 @@ class Vm(models.Model):
             ssh.connect(hostname, port=port, username=username, pkey=private_key)
 
             # Get OS and nginx info
-            stdin, stdout, stderr = ssh.exec_command("cat /etc/centos-release; nginx -v")
+            stdin, stdout, stderr = ssh.exec_command("cat /etc/rocky-release; nginx -v")
 
             output = stdout.read().decode().strip()
 
@@ -373,6 +396,9 @@ class Vm(models.Model):
 
     @property
     def ssh_puppet_controlled(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -423,6 +449,8 @@ class Vm(models.Model):
 
     @property
     def ssh_httpd(self):
+        if not self.fetch_details:
+            return "SKIPPED"
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -493,6 +521,9 @@ class Vm(models.Model):
 
     @property
     def ssh_vmfs_root_used(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -546,6 +577,8 @@ class Vm(models.Model):
 
     @property
     def ssh_vmfs_apps_used(self):
+        if not self.fetch_details:
+            return "SKIPPED"
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -598,6 +631,9 @@ class Vm(models.Model):
 
     @property
     def ssh_vmfs_data_used(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -650,6 +686,9 @@ class Vm(models.Model):
 
     @property
     def ssh_ip_address(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -709,6 +748,9 @@ class Vm(models.Model):
 
     @property
     def ssh_processors(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -752,6 +794,9 @@ class Vm(models.Model):
 
     @property
     def ssh_mem_total_gb(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -801,6 +846,9 @@ class Vm(models.Model):
 
     @property
     def ssh_last_patch_days_ago(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -844,6 +892,9 @@ class Vm(models.Model):
 
     @property
     def ssh_healthy_check(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         ssh_user_name = settings.SSH_USER_NAME
         ssh_passphrase = settings.SSH_PASSPHRASE
 
@@ -903,6 +954,9 @@ class Vm(models.Model):
 
     @property
     def days_since_last_health_check(self):
+        if not self.fetch_details:
+            return "SKIPPED"
+
         if not self.last_health_check:
             return "Never checked"
 
