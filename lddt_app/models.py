@@ -188,7 +188,7 @@ class Website(models.Model):
         vm_ip_address_str = str(self.vm_ip_address)
         if "129." in vm_ip_address_str:
             resoult = "PUBLIC"
-        elif "192." in vm_ip_address_str:
+        elif "192." or "10." in vm_ip_address_str:
             resoult = "PRIVATE"
         else:
             pass
