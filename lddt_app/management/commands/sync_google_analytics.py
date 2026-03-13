@@ -11,7 +11,13 @@ from django.utils import timezone
 from google.api_core import exceptions as gexc
 from google.analytics.admin import AnalyticsAdminServiceClient
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
-from google.analytics.data_v1beta.types import RunReportRequest, DateRange, Metric
+from google.analytics.data_v1beta.types import (
+    DateRange,
+    Dimension,
+    Metric,
+    OrderBy,
+    RunReportRequest,
+)
 from google.oauth2 import service_account
 
 from lddt_app.models import GoogleAnalyticsStats
@@ -19,85 +25,101 @@ from lddt_app.models import GoogleAnalyticsStats
 
 CREDENTIALS_PATH = "credentional/google_analytics_sa.json"
 SCOPES = ["https://www.googleapis.com/auth/analytics.readonly"]
-
-# Gentle throttling to avoid bursty behavior (tune if needed)
 API_THROTTLE_SECONDS = 0.05
 
 
 class Command(BaseCommand):
-    help = "Sync Google Analytics GA4 stats (users + engaged sessions) safely (retries + no duplicates)"
+    help = "Sync Google Analytics GA4 stats safely (users + engaged sessions, retries, one row per property)"
 
-    # ---------- Clients ----------
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._credentials_obj = None
+        self._admin_client = None
+        self._data_client = None
+
+    # ------------------------------------------------------------------
+    # Clients
+    # ------------------------------------------------------------------
 
     def _credentials(self):
-        return service_account.Credentials.from_service_account_file(
-            CREDENTIALS_PATH,
-            scopes=SCOPES,
-        )
+        if self._credentials_obj is None:
+            self._credentials_obj = service_account.Credentials.from_service_account_file(
+                CREDENTIALS_PATH,
+                scopes=SCOPES,
+            )
+        return self._credentials_obj
 
     def get_admin_client(self):
-        return AnalyticsAdminServiceClient(credentials=self._credentials())
+        if self._admin_client is None:
+            self._admin_client = AnalyticsAdminServiceClient(credentials=self._credentials())
+        return self._admin_client
 
     def get_data_client(self):
-        return BetaAnalyticsDataClient(credentials=self._credentials())
+        if self._data_client is None:
+            self._data_client = BetaAnalyticsDataClient(credentials=self._credentials())
+        return self._data_client
 
-    # ---------- Retry wrapper ----------
+    # ------------------------------------------------------------------
+    # Retry helpers
+    # ------------------------------------------------------------------
 
     def _is_server_errors_quota_429(self, exc: Exception) -> bool:
         """
-        GA Data API uses a special 429 when you've exhausted the 'server errors quota'
-        due to too many upstream 5xx errors. Retrying aggressively makes it worse.
+        GA Data API can return a special 429 mentioning 'server errors quota'.
+        That one should not be retried aggressively.
         """
-        msg = str(exc).lower()
-        return isinstance(exc, gexc.ResourceExhausted) and "server errors quota" in msg
+        return isinstance(exc, gexc.ResourceExhausted) and "server errors quota" in str(exc).lower()
 
-    def run_report_with_retry(self, client, request, *, max_attempts=4, base_delay=1.0):
-        """
-        Retries transient GA Data API errors (500/503/timeouts).
-        Does NOT retry 'server errors quota' 429s.
-        """
+    def run_report_with_retry(self, request, *, max_attempts=4, base_delay=1.0):
+        client = self.get_data_client()
+
         for attempt in range(1, max_attempts + 1):
             try:
-                resp = client.run_report(request)
+                response = client.run_report(request)
                 if API_THROTTLE_SECONDS:
                     time.sleep(API_THROTTLE_SECONDS)
-                return resp
+                return response
 
             except gexc.ResourceExhausted as e:
-                # If it's the special "server errors quota" 429, stop immediately.
                 if self._is_server_errors_quota_429(e):
                     raise
-                # Other ResourceExhausted can sometimes be brief; retry a little.
+
                 if attempt == max_attempts:
                     raise
+
                 sleep_s = min(base_delay * (2 ** (attempt - 1)) + random.random(), 15)
                 self.stdout.write(
                     self.style.WARNING(
-                        f"GA quota/rate transient error (attempt {attempt}/{max_attempts}): {e}. "
+                        f"GA quota/rate transient error "
+                        f"(attempt {attempt}/{max_attempts}): {e}. "
                         f"Retrying in {sleep_s:.1f}s..."
                     )
                 )
                 time.sleep(sleep_s)
 
             except (
-                gexc.InternalServerError,   # 500
-                gexc.ServiceUnavailable,    # 503
-                gexc.DeadlineExceeded,      # timeout
+                gexc.InternalServerError,
+                gexc.ServiceUnavailable,
+                gexc.DeadlineExceeded,
                 gexc.Aborted,
                 gexc.Unknown,
             ) as e:
                 if attempt == max_attempts:
                     raise
+
                 sleep_s = min(base_delay * (2 ** (attempt - 1)) + random.random(), 30)
                 self.stdout.write(
                     self.style.WARNING(
-                        f"GA API transient error (attempt {attempt}/{max_attempts}): {e}. "
+                        f"GA API transient error "
+                        f"(attempt {attempt}/{max_attempts}): {e}. "
                         f"Retrying in {sleep_s:.1f}s..."
                     )
                 )
                 time.sleep(sleep_s)
 
-    # ---------- Properties ----------
+    # ------------------------------------------------------------------
+    # Property helpers
+    # ------------------------------------------------------------------
 
     def list_all_properties(self):
         client = self.get_admin_client()
@@ -117,25 +139,31 @@ class Command(BaseCommand):
 
         return properties
 
-    # ---------- Metrics ----------
+    # ------------------------------------------------------------------
+    # Metric helpers
+    # ------------------------------------------------------------------
+
+    def _safe_int(self, value, default=0):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
 
     def fetch_metric(self, property_id, metric_name, start_date, end_date):
-        client = self.get_data_client()
-
         request = RunReportRequest(
             property=f"properties/{property_id}",
             date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
             metrics=[Metric(name=metric_name)],
         )
 
-        response = self.run_report_with_retry(client, request)
+        response = self.run_report_with_retry(request)
 
         if not response.rows:
             return 0
 
         try:
-            return int(response.rows[0].metric_values[0].value)
-        except (TypeError, ValueError, IndexError):
+            return self._safe_int(response.rows[0].metric_values[0].value, default=0)
+        except (IndexError, AttributeError):
             return 0
 
     def fetch_active_users(self, property_id, start_date, end_date):
@@ -146,55 +174,99 @@ class Command(BaseCommand):
 
     def fetch_users_and_sessions(self, property_id, start_date, end_date):
         """
-        Fetches activeUsers + engagedSessions in ONE call (cuts API calls ~50% for monthly loop).
+        Fetch activeUsers and engagedSessions in one API call.
         """
-        client = self.get_data_client()
-
         request = RunReportRequest(
             property=f"properties/{property_id}",
             date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
-            metrics=[Metric(name="activeUsers"), Metric(name="engagedSessions")],
+            metrics=[
+                Metric(name="activeUsers"),
+                Metric(name="engagedSessions"),
+            ],
         )
 
-        response = self.run_report_with_retry(client, request)
+        response = self.run_report_with_retry(request)
 
         if not response.rows:
             return 0, 0
 
         row = response.rows[0]
+
         try:
-            users = int(row.metric_values[0].value)
-        except (TypeError, ValueError, IndexError):
+            users = self._safe_int(row.metric_values[0].value, default=0)
+        except (IndexError, AttributeError):
             users = 0
+
         try:
-            sessions = int(row.metric_values[1].value)
-        except (TypeError, ValueError, IndexError):
+            sessions = self._safe_int(row.metric_values[1].value, default=0)
+        except (IndexError, AttributeError):
             sessions = 0
 
         return users, sessions
 
-    # ---------- Earliest Data ----------
+    # ------------------------------------------------------------------
+    # Date helpers
+    # ------------------------------------------------------------------
 
     def fetch_earliest_data_date(self, property_id):
-        client = self.get_data_client()
-
         request = RunReportRequest(
             property=f"properties/{property_id}",
             date_ranges=[DateRange(start_date="2016-01-01", end_date="today")],
-            dimensions=[{"name": "date"}],
-            metrics=[{"name": "activeUsers"}],
-            order_bys=[{"dimension": {"dimension_name": "date"}, "desc": False}],
+            dimensions=[Dimension(name="date")],
+            metrics=[Metric(name="activeUsers")],
+            order_bys=[
+                OrderBy(
+                    dimension=OrderBy.DimensionOrderBy(dimension_name="date"),
+                    desc=False,
+                )
+            ],
             limit=1,
         )
 
-        response = self.run_report_with_retry(client, request)
+        response = self.run_report_with_retry(request)
 
         if not response.rows:
             return None
 
-        return response.rows[0].dimension_values[0].value  # YYYYMMDD
+        try:
+            return response.rows[0].dimension_values[0].value  # YYYYMMDD
+        except (IndexError, AttributeError):
+            return None
 
-    # ---------- Main ----------
+    def parse_ga_date(self, value):
+        if not value:
+            return None
+        try:
+            return datetime.strptime(value, "%Y%m%d").date()
+        except (TypeError, ValueError):
+            return None
+
+    def get_month_date_range(self, today, months_ago):
+        """
+        Returns:
+            month_key, month_start, month_end
+
+        Current month:
+            first day of month -> today
+
+        Previous months:
+            full calendar month
+        """
+        month_date = today - relativedelta(months=months_ago)
+        month_start = month_date.replace(day=1)
+
+        if month_date.year == today.year and month_date.month == today.month:
+            month_end = today
+        else:
+            next_month_start = month_start + relativedelta(months=1)
+            month_end = next_month_start - timedelta(days=1)
+
+        month_key = month_start.strftime("%Y-%m")
+        return month_key, month_start, month_end
+
+    # ------------------------------------------------------------------
+    # Main
+    # ------------------------------------------------------------------
 
     def handle(self, *args, **kwargs):
         today = timezone.localdate()
@@ -207,56 +279,50 @@ class Command(BaseCommand):
             property_name = prop["name"]
 
             try:
+                self.stdout.write(f"Syncing {property_name} ({property_id})...")
+
+                # high-level aggregates
                 daily_users = self.fetch_active_users(property_id, "yesterday", "yesterday")
                 monthly_users = self.fetch_active_users(property_id, "30daysAgo", "today")
 
-                # Cache earliest date (don’t call GA again if we already know it)
-                existing = (
-                    GoogleAnalyticsStats.objects
-                    .filter(property_id=property_id)
-                    .exclude(earliest_data_date__isnull=True)
-                    .order_by("-date")
-                    .first()
-                )
+                # earliest date: reuse cached value if already present
+                existing = GoogleAnalyticsStats.objects.filter(property_id=property_id).first()
 
                 if existing and existing.earliest_data_date:
                     earliest_date = existing.earliest_data_date
                 else:
                     try:
-                        earliest_date_str = self.fetch_earliest_data_date(property_id)
+                        earliest_date = self.parse_ga_date(
+                            self.fetch_earliest_data_date(property_id)
+                        )
                     except Exception as e:
                         self.stdout.write(
                             self.style.WARNING(
-                                f"⚠ Earliest date failed for {property_name} ({property_id}): {e}"
+                                f"Could not fetch earliest date for "
+                                f"{property_name} ({property_id}): {e}"
                             )
                         )
-                        earliest_date_str = None
+                        earliest_date = None
 
-                    earliest_date = (
-                        datetime.strptime(earliest_date_str, "%Y%m%d").date()
-                        if earliest_date_str
-                        else None
-                    )
-
+                # monthly time series
                 monthly_users_data = {}
                 monthly_sessions_data = {}
 
-                # 12 months, but each month is ONE call for both metrics
                 for i in range(12):
-                    month_date = today - relativedelta(months=i)
-                    start_month = month_date.replace(day=1).strftime("%Y-%m-%d")
+                    month_key, start_date, end_date = self.get_month_date_range(today, i)
 
-                    next_month = month_date.replace(day=28) + timedelta(days=4)
-                    last_day = (next_month - timedelta(days=next_month.day)).strftime("%Y-%m-%d")
+                    users, sessions = self.fetch_users_and_sessions(
+                        property_id=property_id,
+                        start_date=start_date.strftime("%Y-%m-%d"),
+                        end_date=end_date.strftime("%Y-%m-%d"),
+                    )
 
-                    month_key = month_date.strftime("%Y-%m")
-
-                    users, sessions = self.fetch_users_and_sessions(property_id, start_month, last_day)
                     monthly_users_data[month_key] = users
                     monthly_sessions_data[month_key] = sessions
 
                 defaults = {
                     "property_name": property_name,
+                    "date": today,  # last sync date
                     "daily_users": daily_users,
                     "monthly_users": monthly_users,
                     "earliest_data_date": earliest_date,
@@ -264,35 +330,43 @@ class Command(BaseCommand):
                     "monthly_sessions_data": monthly_sessions_data,
                 }
 
-                # race-safe upsert
                 try:
                     with transaction.atomic():
                         GoogleAnalyticsStats.objects.update_or_create(
                             property_id=property_id,
-                            date=today,
                             defaults=defaults,
                         )
                 except IntegrityError:
                     GoogleAnalyticsStats.objects.filter(
-                        property_id=property_id,
-                        date=today,
+                        property_id=property_id
                     ).update(**defaults)
 
-                self.stdout.write(self.style.SUCCESS(f"✔ Synced {property_name} ({property_id})"))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"✔ Synced {property_name} ({property_id}) | "
+                        f"date={today}, daily_users={daily_users}, monthly_users={monthly_users}"
+                    )
+                )
 
             except gexc.ResourceExhausted as e:
                 if self._is_server_errors_quota_429(e):
-                    # Don’t keep hammering Google; skip and continue.
                     self.stdout.write(
                         self.style.ERROR(
-                            f"✖ Skipping {property_name} ({property_id}) due to GA 'server errors quota' 429. "
-                            f"Try again later (tokens refill in under an hour)."
+                            f"✖ Skipping {property_name} ({property_id}) due to "
+                            f"GA 'server errors quota' 429. Try again later."
                         )
                     )
                     continue
-                self.stdout.write(self.style.ERROR(f"✖ Failed {property_name} ({property_id}): {e}"))
+
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"✖ Failed {property_name} ({property_id}) with quota error: {e}"
+                    )
+                )
                 continue
 
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f"✖ Failed {property_name} ({property_id}): {e}"))
+                self.stdout.write(
+                    self.style.ERROR(f"✖ Failed {property_name} ({property_id}): {e}")
+                )
                 continue

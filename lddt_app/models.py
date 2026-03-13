@@ -188,7 +188,7 @@ class Website(models.Model):
         vm_ip_address_str = str(self.vm_ip_address)
         if "129." in vm_ip_address_str:
             resoult = "PUBLIC"
-        elif "192." in vm_ip_address_str:
+        elif "192." or "10." in vm_ip_address_str:
             resoult = "PRIVATE"
         else:
             pass
@@ -244,6 +244,7 @@ class Vm(models.Model):
     system_check = models.CharField('System Check', blank=True, null=True, max_length=150)
     last_health_check = models.DateTimeField(null=True, blank=True)
     fetch_details = models.BooleanField(default=True)
+    last_cron_run = models.DateTimeField(blank=True, null=True)
 
     @property
     def should_fetch_details(self):
@@ -310,7 +311,7 @@ class Vm(models.Model):
 
                 version_output = run_command(
                     ssh,
-                    "mysqld --version 2>/dev/null || mariadbd --version 2>/dev/null"
+                    "mysql --version 2>/dev/null || mariadbd --version 2>/dev/null"
                 )
 
                 version = extract_version(version_output)
