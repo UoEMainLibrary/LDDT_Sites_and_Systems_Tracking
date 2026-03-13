@@ -18,9 +18,9 @@ class Command(BaseCommand):
         output = StringIO()
 
         commands = [
-            # "sync_google_analytics",
+            "sync_google_analytics",
             "update_ssl_dates",
-            # "script_copy_properties",
+            "script_copy_properties",
         ]
 
         success = []
