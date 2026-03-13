@@ -5,26 +5,27 @@ from lddt_app.models import Vm
 
 
 class Command(BaseCommand):
-    help = "Copies the value from the property field to the standard field"
+    help = "Copy SSH-fetched VM values into the main VM fields and stamp cron run time"
 
     def handle(self, *args, **kwargs):
         total = Vm.objects.count()
         current = 0
         updated = 0
         skipped = 0
+        now = timezone.now()
 
         for obj in Vm.objects.all():
             current += 1
 
-            print(f"Checking {obj.hostname} ({current} of {total})")
+            self.stdout.write(f"Checking {obj.hostname} ({current} of {total})")
 
             if not obj.fetch_details:
                 skipped += 1
-                print(f"Skipped {obj.hostname} because fetch_details is disabled")
-                print("***********************************\n")
+                self.stdout.write(f"Skipped {obj.hostname} because fetch_details is disabled")
+                self.stdout.write("***********************************")
                 continue
 
-            print(f"Updating {obj.hostname} ({current} of {total})")
+            self.stdout.write(f"Updating {obj.hostname} ({current} of {total})")
 
             obj.db = obj.ssh_db
             obj.nginx = obj.ssh_nginx
@@ -38,13 +39,29 @@ class Command(BaseCommand):
             obj.memory = obj.ssh_mem_total_gb
             obj.last_patch_days_ago = obj.ssh_last_patch_days_ago
             obj.system_check = obj.ssh_healthy_check
-            obj.last_health_check = timezone.now()
+            obj.last_health_check = now
+            obj.last_cron_run = now
 
-            obj.save()
+            obj.save(update_fields=[
+                "db",
+                "nginx",
+                "puppet_controlled",
+                "httpd",
+                "vmfs_root_used",
+                "vmfs_apps_used",
+                "vmfs_data_used",
+                "ip_address",
+                "processors",
+                "memory",
+                "last_patch_days_ago",
+                "system_check",
+                "last_health_check",
+                "last_cron_run",
+            ])
             updated += 1
 
-            print(f"Updated {obj.hostname}")
-            print("***********************************\n")
+            self.stdout.write(f"Updated {obj.hostname}")
+            self.stdout.write("***********************************")
 
         self.stdout.write(
             self.style.SUCCESS(
