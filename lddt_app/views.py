@@ -49,6 +49,7 @@ from django.utils import timezone
 
 from .models import GoogleAnalyticsStats
 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -320,7 +321,7 @@ def vm_home(request):
     shortFilter = shortvmFilter(request.GET, queryset=vms)
     vms = myFilter.qs
 
-    last_cron_run = cache.get("last_cron_run")
+    last_cron_run = Vm.objects.exclude(last_cron_run__isnull=True).order_by('-last_cron_run').values_list('last_cron_run', flat=True).first()
 
     return render(request, 'vm/vms_home.html', {
         'vms': vms,

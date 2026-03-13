@@ -1,10 +1,11 @@
 from io import StringIO
 
 from django.conf import settings
-from django.core.cache import cache
 from django.core.mail import send_mail
 from django.core.management import BaseCommand, call_command
 from django.utils import timezone
+
+from lddt_app.models import Vm
 
 
 class Command(BaseCommand):
@@ -18,8 +19,8 @@ class Command(BaseCommand):
 
         commands = [
             # "sync_google_analytics",
-            #"update_ssl_dates",
-            "script_copy_properties",
+            "update_ssl_dates",
+            # "script_copy_properties",
         ]
 
         success = []
@@ -48,9 +49,7 @@ class Command(BaseCommand):
         report = output.getvalue()
 
         success_text = "\n".join(success) if success else "None"
-        failed_text = "\n".join(
-            [f"{name}: {err}" for name, err in failed]
-        ) if failed else "None"
+        failed_text = "\n".join([f"{name}: {err}" for name, err in failed]) if failed else "None"
 
         subject = "Daily Django Job Report - SUCCESS"
         if failed:
@@ -89,7 +88,7 @@ FULL OUTPUT
             fail_silently=False,
         )
 
-        cache.set("last_cron_run", finished_at, None)
+        Vm.objects.update(last_cron_run=finished_at)
 
         self.stdout.write(self.style.SUCCESS("Daily tasks completed and email sent."))
         self.stdout.write(self.style.SUCCESS(f"Last cron run saved: {finished_at}"))

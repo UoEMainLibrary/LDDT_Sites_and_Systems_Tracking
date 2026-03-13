@@ -244,6 +244,7 @@ class Vm(models.Model):
     system_check = models.CharField('System Check', blank=True, null=True, max_length=150)
     last_health_check = models.DateTimeField(null=True, blank=True)
     fetch_details = models.BooleanField(default=True)
+    last_cron_run = models.DateTimeField(blank=True, null=True)
 
     @property
     def should_fetch_details(self):
