@@ -311,7 +311,7 @@ class Vm(models.Model):
 
                 version_output = run_command(
                     ssh,
-                    "mysqld --version 2>/dev/null || mariadbd --version 2>/dev/null"
+                    "mysql --version 2>/dev/null || mariadbd --version 2>/dev/null"
                 )
 
                 version = extract_version(version_output)
