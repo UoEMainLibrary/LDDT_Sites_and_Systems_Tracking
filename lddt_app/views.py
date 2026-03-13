@@ -38,6 +38,8 @@ from google.analytics.data_v1beta import (
     Dimension,  # ✅  ADDED
 )
 
+from django.core.cache import cache
+from django.shortcuts import render
 import json
 from dateutil.relativedelta import relativedelta
 
@@ -313,16 +315,19 @@ def create_subsite(request):
 
 def vm_home(request):
     vms = Vm.objects.all()
-    table_item_count_vms = Vm.objects.all().count
+    table_item_count_vms = Vm.objects.count()
     myFilter = VmFilter(request.GET, queryset=vms)
     shortFilter = shortvmFilter(request.GET, queryset=vms)
     vms = myFilter.qs
+
+    last_cron_run = cache.get("last_cron_run")
 
     return render(request, 'vm/vms_home.html', {
         'vms': vms,
         'myFilter': myFilter,
         'shortFilter': shortFilter,
         'table_item_count_vms': table_item_count_vms,
+        'last_cron_run': last_cron_run,
     })
 
 @require_POST

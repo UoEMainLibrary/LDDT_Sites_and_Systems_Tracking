@@ -109,6 +109,11 @@
                             <h1>VM's Section</h1>
                             <p style="font-size: 14px">
                                 The table contains: {{ table_item_count_vms }} records.<br>
+                                {% if last_cron_run %}
+                                    Last cron update: {{ last_cron_run|date:"Y-m-d H:i" }}<br>
+                                {% else %}
+                                    Last cron update: Never<br>
+                                {% endif %}
                             </p>
                         </td>
                     </tr>
