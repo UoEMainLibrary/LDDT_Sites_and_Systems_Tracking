@@ -1,4 +1,5 @@
 from io import StringIO
+import traceback
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -10,9 +11,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         commands = [
-            #"sync_google_analytics",
+            # "sync_google_analytics",
             "update_ssl_dates",
-            #"script_copy_properties",
+            # "script_copy_properties",
         ]
 
         output = []
@@ -29,6 +30,7 @@ class Command(BaseCommand):
             except Exception as e:
                 success = False
                 output.append(f"FAILED: {e}")
+                output.append(traceback.format_exc())
 
             output.append("")
 
@@ -40,12 +42,17 @@ class Command(BaseCommand):
             else "Morning cron report: FAILED"
         )
 
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
-            recipient_list=["patryk.smacki@ed.ac.uk"],
-            fail_silently=False,
-        )
+        # Always print report to terminal/logs too
+        self.stdout.write(message)
 
-        self.stdout.write(self.style.SUCCESS("Morning cron report sent."))
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=["patryk.samacki@ed.ac.uk"],
+                fail_silently=False,
+            )
+            self.stdout.write(self.style.SUCCESS("Morning cron report sent."))
+        except Exception as e:
+            self.stderr.write(self.style.ERROR(f"Email sending failed: {e}"))
