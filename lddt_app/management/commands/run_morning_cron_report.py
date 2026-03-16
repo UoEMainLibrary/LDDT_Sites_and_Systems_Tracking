@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 subject=subject,
                 message=message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=["patryk.samacki@ed.ac.uk"],
+                recipient_list=["patryk.smacki@ed.ac.uk"],
                 fail_silently=False,
             )
             self.stdout.write(self.style.SUCCESS("Morning cron report sent."))
