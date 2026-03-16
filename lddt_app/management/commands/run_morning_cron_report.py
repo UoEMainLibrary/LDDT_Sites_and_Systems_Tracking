@@ -11,9 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         commands = [
-            # "sync_google_analytics",
             "update_ssl_dates",
-            # "script_copy_properties",
         ]
 
         output = []
@@ -42,15 +40,18 @@ class Command(BaseCommand):
             else "Morning cron report: FAILED"
         )
 
-        # Always print report to terminal/logs too
-        self.stdout.write(message)
+        print("\n" + "=" * 60)
+        print("REPORT OUTPUT")
+        print("=" * 60)
+        print(message)
+        print("=" * 60 + "\n")
 
         try:
             send_mail(
                 subject=subject,
                 message=message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=["patryk.smacki@ed.ac.uk"],
+                recipient_list=["patryk.samacki@ed.ac.uk"],
                 fail_silently=False,
             )
             self.stdout.write(self.style.SUCCESS("Morning cron report sent."))
