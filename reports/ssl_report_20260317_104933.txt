@@ -1,0 +1,13 @@
+Morning SSL report
+Generated at: 2026-03-17 10:49:33
+======================================================================
+
+Refreshing source data...
+- update_ssl_dates: OK
+- script_copy_properties: FAILED ([Errno 2] No such file or directory: '/home/lib/lacddt/.ssh/id_rsa')
+
+1. Services with SSL certificates expiring this week
+----------------------------------------------------------------------
+No services have SSL certificates expiring in the next 7 days.
+
+Total expiring this week: 0

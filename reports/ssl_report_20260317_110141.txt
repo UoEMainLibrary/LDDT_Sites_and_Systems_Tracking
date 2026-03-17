@@ -1,0 +1,140 @@
+Morning SSL report (SITE only)
+Generated at: 2026-03-17 11:01:41
+======================================================================
+
+Refreshing source data...
+- update_ssl_dates: OK
+- script_copy_properties: FAILED ([Errno 2] No such file or directory: '/home/lib/lacddt/.ssh/id_rsa')
+
+SUMMARY
+----------------------------------------------------------------------
+Total SITE services: 118
+
+1. Services with EXPIRED SSL certificates
+----------------------------------------------------------------------
+- URL: http://walkin-api.librarykiosks.is.ed.ac.uk/ | Expired: 2021-07-25 | Common Name: walkin-api.librarykiosks.is.ed.ac.uk | Server: lac-php-live8.is.ed.ac.uk
+- URL: http://www.dbs.sssa.llc.ed.ac.uk/ | Expired: 2022-02-28 | Common Name: www.dbs.sssa.llc.ed.ac.uk | Server: chost4.is.ed.ac.uk
+- URL: https://test.research-scotland.ac.uk/ | Expired: 2022-09-22 | Common Name: test.research-scotland.ac.uk | Server: -
+- URL: https://test.collectionsmanager.is.ed.ac.uk/ | Expired: 2024-10-06 | Common Name: test.collectionsmanager.is.ed.ac.uk | Server: lac-collman-test.is.ed.ac.uk
+- URL: https://test.digitalpreservation.is.ed.ac.uk/ | Expired: 2024-10-06 | Common Name: test.digitalpreservation.is.ed.ac.uk | Server: lac-digpres-test.is.ed.ac.uk
+- URL: https://books.sup.ac.uk/ | Expired: 2024-11-01 | Common Name: books.sup.ac.uk | Server: lac-omp-sup-live.is.ed.ac.uk
+- URL: https://ideas.is.ed.ac.uk/ | Expired: 2024-11-01 | Common Name: ideas.is.ed.ac.uk | Server: lac-ideas-live.is.ed.ac.uk
+- URL: https://eresearch.qmu.ac.uk/ | Expired: 2024-11-02 | Common Name: eresearch.qmu.ac.uk | Server: lac-sdlc-qmu-live.is.ed.ac.uk
+- URL: https://jpaap.ac.uk/ | Expired: 2024-11-02 | Common Name: jpaap.ac.uk | Server: lac-ojs-uhi-live.is.ed.ac.uk
+- URL: https://test-eresearch.qmu.ac.uk/ | Expired: 2024-11-02 | Common Name: test-eresearch.qmu.ac.uk | Server: lac-dspace-qmu-test.is.ed.ac.uk
+- URL: https://journals.rbge.org.uk/ | Expired: 2024-11-05 | Common Name: journals.rbge.org.uk | Server: lac-ojs-rbge-live.is.ed.ac.uk
+- URL: https://jewishmigrationtoscotland.is.ed.ac.uk/ | Expired: 2024-11-09 | Common Name: jewishmigrationtoscotland.is.ed.ac.uk | Server: lac-wordpress-live2.is.ed.ac.uk
+- URL: https://cms.ideas.is.ed.ac.uk/ | Expired: 2024-11-19 | Common Name: cms.ideas.is.ed.ac.uk | Server: lac-ideas-live.is.ed.ac.uk
+- URL: https://lyell.ed.ac.uk/ | Expired: 2024-11-29 | Common Name: lyell.ed.ac.uk | Server: lac-lyell-live.is.ed.ac.uk
+- URL: https://jtr.st-andrews.ac.uk | Expired: 2024-12-07 | Common Name: jtr.st-andrews.ac.uk | Server: lac-ojs-sta-live.is.ed.ac.uk
+- URL: https://ojs.st-andrews.ac.uk/ | Expired: 2024-12-07 | Common Name: ojs.st-andrews.ac.uk | Server: lac-ojs-sta-live.is.ed.ac.uk
+- URL: https://ijdc.net/ | Expired: 2024-12-08 | Common Name: ijdc.net | Server: lac-ojs-ijdc-live.is.ed.ac.uk
+- URL: https://aspaceoai.collections.ed.ac.uk/ | Expired: 2024-12-11 | Common Name: aspaceoai.collections.ed.ac.uk | Server: lac-archivesspace-live4.is.ed.ac.uk
+- URL: https://tobarapi.is.ed.ac.uk/ | Expired: 2024-12-11 | Common Name: tobarapi.is.ed.ac.uk | Server: lac-archivesspace-live2.is.ed.ac.uk
+- URL: https://test.archives.collections.ed.ac.uk/ | Expired: 2024-12-17 | Common Name: test.archives.collections.ed.ac.uk | Server: lac-archivesspace-test4.is.ed.ac.uk
+- URL: https://test.aspaceoai.collections.ed.ac.uk/ | Expired: 2024-12-17 | Common Name: test.aspaceoai.collections.ed.ac.uk | Server: lac-archivesspace-test4.is.ed.ac.uk
+- URL: http://journals.hw.ac.uk/ | Expired: 2024-12-20 | Common Name: journals.hw.ac.uk | Server: lac-ojs-hwu-live.is.ed.ac.uk
+- URL: https://archives.collections.ed.ac.uk/ | Expired: 2025-01-09 | Common Name: archives.collections.ed.ac.uk | Server: lac-archivesspace-live4.is.ed.ac.uk
+- URL: http://lockss-admin.is.ed.ac.uk | Expired: 2025-01-17 | Common Name: lockss-admin.is.ed.ac.uk | Server: lac-lockss-live1.is.ed.ac.uk
+- URL: https://test.dp-processing.is.ed.ac.uk | Expired: 2025-01-21 | Common Name: test.dp-processing.is.ed.ac.uk | Server: lac-archivematica-test2.is.ed.ac.uk
+- URL: https://test.dp-storageservice.is.ed.ac.uk | Expired: 2025-01-21 | Common Name: test.dp-storageservice.is.ed.ac.uk | Server: lac-archivematica-test2.is.ed.ac.uk
+- URL: https://www.ros-test.hw.ac.uk/ | Expired: 2025-01-22 | Common Name: www.ros-test.hw.ac.uk | Server: lac-dspace-hwu-test.is.ed.ac.uk
+- URL: https://www.ros.hw.ac.uk/ | Expired: 2025-01-22 | Common Name: www.ros.hw.ac.uk | Server: lac-sdlc-hwu-live.is.ed.ac.uk
+- URL: https://dp-processing.is.ed.ac.uk | Expired: 2025-01-25 | Common Name: dp-processing.is.ed.ac.uk | Server: lac-archivematica-live2.is.ed.ac.uk
+- URL: https://dp-storageservice.is.ed.ac.uk | Expired: 2025-01-25 | Common Name: dp-storageservice.is.ed.ac.uk | Server: lac-archivematica-live2.is.ed.ac.uk
+- URL: *.ezproxy.is.ed.ac.uk | Expired: 2025-02-19 | Common Name: *.ezproxy.is.ed.ac.uk | Server: lac-php-live5.is.ed.ac.uk
+- URL: https://journals.gla.ac.uk/fantasy-research | Expired: 2025-02-19 | Common Name: journals.gla.ac.uk | Server: lac-ojs-gla-live.is.ed.ac.uk
+- URL: https://test.era.ed.ac.uk/ | Expired: 2025-02-26 | Common Name: test.era.ed.ac.uk | Server: lac-dspace-era-test.is.ed.ac.uk
+- URL: https://test.openbooks.is.ed.ac.uk/ | Expired: 2025-03-09 | Common Name: test.openbooks.is.ed.ac.uk | Server: lac-frontend-test.is.ed.ac.uk
+- URL: https://vernonapi.is.ed.ac.uk/ | Expired: 2025-03-11 | Common Name: vernonapi.is.ed.ac.uk | Server: lac-win-live4.is.ed.ac.uk
+- URL: https://tracking-test.is.ed.ac.uk/ | Expired: 2025-03-13 | Common Name: tracking-test.is.ed.ac.uk | Server: lac-tracking-test.is.ed.ac.uk
+- URL: https://tracking.is.ed.ac.uk/ | Expired: 2025-03-13 | Common Name: tracking.is.ed.ac.uk | Server: lac-tracking-live.is.ed.ac.uk
+- URL: https://research-repository-test.st-andrews.ac.uk/ | Expired: 2025-03-28 | Common Name: research-repository-test.st-andrews.ac.uk | Server: lac-sdlc-sta-test.is.ed.ac.uk
+- URL: https://test.exampapers.ed.ac.uk/ | Expired: 2025-04-03 | Common Name: test.exampapers.ed.ac.uk | Server: lac-dspace-exams-test.is.ed.ac.uk
+- URL: https://aura-test.abdn.ac.uk/ | Expired: 2025-04-06 | Common Name: aura-test.abdn.ac.uk | Server: lac-sdlc-aura-test.is.ed.ac.uk
+- URL: https://aura.abdn.ac.uk/ | Expired: 2025-04-06 | Common Name: aura.abdn.ac.uk | Server: lac-sdlc-aura-live.is.ed.ac.uk
+- URL: https://exhibitions.ed.ac.uk/ | Expired: 2025-04-06 | Common Name: exhibitions.ed.ac.uk | Server: lac-exhibitions-live.is.ed.ac.uk
+- URL: https://test.aspaceadmin.collections.ed.ac.uk/ | Expired: 2025-04-06 | Common Name: test.aspaceadmin.collections.ed.ac.uk | Server: lac-archivesspace-test4.is.ed.ac.uk
+- URL: https://test.aspaceapi.collections.ed.ac.uk/ | Expired: 2025-04-06 | Common Name: test.aspaceapi.collections.ed.ac.uk | Server: lac-archivesspace-test4.is.ed.ac.uk
+- URL: https://test.exhibitions.ed.ac.uk/ | Expired: 2025-04-06 | Common Name: test.exhibitions.ed.ac.uk | Server: lac-exhibitions-test.is.ed.ac.uk
+- URL: https://test.sopacollection.ph.ed.ac.uk/ | Expired: 2025-04-06 | Common Name: test.sopacollection.ph.ed.ac.uk | Server: lac-frontend-test.is.ed.ac.uk
+- URL: https://www.lhsa.lib.ed.ac.uk/ | Expired: 2025-04-06 | Common Name: www.lhsa.lib.ed.ac.uk | Server: lac-php-live7.is.ed.ac.uk
+- URL: https://journals.cilip.org.uk/index.php/jil | Expired: 2025-04-09 | Common Name: journals.cilip.org.uk | Server: lac-ojs-cilip-live.is.ed.ac.uk
+- URL: https://test.dp-register.is.ed.ac.uk/ | Expired: 2025-04-17 | Common Name: test.dp-register.is.ed.ac.uk | Server: lac-archipelago-test1.is.ed.ac.uk
+- URL: https://test.digital.collections.ed.ac.uk/ | Expired: 2025-04-23 | Common Name: test.digital.collections.ed.ac.uk | Server: lac-dams-test2.is.ed.ac.uk
+- URL: https://jenkins.is.ed.ac.uk | Expired: 2025-04-26 | Common Name: jenkins.is.ed.ac.uk | Server: lac-jenkinsci-live.is.ed.ac.uk
+- URL: https://journals.socantscot.org/ | Expired: 2025-04-27 | Common Name: journals.socantscot.org | Server: lac-ojs-soas-live.is.ed.ac.uk
+- URL: https://research-repository.st-andrews.ac.uk/ | Expired: 2025-04-28 | Common Name: research-repository.st-andrews.ac.uk | Server: lac-sdlc-sta-live.is.ed.ac.uk
+- URL: https://cvir.st-andrews.is.ed.ac.uk/ | Expired: 2025-05-03 | Common Name: cvir.st-andrews.is.ed.ac.uk | Server: lac-ojs-sta-live.is.ed.ac.uk
+- URL: https://images-teaching.is.ed.ac.uk/ | Expired: 2025-05-10 | Common Name: images-teaching.is.ed.ac.uk | Server: lac-luna-live2.is.ed.ac.uk
+- URL: https://images.is.ed.ac.uk/ | Expired: 2025-05-10 | Common Name: images.is.ed.ac.uk | Server: lac-luna-live1.is.ed.ac.uk
+- URL: https://lucid.is.ed.ac.uk/ | Expired: 2025-05-10 | Common Name: lucid.is.ed.ac.uk | Server: lac-php-live7.is.ed.ac.uk
+- URL: https://journals.qmu.ac.uk/ | Expired: 2025-05-11 | Common Name: journals.qmu.ac.uk | Server: lac-ojs-qmu-live.is.ed.ac.uk
+- URL: https://stataccscot.ed.ac.uk/static/statacc/dist/home | Expired: 2025-05-23 | Common Name: stataccscot.ed.ac.uk | Server: lac-statacc-live2.is.ed.ac.uk
+- URL: https://sssa-search.is.ed.ac.uk/ | Expired: 2025-05-31 | Common Name: sssa-search.is.ed.ac.uk | Server: lac-sssa-live1.is.ed.ac.uk
+- URL: https://test.sssa-search.is.ed.ac.uk/ | Expired: 2025-05-31 | Common Name: test.sssa-search.is.ed.ac.uk | Server: lac-sssa-test1.is.ed.ac.uk
+- URL: https://libraryblogs.is.ed.ac.uk/ | Expired: 2025-06-01 | Common Name: libraryblogs.is.ed.ac.uk | Server: lac-wordpress-live.is.ed.ac.uk
+- URL: https://books.ed.ac.uk/ | Expired: 2025-06-04 | Common Name: books.ed.ac.uk | Server: lac-ojs-uoe-live.is.ed.ac.uk
+- URL: https://omp.diamond.is.ed.ac.uk/ | Expired: 2025-06-04 | Common Name: omp.diamond.is.ed.ac.uk | Server: lac-ojs-uoe-live.is.ed.ac.uk
+- URL: journals.ed.ac.uk | Expired: 2025-06-04 | Common Name: *journals.ed.ac.uk | Server: [journals.ed.ac.uk](http://journals.ed.ac.uk/) - expiry 2025-06-04 - will point at [lac-ojs-uoe-live.is.ed.ac.uk](http://lac-ojs-uoe-live.is.ed.ac.uk/
+- URL: https://ojs.eahil.eu/JEAHIL | Expired: 2025-06-06 | Common Name: ojs.eahil.eu | Server: lac-ojs-eahil-live.is.ed.ac.uk
+- URL: https://custom.diamond.ed.ac.uk/ | Expired: 2025-06-12 | Common Name: custom.diamond.ed.ac.uk | Server: lac-ojs-uoe-live.is.ed.ac.uk
+- URL: https://research-repository-test.is.ed.ac.uk/ | Expired: 2025-06-25 | Common Name: research-repository-test.is.ed.ac.uk | Server: lac-dspace-sta-test.is.ed.ac.uk
+- URL: https://datashare.ed.ac.uk/ | Expired: 2025-06-29 | Common Name: datashare.ed.ac.uk | Server: lac-datashare-live.is.ed.ac.uk
+- URL: http://test.dspaceplayground.is.ed.ac.uk/ | Expired: 2025-07-10 | Common Name: test.dspaceplayground.is.ed.ac.uk | Server: lac-dspace-playground-test
+- URL: https://mantra.ed.ac.uk/ | Expired: 2025-07-10 | Common Name: mantra.ed.ac.uk | Server: lac-mantra-live.is.ed.ac.uk
+- URL: https://ourhistory.is.ed.ac.uk/ | Expired: 2025-07-10 | Common Name: ourhistory.is.ed.ac.uk | Server: lac-mediawiki-live.is.ed.ac.uk
+- URL: https://aspaceapi.collections.ed.ac.uk/ | Expired: 2025-07-16 | Common Name: aspaceapi.collections.ed.ac.uk | Server: lac-archivesspace-live4.is.ed.ac.uk
+- URL: https://collectionsmedia.is.ed.ac.uk/ | Expired: 2025-07-16 | Common Name: collectionsmedia.is.ed.ac.uk | Server: lac-collman-live.is.ed.ac.uk
+- URL: https://test.collectionsmedia.is.ed.ac.uk/ | Expired: 2025-07-16 | Common Name: test.collectionsmedia.is.ed.ac.uk | Server: lac-collman-test.is.ed.ac.uk
+- URL: https://omp.uhi.ac.uk/ | Expired: 2025-07-20 | Common Name: omp.uhi.ac.uk | Server: lac-omp-uhi-live.is.ed.ac.uk
+- URL: https://cilip-test.journals.ed.ac.uk | Expired: 2025-07-26 | Common Name: cilip-test.journals.ed.ac.uk | Server: lac-ojs-scurl-test.is.ed.ac.uk
+- URL: https://dc-data.is.ed.ac.uk/ | Expired: 2025-08-17 | Common Name: dc-data.is.ed.ac.uk | Server: lac-digcollapi-live.is.ed.ac.uk
+- URL: https://test.datashare.ed.ac.uk/ | Expired: 2025-08-21 | Common Name: test.datashare.ed.ac.uk | Server: lac-datashare-test.is.ed.ac.uk
+- URL: https://test.stataccscot.ed.ac.uk/static/statacc/dist/home | Expired: 2025-08-21 | Common Name: test.stataccscot.ed.ac.uk | Server: lac-statacc-test2.is.ed.ac.uk
+- URL: https://test.tad.is.ed.ac.uk/ | Expired: 2025-08-21 | Common Name: test.tad.is.ed.ac.uk | Server: lac-archivesspace-test2.is.ed.ac.uk
+- URL: https://test.tobarapi.is.ed.ac.uk/ | Expired: 2025-08-21 | Common Name: test.tobarapi.is.ed.ac.uk | Server: lac-archivesspace-test2.is.ed.ac.uk
+- URL: wildcard.books.ed.ac.uk​​​​​​​ | Expired: 2025-08-30 | Common Name: wildcard.books.ed.ac.uk​​​​​​​ | Server: N/A
+- URL: https://aspaceadmin.collections.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: aspaceadmin.collections.ed.ac.uk | Server: lac-archivesspace-live4.is.ed.ac.uk
+- URL: https://cantaloupe.is.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: cantaloupe.is.ed.ac.uk | Server: lac-php-live5.is.ed.ac.uk
+- URL: https://collections.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: collections.ed.ac.uk | Server: lac-frontend-live1.is.ed.ac.uk / lac-frontend-live2.is.ed.ac.uk
+- URL: https://datavault.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: datavault.ed.ac.uk | Server: rds-dv-web-live1.is.ed.ac.uk
+- URL: https://demo.datavault.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: demo.datavault.ed.ac.uk | Server: rds-dv-web-test1.is.ed.ac.uk
+- URL: https://goobi.is.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: goobi.is.ed.ac.uk | Server: lac-goobi-live.is.ed.ac.uk
+- URL: https://lac-edwebtools.is.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: lac-edwebtools.is.ed.ac.uk | Server: lac-php-live5.is.ed.ac.uk
+- URL: https://openbooks.is.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: openbooks.is.ed.ac.uk | Server: lac-frontend-live1.is.ed.ac.uk / lac-frontend-live2.is.ed.ac.uk
+- URL: https://sjac-collection.is.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: sjac-collection.is.ed.ac.uk | Server: lac-frontend-live1.is.ed.ac.uk / lac-frontend-live2.is.ed.ac.uk
+- URL: https://sopacollection.ph.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: sopacollection.ph.ed.ac.uk | Server: lac-frontend-live1.is.ed.ac.uk / lac-frontend-live2.is.ed.ac.uk
+- URL: https://tad.is.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: tad.is.ed.ac.uk | Server: lac-archivesspace-live2.is.ed.ac.uk
+- URL: https://test.collections.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: test.collections.ed.ac.uk | Server: lac-frontend-test.is.ed.ac.uk
+- URL: https://test.goobi.is.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: test.goobi.is.ed.ac.uk | Server: lac-goobi-test.is.ed.ac.uk
+- URL: https://test.librarylabs.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: test.librarylabs.ed.ac.uk | Server: lac-php-test2.is.ed.ac.uk
+- URL: https://test.sjac-collection.is.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: test.sjac-collection.is.ed.ac.uk | Server: lac-frontend-test.is.ed.ac.uk
+- URL: https://www.stcecilias.ed.ac.uk/ | Expired: 2025-09-05 | Common Name: www.stcecilias.ed.ac.uk | Server: lac-wordpress-live5.is.ed.ac.uk
+- URL: http://lac-lyell-test.is.ed.ac.uk:3000/ | Expired: 2025-09-06 | Common Name: test.lyell.ed.ac.uk | Server: lac-lyell-test.is.ed.ac.uk
+- URL: https://journals.gcu.ac.uk/ | Expired: 2025-09-06 | Common Name: journals.gcu.ac.uk | Server: lac-ojs-gcu-live.is.ed.ac.uk
+- URL: https://digitalpreservation.is.ed.ac.uk/ | Expired: 2025-09-12 | Common Name: digitalpreservation.is.ed.ac.uk | Server: digitalpreservation.is.ed.ac.uk
+- URL: https://research-scotland.ac.uk/ | Expired: 2025-09-12 | Common Name: research-scotland.ac.uk | Server: lac-dspace-rsc-live
+- URL: eu01.alma.exlibrisgroup.com | Expired: 2025-09-13 | Common Name: eu01.alma.exlibrisgroup.com | Server: eu01.alma.exlibrisgroup.com
+- URL: https://eu01.alma.exlibrisgroup.com/leganto/readinglist/searchlists | Expired: 2025-09-13 | Common Name: resourcelists.ed.ac.uk | Server: lac-php-live5.is.ed.ac.uk
+- URL: https://journals.rgu.ac.uk/ | Expired: 2025-09-19 | Common Name: journals.rgu.ac.uk | Server: lac-ojs-rgu-live.is.ed.ac.uk
+- URL: https://loans.ucreatestudio.is.ed.ac.uk/ | Expired: 2025-09-28 | Common Name: loans.ucreatestudio.is.ed.ac.uk | Server: lac-ucreate-reservations-live.is.ed.ac.uk
+- URL: https://discovered.ed.ac.uk/ | Expired: 2025-10-03 | Common Name: discovered.ed.ac.uk | Server: eu01.primo.exlibrisgroup.com
+- URL: https://era.ed.ac.uk/ | Expired: 2025-10-04 | Common Name: www.era.ed.ac.uk | Server: lac-sdlc-era-live.is.ed.ac.uk
+- URL: https://collectionsmanager.is.ed.ac.uk/ | Expired: 2025-10-06 | Common Name: collectionsmanager.is.ed.ac.uk | Server: lac-collman-live.is.ed.ac.uk
+- URL: https://exampapers.ed.ac.uk/ | Expired: 2025-10-06 | Common Name: exampapers.ed.ac.uk | Server: lac-exams-live.is.ed.ac.uk
+- URL: https://librarylabs.ed.ac.uk/ | Expired: 2025-10-06 | Common Name: librarylabs.ed.ac.uk | Server: lac-php-live5.is.ed.ac.uk
+- URL: https://pointsofarrival.is.ed.ac.uk/ | Expired: 2025-10-06 | Common Name: pointsofarrival.is.ed.ac.uk | Server: lac-frontend-live1.is.ed.ac.uk / lac-frontend-live2.is.ed.ac.uk
+- URL: https://test.cantaloupe.is.ed.ac.uk/ | Expired: 2025-10-06 | Common Name: test.cantaloupe.is.ed.ac.uk | Server: lac-php-test2.is.ed.ac.uk
+- URL: https://test.pointsofarrival.is.ed.ac.uk/ | Expired: 2025-10-06 | Common Name: test.pointsofarrival.is.ed.ac.uk | Server: lac-frontend-test.is.ed.ac.uk
+- URL: https://test.stcecilias.ed.ac.uk/ | Expired: 2025-10-06 | Common Name: test.stcecilias.ed.ac.uk | Server: lac-php-test4.is.ed.ac.uk
+- URL: https://hiv-aids-resources.is.ed.ac.uk/ | Expired: 2025-10-10 | Common Name: hiv-aids-resources.is.ed.ac.uk | Server: lac-wordpress-live2.is.ed.ac.uk
+- URL: https://test.is.ed.ac.uk/ | Expired: 2026-01-27 | Common Name: test | Server: lac-frontend-test.is.ed.ac.uk
+
+Total expired: 118
+
+2. Services with SSL certificates expiring this week
+----------------------------------------------------------------------
+No SITE services expiring in the next 7 days.
+
+Total expiring this week: 0

@@ -1,59 +1,153 @@
-from io import StringIO
-import traceback
+from datetime import timedelta
+from pathlib import Path
 
 from django.conf import settings
-from django.core.mail import send_mail
 from django.core.management import BaseCommand, call_command
+from django.utils import timezone
+
+from lddt_app.models import Website, Type  # change your_app
 
 
 class Command(BaseCommand):
-    help = "Run morning report commands and email the result"
+    help = "Generate TXT SSL report for Website objects with type=SITE only"
 
     def handle(self, *args, **options):
-        commands = [
-            "update_ssl_dates",
+        now = timezone.now()
+        today = now.date()
+        week_from_now = today + timedelta(days=7)
+
+        report_lines = [
+            "=" * 70,
+            "TRACKING REPORT",
+            f"Generated at: {now.strftime('%Y-%m-%d %H:%M:%S')}",
+            "=" * 70,
         ]
 
-        output = []
-        success = True
+        # --------------------------------------------------
+        # Run update_ssl_dates FIRST
+        # --------------------------------------------------
+        try:
+            call_command("update_ssl_dates")
 
-        for command_name in commands:
-            buffer = StringIO()
-            output.append(f"=== Running: {command_name} ===")
+        except Exception as e:
+            report_lines.append(f"update_ssl_dates: FAILED ({e})")
 
-            try:
-                call_command(command_name, stdout=buffer, stderr=buffer)
-                command_output = buffer.getvalue().strip() or "Completed successfully."
-                output.append(command_output)
-            except Exception as e:
-                success = False
-                output.append(f"FAILED: {e}")
-                output.append(traceback.format_exc())
+        report_lines.append("")
 
-            output.append("")
+        # --------------------------------------------------
+        # Get SITE type
+        # --------------------------------------------------
+        try:
+            site_type = Type.objects.get(name="SITE")
+        except Type.DoesNotExist:
+            self.stderr.write(self.style.ERROR('Type "SITE" does not exist.'))
+            return
+        except Type.MultipleObjectsReturned:
+            self.stderr.write(self.style.ERROR('More than one Type with name "SITE" exists.'))
+            return
 
-        message = "\n".join(output)
-
-        subject = (
-            "Morning cron report: SUCCESS"
-            if success
-            else "Morning cron report: FAILED"
+        # Only SITE websites
+        site_websites = list(
+            Website.objects.select_related("type")
+            .filter(type_id=site_type.id)
+            .order_by("url")
         )
 
-        print("\n" + "=" * 60)
-        print("REPORT OUTPUT")
-        print("=" * 60)
-        print(message)
-        print("=" * 60 + "\n")
+        # --------------------------------------------------
+        # Update ssl_expiry_date_new ONLY for SITE
+        # --------------------------------------------------
+        updated_count = 0
+        failed_count = 0
 
-        try:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=["patryk.samacki@ed.ac.uk"],
-                fail_silently=False,
-            )
-            self.stdout.write(self.style.SUCCESS("Morning cron report sent."))
-        except Exception as e:
-            self.stderr.write(self.style.ERROR(f"Email sending failed: {e}"))
+        for website in site_websites:
+            try:
+                expiry_date = website.ssl_expiration
+                website.ssl_expiry_date_new = expiry_date
+                website.save(update_fields=["ssl_expiry_date_new"])
+                updated_count += 1
+            except Exception:
+                failed_count += 1
+
+        # Refresh list
+        site_websites = list(
+            Website.objects.select_related("type")
+            .filter(type_id=site_type.id)
+            .order_by("url")
+        )
+
+        total_services = len(site_websites)
+
+        # --------------------------------------------------
+        # Expiring / expired
+        # --------------------------------------------------
+        expiring_this_week = [
+            w for w in site_websites
+            if w.ssl_expiry_date_new
+            and today <= w.ssl_expiry_date_new <= week_from_now
+        ]
+        expiring_this_week.sort(key=lambda x: (x.ssl_expiry_date_new, x.url or ""))
+
+        expired_services = [
+            w for w in site_websites
+            if w.ssl_expiry_date_new
+            and w.ssl_expiry_date_new < today
+        ]
+        expired_services.sort(key=lambda x: (x.ssl_expiry_date_new, x.url or ""))
+
+        # --------------------------------------------------
+        # Build report
+        # --------------------------------------------------
+        report_lines.extend([
+            "-" * 70,
+            "SSL CERTIFICATES STATUS:",
+            f"Total: {updated_count} services",
+            f"Failed updates: {failed_count}",
+            "Services expiring this week",
+
+        ])
+
+        if expiring_this_week:
+            for w in expiring_this_week:
+                days_left = (w.ssl_expiry_date_new - today).days
+                report_lines.append(
+                    f"- {w.url or '-'} | "
+                    f"common_name: {w.common_name or '-'} | "
+                    f"expires: {w.ssl_expiry_date_new} | "
+                    f"days_left: {days_left}"
+                )
+        else:
+            report_lines.append("No SITE services expiring this week.")
+
+        report_lines.extend([
+            "Services with expired date:",
+        ])
+
+        if expired_services:
+            for w in expired_services:
+                days_expired = (today - w.ssl_expiry_date_new).days
+                report_lines.append(
+                    f"- {w.url or '-'} | "
+                    f"common_name: {w.common_name or '-'} | "
+                    f"expired: {w.ssl_expiry_date_new} | "
+                    f"days_expired: {days_expired}"
+                )
+        else:
+            report_lines.append("No expired SITE services.")
+
+        report_lines.extend([
+            f"Total expired: {len(expired_services)}",
+            "-" * 70,
+        ])
+
+        # --------------------------------------------------
+        # Save file (overwrite to avoid confusion)
+        # --------------------------------------------------
+        output_dir = Path(settings.BASE_DIR) / "reports"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        file_path = output_dir / "site_ssl_report.txt"
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(report_lines))
+
+        self.stdout.write(self.style.SUCCESS(f"Report saved to: {file_path}"))
