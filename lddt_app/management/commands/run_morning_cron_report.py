@@ -220,8 +220,7 @@ class Command(BaseCommand):
         output_dir = Path(settings.BASE_DIR) / "reports"
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        timestamp = now.strftime("%Y-%m-%d_%H-%M")
-        file_path = output_dir / f"tracking_morning_report_{timestamp}.txt"
+        file_path = output_dir / f"tracking_morning_report.txt"
 
         with open(file_path, "w", encoding="utf-8") as f:
             f.write("\n".join(report_lines))
