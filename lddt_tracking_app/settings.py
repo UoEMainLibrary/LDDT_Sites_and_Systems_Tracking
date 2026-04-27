@@ -177,5 +177,10 @@ LOGGING = {
         },
     },
 }
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "test@example.com"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.office365.com"   # or your SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "Patryk.Smacki@ed.ac.uk"
+EMAIL_HOST_PASSWORD = ""
+DEFAULT_FROM_EMAIL = "Patryk.Smacki@ed.ac.uk"
