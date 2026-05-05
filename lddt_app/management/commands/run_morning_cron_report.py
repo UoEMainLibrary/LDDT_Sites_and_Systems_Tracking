@@ -31,7 +31,7 @@ class Command(BaseCommand):
         vm_hostname = socket.gethostname()
 
         # --------------------------------------------------
-        # Run refresh commands silently
+        # Run refresh commands
         # --------------------------------------------------
         try:
             call_command("update_ssl_dates")
@@ -44,7 +44,7 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(f"script_copy_properties failed: {e}"))
 
         # --------------------------------------------------
-        # SSL section
+        # Websites / SSL section
         # --------------------------------------------------
         try:
             site_type = Type.objects.get(name="SITE")
@@ -134,10 +134,10 @@ class Command(BaseCommand):
             f"Total: {len(site_websites)} services",
             "",
             f"Services with expiring SSL cert this week: {len(expiring_this_week)}",
-            "-" * 60,
         ]
 
         if expiring_this_week:
+            report_lines.append("-" * 60)
             for w in expiring_this_week:
                 days_left = (w.ssl_expiry_date_new - today).days
                 report_lines.append(
@@ -145,16 +145,14 @@ class Command(BaseCommand):
                     f"expires: {w.ssl_expiry_date_new} | "
                     f"expire in: {days_left} days"
                 )
-        else:
-            report_lines.append("No services with expiring SSL cert this week.")
 
         report_lines.extend([
             "",
             f"Services with expired date: {len(expired_services)}",
-            "-" * 60,
         ])
 
         if expired_services:
+            report_lines.append("-" * 60)
             for w in expired_services:
                 days_expired = (today - w.ssl_expiry_date_new).days
                 report_lines.append(
@@ -162,8 +160,6 @@ class Command(BaseCommand):
                     f"expired: {w.ssl_expiry_date_new} | "
                     f"expired: {days_expired} days ago"
                 )
-        else:
-            report_lines.append("No services with expired date.")
 
         report_lines.extend([
             "",
@@ -175,13 +171,11 @@ class Command(BaseCommand):
             f"Total: {total_vms} machines",
             "",
             f"VMs with less than 10% free space: {len(low_space_vms)}",
-            "-" * 60,
         ])
 
         if low_space_vms:
+            report_lines.append("-" * 60)
             report_lines.extend(low_space_vms)
-        else:
-            report_lines.append("No VMs with less than 10% free space.")
 
         # --------------------------------------------------
         # Save report
