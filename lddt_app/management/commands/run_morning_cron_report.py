@@ -1,6 +1,8 @@
 from datetime import timedelta
 from pathlib import Path
 import re
+import socket
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.management import BaseCommand, call_command
@@ -23,48 +25,47 @@ class Command(BaseCommand):
 
         return None
 
+    def parse_int(self, value):
+        if value is None:
+            return None
+
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def clean_url(self, url):
+        if not url:
+            return "-"
+
+        try:
+            parsed = urlparse(url)
+            clean_name = parsed.netloc or parsed.path or url
+            return clean_name.replace("www.", "").strip("/")
+        except Exception:
+            return url
+
     def handle(self, *args, **options):
         now = timezone.now()
         today = now.date()
         week_from_now = today + timedelta(days=7)
-
-        report_lines = [
-            "=" * 70,
-            "TRACKING REPORT",
-            f"Generated at: {now.strftime('%Y-%m-%d %H:%M:%S')}",
-            "=" * 70,
-            "",
-        ]
+        vm_hostname = socket.gethostname()
 
         # --------------------------------------------------
         # Run refresh commands
         # --------------------------------------------------
-        report_lines.extend([
-            "REFRESH COMMANDS",
-            "-" * 70,
-        ])
-
         try:
             call_command("update_ssl_dates")
-            report_lines.append("update_ssl_dates: OK")
         except Exception as e:
-            report_lines.append(f"update_ssl_dates: FAILED ({e})")
+            self.stderr.write(self.style.ERROR(f"update_ssl_dates failed: {e}"))
 
         try:
             call_command("script_copy_properties")
-            report_lines.append("script_copy_properties: OK")
         except Exception as e:
-            report_lines.append(f"script_copy_properties: FAILED ({e})")
-
-        report_lines.extend([
-            "",
-            "=" * 70,
-            "SSL CERTIFICATES STATUS",
-            "=" * 70,
-        ])
+            self.stderr.write(self.style.ERROR(f"script_copy_properties failed: {e}"))
 
         # --------------------------------------------------
-        # SSL section
+        # Websites / SSL section
         # --------------------------------------------------
         try:
             site_type = Type.objects.get(name="SITE")
@@ -81,17 +82,15 @@ class Command(BaseCommand):
             .order_by("url")
         )
 
-        updated_count = 0
-        failed_count = 0
-
         for website in site_websites:
             try:
                 expiry_date = website.ssl_expiration
                 website.ssl_expiry_date_new = expiry_date
                 website.save(update_fields=["ssl_expiry_date_new"])
-                updated_count += 1
-            except Exception:
-                failed_count += 1
+            except Exception as e:
+                self.stderr.write(
+                    self.style.ERROR(f"Failed to update SSL for {website.url}: {e}")
+                )
 
         site_websites = list(
             Website.objects.select_related("type")
@@ -111,65 +110,14 @@ class Command(BaseCommand):
         ]
         expired_services.sort(key=lambda x: (x.ssl_expiry_date_new, x.url or ""))
 
-        report_lines.extend([
-            f"Total SITE services: {len(site_websites)}",
-            f"Updated SSL values: {updated_count}",
-            f"Failed SSL updates: {failed_count}",
-            "",
-            "Services expiring this week",
-            "-" * 70,
-        ])
-
-        if expiring_this_week:
-            for w in expiring_this_week:
-                days_left = (w.ssl_expiry_date_new - today).days
-                report_lines.append(
-                    f"- {w.url or '-'} | "
-                    f"common_name: {w.common_name or '-'} | "
-                    f"expires: {w.ssl_expiry_date_new} | "
-                    f"days_left: {days_left}"
-                )
-        else:
-            report_lines.append("No SITE services expiring this week.")
-
-        report_lines.extend([
-            "",
-            f"Total expiring this week: {len(expiring_this_week)}",
-            "",
-            "Services with expired date",
-            "-" * 70,
-        ])
-
-        if expired_services:
-            for w in expired_services:
-                days_expired = (today - w.ssl_expiry_date_new).days
-                report_lines.append(
-                    f"- {w.url or '-'} | "
-                    f"common_name: {w.common_name or '-'} | "
-                    f"expired: {w.ssl_expiry_date_new} | "
-                    f"days_expired: {days_expired}"
-                )
-        else:
-            report_lines.append("No expired SITE services.")
-
-        report_lines.extend([
-            "",
-            f"Total expired: {len(expired_services)}",
-            "",
-            "=" * 70,
-            "VM STATUS",
-            "=" * 70,
-        ])
-
         # --------------------------------------------------
         # VM section
         # --------------------------------------------------
         vms = list(Vm.objects.all().order_by("hostname"))
 
         total_vms = len(vms)
-        vms_with_hostname = sum(1 for vm in vms if vm.hostname and str(vm.hostname).strip())
-
         low_space_vms = []
+        old_patch_vms = []
 
         for vm in vms:
             root_free = self.parse_percent(vm.vmfs_root_used)
@@ -194,33 +142,88 @@ class Command(BaseCommand):
                     f"{', '.join(low_mounts)}"
                 )
 
-        report_lines.extend([
-            f"Total VMs: {total_vms}",
-            f"VMs with hostname: {vms_with_hostname}",
+            last_patch_days = self.parse_int(vm.last_patch_days_ago)
+
+            if last_patch_days is not None and last_patch_days > 38:
+                old_patch_vms.append(
+                    f"- {vm.hostname or '-'} | "
+                    f"ip_address: {vm.ip_address or '-'} | "
+                    f"last patched: {last_patch_days} days ago"
+                )
+
+        # --------------------------------------------------
+        # Build report
+        # --------------------------------------------------
+        report_lines = [
+            f"TRACKING REPORT ({vm_hostname})",
+            f"Generated at: {now.strftime('%Y-%m-%d %H:%M:%S')}",
             "",
-            "VMs with less than 10% free space",
-            "-" * 70,
+            "=" * 60,
+            "WEBSITES AND SSL CERTIFICATES",
+            "=" * 60,
+            "",
+            f"Total: {len(site_websites)} services",
+            "",
+            f"Services with expiring SSL cert this week: {len(expiring_this_week)}",
+        ]
+
+        if expiring_this_week:
+            report_lines.append("-" * 60)
+            for w in expiring_this_week:
+                days_left = (w.ssl_expiry_date_new - today).days
+                report_lines.append(
+                    f"- {self.clean_url(w.url)} | "
+                    f"expires: {w.ssl_expiry_date_new} | "
+                    f"expire in: {days_left} days"
+                )
+
+        report_lines.extend([
+            "",
+            f"Services with expired date: {len(expired_services)}",
+        ])
+
+        if expired_services:
+            report_lines.append("-" * 60)
+            for w in expired_services:
+                days_expired = (today - w.ssl_expiry_date_new).days
+                report_lines.append(
+                    f"- {self.clean_url(w.url)} | "
+                    f"expired: {w.ssl_expiry_date_new} | "
+                    f"expired: {days_expired} days ago"
+                )
+
+        report_lines.extend([
+            "",
+            "",
+            "=" * 60,
+            "VM's",
+            "=" * 60,
+            "",
+            f"Total: {total_vms} machines",
+            "",
+            f"VMs with less than 10% free space: {len(low_space_vms)}",
         ])
 
         if low_space_vms:
+            report_lines.append("-" * 60)
             report_lines.extend(low_space_vms)
-        else:
-            report_lines.append("No VMs with less than 10% free space.")
 
         report_lines.extend([
             "",
-            f"Total VMs with low space: {len(low_space_vms)}",
-            "",
-            "=" * 70,
+            f"VM's patched over 38 days ago: {len(old_patch_vms)}",
         ])
 
+        if old_patch_vms:
+            report_lines.append("-" * 60)
+            report_lines.extend(old_patch_vms)
+
         # --------------------------------------------------
-        # Save report WITH TIMESTAMP
+        # Save report
         # --------------------------------------------------
         output_dir = Path(settings.BASE_DIR) / "reports"
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        file_path = output_dir / f"tracking_morning_report.txt"
+        file_path = output_dir / "tracking_morning_report.txt"
 
         with open(file_path, "w", encoding="utf-8") as f:
             f.write("\n".join(report_lines))
