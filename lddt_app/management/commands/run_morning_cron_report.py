@@ -2,6 +2,7 @@ from datetime import timedelta
 from pathlib import Path
 import re
 import socket
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.management import BaseCommand, call_command
@@ -32,6 +33,17 @@ class Command(BaseCommand):
             return int(value)
         except (TypeError, ValueError):
             return None
+
+    def clean_url(self, url):
+        if not url:
+            return "-"
+
+        try:
+            parsed = urlparse(url)
+            clean_name = parsed.netloc or parsed.path or url
+            return clean_name.replace("www.", "").strip("/")
+        except Exception:
+            return url
 
     def handle(self, *args, **options):
         now = timezone.now()
@@ -160,7 +172,7 @@ class Command(BaseCommand):
             for w in expiring_this_week:
                 days_left = (w.ssl_expiry_date_new - today).days
                 report_lines.append(
-                    f"- {w.url or '-'} | "
+                    f"- {self.clean_url(w.url)} | "
                     f"expires: {w.ssl_expiry_date_new} | "
                     f"expire in: {days_left} days"
                 )
@@ -175,7 +187,7 @@ class Command(BaseCommand):
             for w in expired_services:
                 days_expired = (today - w.ssl_expiry_date_new).days
                 report_lines.append(
-                    f"- {w.url or '-'} | "
+                    f"- {self.clean_url(w.url)} | "
                     f"expired: {w.ssl_expiry_date_new} | "
                     f"expired: {days_expired} days ago"
                 )
