@@ -24,6 +24,15 @@ class Command(BaseCommand):
 
         return None
 
+    def parse_int(self, value):
+        if value is None:
+            return None
+
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
     def handle(self, *args, **options):
         now = timezone.now()
         today = now.date()
@@ -96,6 +105,7 @@ class Command(BaseCommand):
 
         total_vms = len(vms)
         low_space_vms = []
+        old_patch_vms = []
 
         for vm in vms:
             root_free = self.parse_percent(vm.vmfs_root_used)
@@ -118,6 +128,15 @@ class Command(BaseCommand):
                     f"- {vm.hostname or '-'} | "
                     f"ip_address: {vm.ip_address or '-'} | "
                     f"{', '.join(low_mounts)}"
+                )
+
+            last_patch_days = self.parse_int(vm.last_patch_days_ago)
+
+            if last_patch_days is not None and last_patch_days > 38:
+                old_patch_vms.append(
+                    f"- {vm.hostname or '-'} | "
+                    f"ip_address: {vm.ip_address or '-'} | "
+                    f"last patched: {last_patch_days} days ago"
                 )
 
         # --------------------------------------------------
@@ -176,6 +195,15 @@ class Command(BaseCommand):
         if low_space_vms:
             report_lines.append("-" * 60)
             report_lines.extend(low_space_vms)
+
+        report_lines.extend([
+            "",
+            f"VM's patched over 38 days ago: {len(old_patch_vms)}",
+        ])
+
+        if old_patch_vms:
+            report_lines.append("-" * 60)
+            report_lines.extend(old_patch_vms)
 
         # --------------------------------------------------
         # Save report
