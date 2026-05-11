@@ -40,12 +40,32 @@ body {
 .navbar-custom {
     background: var(--card-bg);
     border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1100;
 }
 
 header {
     background: var(--header-bg);
     color: var(--header-text);
-    padding: 30px 20px;
+    padding: 20px;
+}
+
+.filter-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 0;
+    position: sticky;
+    top: 58px;
+    z-index: 1040;
+}
+
+.table-responsive-sticky {
+    overflow: auto;
+    max-height: calc(100vh - 260px);
+    margin-top: 20px;
 }
 
 table.table {
@@ -57,6 +77,9 @@ table.table {
     background: var(--header-bg);
     color: var(--header-text);
     cursor: pointer;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
 }
 
 .table tbody tr:hover {
@@ -77,14 +100,6 @@ table.table {
     background: var(--card-bg);
 }
 
-.filter-box {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
 .main-row {
     cursor: pointer;
 }
@@ -93,7 +108,8 @@ table.table {
     color: #0dcaf0;
 }
 
-.provider-cell {
+.provider-cell,
+.scope-cell {
     white-space: nowrap;
 }
 </style>
@@ -112,7 +128,6 @@ table.table {
 
     <div class="collapse navbar-collapse" id="mainNav">
         <ul class="navbar-nav me-auto">
-
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'home' %}" style="color: var(--text);">
                     <i class="fa fa-home"></i> Home
@@ -142,7 +157,6 @@ table.table {
                     Full Table
                 </a>
             </li>
-
         </ul>
 
         <button id="darkToggle" class="btn btn-outline-secondary btn-sm">
@@ -173,6 +187,15 @@ table.table {
 
                     {% if next_expiry.url_ip %}
                         — {{ next_expiry.url_ip }}
+                    {% endif %}
+
+                    {% if next_expiry.url_access_scope %}
+                        —
+                        {% if next_expiry.url_access_scope_manual %}
+                            {{ next_expiry.get_url_access_scope_display }}-manual
+                        {% else %}
+                            {{ next_expiry.get_url_access_scope_display }}
+                        {% endif %}
                     {% endif %}
 
                     {% if next_expiry.ssl_certificate_provider %}
@@ -208,6 +231,27 @@ table.table {
                 <input id="cnFilter" class="form-control" placeholder="Common name">
             </div>
 
+            <div class="col-md-4">
+                <label>IP Address Filter:</label>
+                <select id="ipFilter" class="form-select">
+                    <option value="">All IP Addresses</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label>Access Filter:</label>
+                <select id="accessFilter" class="form-select">
+                    <option value="">All Access</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label>SSL Provider Filter:</label>
+                <select id="providerFilter" class="form-select">
+                    <option value="">All SSL Providers</option>
+                </select>
+            </div>
+
             <div class="col-md-6">
                 <label>Expiry Date From:</label>
                 <input type="date" id="dateFrom" class="form-control">
@@ -222,104 +266,126 @@ table.table {
 
     </div>
 
-    <table class="table table-hover table-striped" id="sslTable">
+    <div class="table-responsive-sticky">
 
-        <thead>
-            <tr>
-                <th data-col="status">Status</th>
-                <th data-col="activity">Activity</th>
-                <th data-col="expiry">Expiry</th>
-                <th data-col="cn">Common Name</th>
-                <th data-col="ip">IP Address</th>
-                <th data-col="server">Server</th>
-                <th>LB</th>
-                <th data-col="provider">SSL Provider</th>
-            </tr>
-        </thead>
+        <table class="table table-hover table-striped" id="sslTable">
 
-        <tbody>
+            <thead>
+                <tr>
+                    <th data-col="status">Status</th>
+                    <th data-col="activity">Activity</th>
+                    <th data-col="expiry">Expiry</th>
+                    <th data-col="cn">Common Name</th>
+                    <th data-col="ip">IP Address</th>
+                    <th data-col="scope">Access</th>
+                    <th data-col="server">Server</th>
+                    <th>LB</th>
+                    <th data-col="provider">SSL Provider</th>
+                </tr>
+            </thead>
 
-        {% for website in websites %}
+            <tbody>
 
-            <tr class="main-row
-                {% if website.ssl_expiry_date_new and website.ssl_expiry_date_new|date:'U' < now|date:'U'|add:'2592000' %}
-                    expiring-soon
-                {% endif %}
-            "
-            data-href="{% url 'website_details' website.id %}">
+            {% for website in websites %}
 
-                <td>
-                    {% if website.tech_status_light == "OK" %}
-                        <span class="badge badge-ok">OK</span>
-
-                    {% elif website.tech_status_light == "WORKING ON" %}
-                        <span class="badge badge-working">WORKING</span>
-
-                    {% elif website.tech_status_light == "ISSUE" %}
-                        <span class="badge badge-issue">ISSUE</span>
-
-                    {% elif website.tech_status_light == "CERT SENT" %}
-                        <span class="badge badge-sent">CERT SENT</span>
+                <tr class="main-row
+                    {% if website.ssl_expiry_date_new and website.ssl_expiry_date_new|date:'U' < now|date:'U'|add:'2592000' %}
+                        expiring-soon
                     {% endif %}
-                </td>
+                "
+                data-href="{% url 'website_details' website.id %}">
 
-                <td>{{ website.activity }}</td>
+                    <td>
+                        {% if website.tech_status_light == "OK" %}
+                            <span class="badge badge-ok">OK</span>
+                        {% elif website.tech_status_light == "WORKING ON" %}
+                            <span class="badge badge-working">WORKING</span>
+                        {% elif website.tech_status_light == "ISSUE" %}
+                            <span class="badge badge-issue">ISSUE</span>
+                        {% elif website.tech_status_light == "CERT SENT" %}
+                            <span class="badge badge-sent">CERT SENT</span>
+                        {% endif %}
+                    </td>
 
-                <td>
-                    {% if website.ssl_expiry_date_new %}
-                        {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
-                        <br>
-                        <small class="text-muted">
-                            in {{ website.ssl_expiry_date_new|timeuntil }}
-                        </small>
-                    {% else %}
-                        <span class="text-muted">N/A</span>
-                    {% endif %}
-                </td>
+                    <td>{{ website.activity }}</td>
 
-                <td>{{ website.common_name }}</td>
+                    <td>
+                        {% if website.ssl_expiry_date_new %}
+                            {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
+                            <br>
+                            <small class="text-muted">
+                                in {{ website.ssl_expiry_date_new|timeuntil }}
+                            </small>
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
 
-                <td>
-                    {% if website.url_ip %}
-                        <code class="ip-code">{{ website.url_ip }}</code>
-                    {% else %}
-                        <span class="text-muted">N/A</span>
-                    {% endif %}
-                </td>
+                    <td>{{ website.common_name }}</td>
 
-                <td>{{ website.server }}</td>
+                    <td>
+                        {% if website.url_ip %}
+                            <code class="ip-code">{{ website.url_ip }}</code>
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
 
-                <td>
-                    {% if website.load_balancer|lower == "yes" %}
-                        ✔️
-                    {% elif website.load_balancer|lower == "no" %}
-                        ❌
-                    {% else %}
-                        ?
-                    {% endif %}
-                </td>
+                    <td class="scope-cell">
+                        {% if website.url_access_scope == "GLOBAL" %}
+                            {% if website.url_access_scope_manual %}
+                                <span class="badge bg-warning text-dark">Global-manual</span>
+                            {% else %}
+                                <span class="badge bg-success">Global</span>
+                            {% endif %}
 
-                <td class="provider-cell">
-                    {% if website.ssl_certificate_provider %}
-                        {{ website.ssl_certificate_provider }}
-                    {% else %}
-                        <span class="text-muted">N/A</span>
-                    {% endif %}
-                </td>
+                        {% elif website.url_access_scope == "EDLAN_ONLY" %}
+                            {% if website.url_access_scope_manual %}
+                                <span class="badge bg-warning text-dark">EdLan-only-manual</span>
+                            {% else %}
+                                <span class="badge bg-primary">EdLan-only</span>
+                            {% endif %}
 
-            </tr>
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
 
-            <tr class="expandable">
-                <td colspan="8">
-                    <b>More details coming soon…</b>
-                </td>
-            </tr>
+                    <td>{{ website.server }}</td>
 
-        {% endfor %}
+                    <td>
+                        {% if website.load_balancer|lower == "yes" %}
+                            ✔️
+                        {% elif website.load_balancer|lower == "no" %}
+                            ❌
+                        {% else %}
+                            ?
+                        {% endif %}
+                    </td>
 
-        </tbody>
+                    <td class="provider-cell">
+                        {% if website.ssl_certificate_provider %}
+                            {{ website.ssl_certificate_provider }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
 
-    </table>
+                </tr>
+
+                <tr class="expandable">
+                    <td colspan="9">
+                        <b>More details coming soon…</b>
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
 
 </div>
 
@@ -330,11 +396,9 @@ const darkToggleBtn = document.getElementById("darkToggle");
 const darkToggleIcon = darkToggleBtn.querySelector("i");
 
 function updateDarkModeIcon(theme) {
-
     if (theme === "dark") {
         darkToggleIcon.classList.remove("fa-moon");
         darkToggleIcon.classList.add("fa-sun");
-
     } else {
         darkToggleIcon.classList.remove("fa-sun");
         darkToggleIcon.classList.add("fa-moon");
@@ -342,29 +406,24 @@ function updateDarkModeIcon(theme) {
 }
 
 root.dataset.theme = localStorage.getItem("theme") || "dark";
-
 updateDarkModeIcon(root.dataset.theme);
 
 darkToggleBtn.onclick = () => {
-
     root.dataset.theme =
         root.dataset.theme === "dark"
         ? "light"
         : "dark";
 
     localStorage.setItem("theme", root.dataset.theme);
-
     updateDarkModeIcon(root.dataset.theme);
 };
 
 document.querySelectorAll(".main-row").forEach(row => {
-
     row.addEventListener("click", () => {
         window.location.href = row.dataset.href;
     });
 
     row.addEventListener("dblclick", (event) => {
-
         event.preventDefault();
         event.stopPropagation();
 
@@ -378,53 +437,33 @@ document.querySelectorAll(".main-row").forEach(row => {
 });
 
 function applyFilters() {
-
     const global = document.getElementById("globalFilter").value.toLowerCase();
     const server = document.getElementById("serverFilter").value.toLowerCase();
     const cn = document.getElementById("cnFilter").value.toLowerCase();
+    const ip = document.getElementById("ipFilter").value.toLowerCase();
+    const access = document.getElementById("accessFilter").value.toLowerCase();
+    const provider = document.getElementById("providerFilter").value.toLowerCase();
     const from = document.getElementById("dateFrom").value;
     const to = document.getElementById("dateTo").value;
 
     document.querySelectorAll(".main-row").forEach(row => {
-
         let show = true;
 
         const cells = row.children;
         const rowText = row.innerText.toLowerCase();
 
-        if (global && !rowText.includes(global)) {
-            show = false;
-        }
-
-        // Columns:
-        // 0 Status
-        // 1 Activity
-        // 2 Expiry
-        // 3 Common Name
-        // 4 IP
-        // 5 Server
-        // 6 LB
-        // 7 SSL Provider
-
-        if (server && !cells[5].innerText.toLowerCase().includes(server)) {
-            show = false;
-        }
-
-        if (cn && !cells[3].innerText.toLowerCase().includes(cn)) {
-            show = false;
-        }
+        if (global && !rowText.includes(global)) show = false;
+        if (server && !cells[6].innerText.toLowerCase().includes(server)) show = false;
+        if (cn && !cells[3].innerText.toLowerCase().includes(cn)) show = false;
+        if (ip && cells[4].innerText.trim().toLowerCase() !== ip) show = false;
+        if (access && cells[5].innerText.trim().toLowerCase() !== access) show = false;
+        if (provider && cells[8].innerText.trim().toLowerCase() !== provider) show = false;
 
         const dateText = cells[2].innerText.split("\n")[0].trim();
 
         if (dateText !== "N/A") {
-
-            if (from && dateText < from) {
-                show = false;
-            }
-
-            if (to && dateText > to) {
-                show = false;
-            }
+            if (from && dateText < from) show = false;
+            if (to && dateText > to) show = false;
         }
 
         row.style.display = show ? "" : "none";
@@ -435,12 +474,12 @@ function applyFilters() {
     });
 }
 
-document.querySelectorAll("input").forEach(inp => {
-    inp.addEventListener("input", applyFilters);
+document.querySelectorAll("input, select").forEach(element => {
+    element.addEventListener("input", applyFilters);
+    element.addEventListener("change", applyFilters);
 });
 
 function parseDate(text) {
-
     const cleanText = text.trim();
 
     if (!cleanText || cleanText === "N/A") {
@@ -456,8 +495,29 @@ function parseDate(text) {
     return new Date(parts[0], parts[1] - 1, parts[2]);
 }
 
-function sortTableByColumn(index, ascending, type = "text") {
+function populateSelectFilter(selectId, columnIndex) {
+    const select = document.getElementById(selectId);
+    const values = new Set();
 
+    document.querySelectorAll(".main-row").forEach(row => {
+        const value = row.children[columnIndex].innerText.trim();
+
+        if (value && value !== "N/A") {
+            values.add(value);
+        }
+    });
+
+    Array.from(values).sort().forEach(value => {
+        const option = document.createElement("option");
+
+        option.value = value;
+        option.textContent = value;
+
+        select.appendChild(option);
+    });
+}
+
+function sortTableByColumn(index, ascending, type = "text") {
     const table = document.querySelector("#sslTable tbody");
 
     const rows = Array.from(
@@ -465,12 +525,10 @@ function sortTableByColumn(index, ascending, type = "text") {
     );
 
     rows.sort((a, b) => {
-
         let A = a.children[index].innerText.trim();
         let B = b.children[index].innerText.trim();
 
         if (type === "date") {
-
             A = parseDate(A.split("\n")[0].trim());
             B = parseDate(B.split("\n")[0].trim());
 
@@ -486,7 +544,6 @@ function sortTableByColumn(index, ascending, type = "text") {
     });
 
     rows.forEach(row => {
-
         const exp = row.nextElementSibling;
 
         table.append(row);
@@ -495,6 +552,9 @@ function sortTableByColumn(index, ascending, type = "text") {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    populateSelectFilter("ipFilter", 4);
+    populateSelectFilter("accessFilter", 5);
+    populateSelectFilter("providerFilter", 8);
 
     const expiryTh = document.querySelector(
         'th[data-col="expiry"]'
@@ -506,17 +566,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.querySelectorAll("th[data-col]").forEach(th => {
-
     th.addEventListener("click", () => {
-
         const index = th.cellIndex;
-
         const currentSort = th.dataset.sort === "asc";
-
         const ascending = !currentSort;
 
         document.querySelectorAll("th[data-col]").forEach(otherTh => {
-
             if (otherTh !== th) {
                 delete otherTh.dataset.sort;
             }
@@ -525,11 +580,8 @@ document.querySelectorAll("th[data-col]").forEach(th => {
         th.dataset.sort = ascending ? "asc" : "desc";
 
         if (th.dataset.col === "expiry") {
-
             sortTableByColumn(index, ascending, "date");
-
         } else {
-
             sortTableByColumn(index, ascending, "text");
         }
     });

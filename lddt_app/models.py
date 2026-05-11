@@ -103,6 +103,19 @@ class Website(models.Model):
         null=True,
         max_length=255
     )
+    url_access_scope = models.CharField(
+        "URL Access Scope",
+        max_length=20,
+        choices=[
+            ("GLOBAL", "Global"),
+            ("EDLAN_ONLY", "EdLan-only"),
+        ],
+        blank=True,
+        null=True,
+    )
+    url_access_scope_manual = models.BooleanField(
+        default=False
+    )
 
     def __str__(self):
         return self.url
