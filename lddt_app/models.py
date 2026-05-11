@@ -97,6 +97,12 @@ class Website(models.Model):
     ga4_y_n = models.ForeignKey(ga4_y_n, on_delete=models.CASCADE, null=True, blank=True)
     ga4_notes = models.TextField('GA4 Notes', blank=True, null=True)
     ga4_path = models.TextField('GA4 path', blank=True, null=True)
+    ssl_certificate_provider = models.CharField(
+        "SSL Certificate Provider",
+        blank=True,
+        null=True,
+        max_length=255
+    )
 
     def __str__(self):
         return self.url

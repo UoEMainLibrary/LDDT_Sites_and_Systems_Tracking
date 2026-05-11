@@ -92,6 +92,10 @@ table.table {
 .ip-code {
     color: #0dcaf0;
 }
+
+.provider-cell {
+    white-space: nowrap;
+}
 </style>
 </head>
 
@@ -108,6 +112,7 @@ table.table {
 
     <div class="collapse navbar-collapse" id="mainNav">
         <ul class="navbar-nav me-auto">
+
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'home' %}" style="color: var(--text);">
                     <i class="fa fa-home"></i> Home
@@ -115,32 +120,29 @@ table.table {
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'create_subsite' %}" style="color: var(--text);">+ Add New</a>
+                <a class="nav-link" href="{% url 'create_subsite' %}" style="color: var(--text);">
+                    + Add New
+                </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'lddt_subsites_home' %}" style="color: var(--text);">Subsites</a>
+                <a class="nav-link" href="{% url 'lddt_subsites_home' %}" style="color: var(--text);">
+                    Subsites
+                </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'vms_home' %}" style="color: var(--text);">VM's</a>
+                <a class="nav-link" href="{% url 'vms_home' %}" style="color: var(--text);">
+                    VM's
+                </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">Full Table</a>
+                <a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">
+                    Full Table
+                </a>
             </li>
 
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">Process 4</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'websites_process_2' %}" style="color: var(--text);">Process 2</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">Process 1</a>
-            </li>
         </ul>
 
         <button id="darkToggle" class="btn btn-outline-secondary btn-sm">
@@ -163,13 +165,21 @@ table.table {
                     {{ next_expiry.ssl_expiry_date_new|date:"Y-m-d" }}
                     — in {{ next_expiry.ssl_expiry_date_new|timeuntil }}
                 </b>
+
                 <br>
+
                 <small>
                     {{ next_expiry.common_name }}
+
                     {% if next_expiry.url_ip %}
                         — {{ next_expiry.url_ip }}
                     {% endif %}
+
+                    {% if next_expiry.ssl_certificate_provider %}
+                        — {{ next_expiry.ssl_certificate_provider }}
+                    {% endif %}
                 </small>
+
             {% else %}
                 <b>No upcoming SSL expirations</b>
             {% endif %}
@@ -180,6 +190,7 @@ table.table {
 <div class="container-fluid mt-4">
 
     <div class="filter-box shadow-sm">
+
         <div class="row g-3">
 
             <div class="col-md-4">
@@ -208,9 +219,11 @@ table.table {
             </div>
 
         </div>
+
     </div>
 
     <table class="table table-hover table-striped" id="sslTable">
+
         <thead>
             <tr>
                 <th data-col="status">Status</th>
@@ -220,11 +233,12 @@ table.table {
                 <th data-col="ip">IP Address</th>
                 <th data-col="server">Server</th>
                 <th>LB</th>
-                <th data-col="process">SSL Cert Process</th>
+                <th data-col="provider">SSL Provider</th>
             </tr>
         </thead>
 
         <tbody>
+
         {% for website in websites %}
 
             <tr class="main-row
@@ -237,10 +251,13 @@ table.table {
                 <td>
                     {% if website.tech_status_light == "OK" %}
                         <span class="badge badge-ok">OK</span>
+
                     {% elif website.tech_status_light == "WORKING ON" %}
                         <span class="badge badge-working">WORKING</span>
+
                     {% elif website.tech_status_light == "ISSUE" %}
                         <span class="badge badge-issue">ISSUE</span>
+
                     {% elif website.tech_status_light == "CERT SENT" %}
                         <span class="badge badge-sent">CERT SENT</span>
                     {% endif %}
@@ -250,8 +267,11 @@ table.table {
 
                 <td>
                     {% if website.ssl_expiry_date_new %}
-                        {{ website.ssl_expiry_date_new|date:"Y-m-d" }}<br>
-                        <small class="text-muted">in {{ website.ssl_expiry_date_new|timeuntil }}</small>
+                        {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
+                        <br>
+                        <small class="text-muted">
+                            in {{ website.ssl_expiry_date_new|timeuntil }}
+                        </small>
                     {% else %}
                         <span class="text-muted">N/A</span>
                     {% endif %}
@@ -279,7 +299,14 @@ table.table {
                     {% endif %}
                 </td>
 
-                <td>{{ website.ssl_cert_process }}</td>
+                <td class="provider-cell">
+                    {% if website.ssl_certificate_provider %}
+                        {{ website.ssl_certificate_provider }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+
             </tr>
 
             <tr class="expandable">
@@ -289,20 +316,25 @@ table.table {
             </tr>
 
         {% endfor %}
+
         </tbody>
+
     </table>
 
 </div>
 
 <script>
+
 const root = document.documentElement;
 const darkToggleBtn = document.getElementById("darkToggle");
 const darkToggleIcon = darkToggleBtn.querySelector("i");
 
 function updateDarkModeIcon(theme) {
+
     if (theme === "dark") {
         darkToggleIcon.classList.remove("fa-moon");
         darkToggleIcon.classList.add("fa-sun");
+
     } else {
         darkToggleIcon.classList.remove("fa-sun");
         darkToggleIcon.classList.add("fa-moon");
@@ -310,29 +342,43 @@ function updateDarkModeIcon(theme) {
 }
 
 root.dataset.theme = localStorage.getItem("theme") || "dark";
+
 updateDarkModeIcon(root.dataset.theme);
 
 darkToggleBtn.onclick = () => {
-    root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+
+    root.dataset.theme =
+        root.dataset.theme === "dark"
+        ? "light"
+        : "dark";
+
     localStorage.setItem("theme", root.dataset.theme);
+
     updateDarkModeIcon(root.dataset.theme);
 };
 
 document.querySelectorAll(".main-row").forEach(row => {
+
     row.addEventListener("click", () => {
         window.location.href = row.dataset.href;
     });
 
     row.addEventListener("dblclick", (event) => {
+
         event.preventDefault();
         event.stopPropagation();
 
         const exp = row.nextElementSibling;
-        exp.style.display = exp.style.display === "table-row" ? "none" : "table-row";
+
+        exp.style.display =
+            exp.style.display === "table-row"
+            ? "none"
+            : "table-row";
     });
 });
 
 function applyFilters() {
+
     const global = document.getElementById("globalFilter").value.toLowerCase();
     const server = document.getElementById("serverFilter").value.toLowerCase();
     const cn = document.getElementById("cnFilter").value.toLowerCase();
@@ -340,19 +386,45 @@ function applyFilters() {
     const to = document.getElementById("dateTo").value;
 
     document.querySelectorAll(".main-row").forEach(row => {
+
         let show = true;
+
         const cells = row.children;
         const rowText = row.innerText.toLowerCase();
 
-        if (global && !rowText.includes(global)) show = false;
-        if (server && !cells[5].innerText.toLowerCase().includes(server)) show = false;
-        if (cn && !cells[3].innerText.toLowerCase().includes(cn)) show = false;
+        if (global && !rowText.includes(global)) {
+            show = false;
+        }
+
+        // Columns:
+        // 0 Status
+        // 1 Activity
+        // 2 Expiry
+        // 3 Common Name
+        // 4 IP
+        // 5 Server
+        // 6 LB
+        // 7 SSL Provider
+
+        if (server && !cells[5].innerText.toLowerCase().includes(server)) {
+            show = false;
+        }
+
+        if (cn && !cells[3].innerText.toLowerCase().includes(cn)) {
+            show = false;
+        }
 
         const dateText = cells[2].innerText.split("\n")[0].trim();
 
         if (dateText !== "N/A") {
-            if (from && dateText < from) show = false;
-            if (to && dateText > to) show = false;
+
+            if (from && dateText < from) {
+                show = false;
+            }
+
+            if (to && dateText > to) {
+                show = false;
+            }
         }
 
         row.style.display = show ? "" : "none";
@@ -368,6 +440,7 @@ document.querySelectorAll("input").forEach(inp => {
 });
 
 function parseDate(text) {
+
     const cleanText = text.trim();
 
     if (!cleanText || cleanText === "N/A") {
@@ -375,6 +448,7 @@ function parseDate(text) {
     }
 
     const parts = cleanText.split("-");
+
     if (parts.length !== 3) {
         return new Date(8640000000000000);
     }
@@ -383,46 +457,66 @@ function parseDate(text) {
 }
 
 function sortTableByColumn(index, ascending, type = "text") {
+
     const table = document.querySelector("#sslTable tbody");
-    const rows = Array.from(table.querySelectorAll(".main-row"));
+
+    const rows = Array.from(
+        table.querySelectorAll(".main-row")
+    );
 
     rows.sort((a, b) => {
+
         let A = a.children[index].innerText.trim();
         let B = b.children[index].innerText.trim();
 
         if (type === "date") {
+
             A = parseDate(A.split("\n")[0].trim());
             B = parseDate(B.split("\n")[0].trim());
 
             if (A < B) return ascending ? -1 : 1;
             if (A > B) return ascending ? 1 : -1;
+
             return 0;
         }
 
-        return ascending ? A.localeCompare(B) : B.localeCompare(A);
+        return ascending
+            ? A.localeCompare(B)
+            : B.localeCompare(A);
     });
 
     rows.forEach(row => {
+
         const exp = row.nextElementSibling;
+
         table.append(row);
         table.append(exp);
     });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const expiryTh = document.querySelector('th[data-col="expiry"]');
+
+    const expiryTh = document.querySelector(
+        'th[data-col="expiry"]'
+    );
+
     expiryTh.dataset.sort = "asc";
 
     sortTableByColumn(2, true, "date");
 });
 
 document.querySelectorAll("th[data-col]").forEach(th => {
+
     th.addEventListener("click", () => {
+
         const index = th.cellIndex;
+
         const currentSort = th.dataset.sort === "asc";
+
         const ascending = !currentSort;
 
         document.querySelectorAll("th[data-col]").forEach(otherTh => {
+
             if (otherTh !== th) {
                 delete otherTh.dataset.sort;
             }
@@ -431,12 +525,16 @@ document.querySelectorAll("th[data-col]").forEach(th => {
         th.dataset.sort = ascending ? "asc" : "desc";
 
         if (th.dataset.col === "expiry") {
+
             sortTableByColumn(index, ascending, "date");
+
         } else {
+
             sortTableByColumn(index, ascending, "text");
         }
     });
 });
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
