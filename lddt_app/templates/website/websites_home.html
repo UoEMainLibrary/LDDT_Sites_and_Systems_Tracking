@@ -5,17 +5,12 @@
     <title>Websites</title>
     {% load static %}
 
-    <!-- Modern Bootstrap + Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-
-/* -----------------------------------------------------------
-        GLOBAL COLORS & DARK MODE
------------------------------------------------------------- */
 :root {
     --bg: #ffffff;
     --text: #222;
@@ -42,26 +37,17 @@ body {
     font-family: "Open Sans", sans-serif;
 }
 
-/* -----------------------------------------------------------
-        NAVIGATION MENU
------------------------------------------------------------- */
 .navbar-custom {
     background: var(--card-bg);
     border-bottom: 2px solid var(--border);
 }
 
-/* -----------------------------------------------------------
-        HEADER SECTION
------------------------------------------------------------- */
 header {
     background: var(--header-bg);
     color: var(--header-text);
     padding: 30px 20px;
 }
 
-/* -----------------------------------------------------------
-        TABLE STYLE
------------------------------------------------------------- */
 table.table {
     width: 100% !important;
     background: var(--card-bg);
@@ -77,24 +63,20 @@ table.table {
     background: var(--hover);
 }
 
-/* Status badges */
 .badge-ok      { background: #2ecc71; }
 .badge-working { background: #f1c40f; color: black; }
 .badge-issue   { background: #e74c3c; }
 .badge-sent    { background: #3498db; }
 
-/* Expiring soon highlight (< 30 days) */
 .expiring-soon {
     background: rgba(255, 0, 0, 0.15) !important;
 }
 
-/* Expandable row */
 .expandable {
     display: none;
     background: var(--card-bg);
 }
 
-/* Filters */
 .filter-box {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -103,13 +85,18 @@ table.table {
     margin-bottom: 20px;
 }
 
+.main-row {
+    cursor: pointer;
+}
+
+.ip-code {
+    color: #0dcaf0;
+}
 </style>
 </head>
+
 <body>
 
-<!-- -----------------------------------------------------------
-        NAVIGATION MENU (Your Original Links)
------------------------------------------------------------- -->
 <nav class="navbar navbar-expand-lg navbar-custom px-3">
     <a class="navbar-brand fw-bold" href="{% url 'home' %}" style="color: var(--text);">
         SSL Dashboard
@@ -120,171 +107,200 @@ table.table {
     </button>
 
     <div class="collapse navbar-collapse" id="mainNav">
-
         <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'home' %}" style="color: var(--text);">
+                    <i class="fa fa-home"></i> Home
+                </a>
+            </li>
 
-            <li class="nav-item"><a class="nav-link" href="{% url 'home' %}" style="color: var(--text);"><i class="fa fa-home"></i> Home</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'create_subsite' %}" style="color: var(--text);">+ Add New</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'lddt_subsites_home' %}" style="color: var(--text);">Subsites</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'vms_home' %}" style="color: var(--text);">VM's</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">Full Table</a></li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'create_subsite' %}" style="color: var(--text);">+ Add New</a>
+            </li>
 
-            <!-- Second row (original design preserved) -->
-            <li class="nav-item"><a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">Process 4</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'websites_process_2' %}" style="color: var(--text);">Process 2</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">Process 1</a></li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'lddt_subsites_home' %}" style="color: var(--text);">Subsites</a>
+            </li>
 
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'vms_home' %}" style="color: var(--text);">VM's</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">Full Table</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">Process 4</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'websites_process_2' %}" style="color: var(--text);">Process 2</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">Process 1</a>
+            </li>
         </ul>
 
-        <button id="darkToggle" class="btn btn-outline-secondary btn-sm"><i class="fa fa-sun"></i></button>
+        <button id="darkToggle" class="btn btn-outline-secondary btn-sm">
+            <i class="fa fa-sun"></i>
+        </button>
     </div>
 </nav>
 
-<!-- -----------------------------------------------------------
-        HEADER
------------------------------------------------------------- -->
 <header>
     <div class="container-fluid">
         <h1>WebSites - SSL Certificates</h1>
+
         <p>
             Total records: <b>{{ table_item_count_sites }}</b><br>
+
             Next SSL expiration:
-            {% for website in websites %}
-                {% if forloop.first %}
-                    <b>{{ website.ssl_expiry_date|timeuntil }}</b>
-                {% endif %}
-            {% endfor %}
+
+            {% if next_expiry %}
+                <b>
+                    {{ next_expiry.ssl_expiry_date_new|date:"Y-m-d" }}
+                    — in {{ next_expiry.ssl_expiry_date_new|timeuntil }}
+                </b>
+                <br>
+                <small>
+                    {{ next_expiry.common_name }}
+                    {% if next_expiry.url_ip %}
+                        — {{ next_expiry.url_ip }}
+                    {% endif %}
+                </small>
+            {% else %}
+                <b>No upcoming SSL expirations</b>
+            {% endif %}
         </p>
     </div>
 </header>
 
 <div class="container-fluid mt-4">
 
-<!-- -----------------------------------------------------------
-        FILTERS
------------------------------------------------------------- -->
-<div class="filter-box shadow-sm">
+    <div class="filter-box shadow-sm">
+        <div class="row g-3">
 
-    <div class="row g-3">
+            <div class="col-md-4">
+                <label>Global Search:</label>
+                <input id="globalFilter" class="form-control" placeholder="Type to search...">
+            </div>
 
-        <div class="col-md-4">
-            <label>Global Search:</label>
-            <input id="globalFilter" class="form-control" placeholder="Type to search...">
+            <div class="col-md-4">
+                <label>Server Filter:</label>
+                <input id="serverFilter" class="form-control" placeholder="Server name">
+            </div>
+
+            <div class="col-md-4">
+                <label>Common Name Filter:</label>
+                <input id="cnFilter" class="form-control" placeholder="Common name">
+            </div>
+
+            <div class="col-md-6">
+                <label>Expiry Date From:</label>
+                <input type="date" id="dateFrom" class="form-control">
+            </div>
+
+            <div class="col-md-6">
+                <label>Expiry Date To:</label>
+                <input type="date" id="dateTo" class="form-control">
+            </div>
+
         </div>
-
-        <div class="col-md-4">
-            <label>Server Filter:</label>
-            <input id="serverFilter" class="form-control" placeholder="Server name">
-        </div>
-
-        <div class="col-md-4">
-            <label>Common Name Filter:</label>
-            <input id="cnFilter" class="form-control" placeholder="Common name">
-        </div>
-
-        <div class="col-md-6">
-            <label>Expiry Date From:</label>
-            <input type="date" id="dateFrom" class="form-control">
-        </div>
-
-        <div class="col-md-6">
-            <label>Expiry Date To:</label>
-            <input type="date" id="dateTo" class="form-control">
-        </div>
-
     </div>
 
+    <table class="table table-hover table-striped" id="sslTable">
+        <thead>
+            <tr>
+                <th data-col="status">Status</th>
+                <th data-col="activity">Activity</th>
+                <th data-col="expiry">Expiry</th>
+                <th data-col="cn">Common Name</th>
+                <th data-col="ip">IP Address</th>
+                <th data-col="server">Server</th>
+                <th>LB</th>
+                <th data-col="process">SSL Cert Process</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for website in websites %}
+
+            <tr class="main-row
+                {% if website.ssl_expiry_date_new and website.ssl_expiry_date_new|date:'U' < now|date:'U'|add:'2592000' %}
+                    expiring-soon
+                {% endif %}
+            "
+            data-href="{% url 'website_details' website.id %}">
+
+                <td>
+                    {% if website.tech_status_light == "OK" %}
+                        <span class="badge badge-ok">OK</span>
+                    {% elif website.tech_status_light == "WORKING ON" %}
+                        <span class="badge badge-working">WORKING</span>
+                    {% elif website.tech_status_light == "ISSUE" %}
+                        <span class="badge badge-issue">ISSUE</span>
+                    {% elif website.tech_status_light == "CERT SENT" %}
+                        <span class="badge badge-sent">CERT SENT</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ website.activity }}</td>
+
+                <td>
+                    {% if website.ssl_expiry_date_new %}
+                        {{ website.ssl_expiry_date_new|date:"Y-m-d" }}<br>
+                        <small class="text-muted">in {{ website.ssl_expiry_date_new|timeuntil }}</small>
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ website.common_name }}</td>
+
+                <td>
+                    {% if website.url_ip %}
+                        <code class="ip-code">{{ website.url_ip }}</code>
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ website.server }}</td>
+
+                <td>
+                    {% if website.load_balancer|lower == "yes" %}
+                        ✔️
+                    {% elif website.load_balancer|lower == "no" %}
+                        ❌
+                    {% else %}
+                        ?
+                    {% endif %}
+                </td>
+
+                <td>{{ website.ssl_cert_process }}</td>
+            </tr>
+
+            <tr class="expandable">
+                <td colspan="8">
+                    <b>More details coming soon…</b>
+                </td>
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+
 </div>
 
-<!-- -----------------------------------------------------------
-        MAIN TABLE
------------------------------------------------------------- -->
-<table class="table table-hover table-striped" id="sslTable">
-    <thead>
-        <tr>
-            <th data-col="status">Status</th>
-            <th data-col="activity">Activity</th>
-            <th data-col="expiry">Expiry</th>
-            <th data-col="cn">Common Name</th>
-            <th data-col="server">Server</th>
-            <th>LB</th>
-            <th data-col="process">SSL Cert Process</th>
-        </tr>
-    </thead>
-
-    <tbody>
-    {% for website in websites %}
-
-        <!-- MAIN ROW -->
-        <tr class="main-row
-            {% if website.ssl_expiry_date_new|date:'U' < now|date:'U'|add:'2592000' %}
-                expiring-soon
-            {% endif %}
-        "
-        data-href="{% url 'website_details' website.id %}">
-
-            <td>
-                {% if website.tech_status_light == "OK" %}
-                    <span class="badge badge-ok">OK</span>
-                {% elif website.tech_status_light == "WORKING ON" %}
-                    <span class="badge badge-working">WORKING</span>
-                {% elif website.tech_status_light == "ISSUE" %}
-                    <span class="badge badge-issue">ISSUE</span>
-                {% elif website.tech_status_light == "CERT SENT" %}
-                    <span class="badge badge-sent">CERT SENT</span>
-                {% endif %}
-            </td>
-
-            <td>{{ website.activity }}</td>
-
-            <td>
-                {{ website.ssl_expiry_date_new|date:"Y-m-d" }}<br>
-                <small class="text-muted">in {{ website.ssl_expiry_date_new|timeuntil }}</small>
-            </td>
-
-            <td>{{ website.common_name }}</td>
-
-            <td>{{ website.server }}</td>
-
-            <td>
-                {% if website.load_balancer|lower == "yes" %}
-                    ✔️
-                {% elif website.load_balancer|lower == "no" %}
-                    ❌
-                {% else %}
-                    ?
-                {% endif %}
-            </td>
-
-            <td>{{ website.ssl_cert_process }}</td>
-        </tr>
-
-        <!-- EXPANDABLE ROW -->
-        <tr class="expandable">
-            <td colspan="7">
-                <b>More details coming soon…</b>
-            </td>
-        </tr>
-
-    {% endfor %}
-    </tbody>
-</table>
-
-</div>
-
-
-<!-- -----------------------------------------------------------
-        JAVASCRIPT (Filters + Sorting + Dark Mode + Initial Sort)
------------------------------------------------------------- -->
 <script>
-
-// ------------------ Dark Mode ------------------
 const root = document.documentElement;
 const darkToggleBtn = document.getElementById("darkToggle");
 const darkToggleIcon = darkToggleBtn.querySelector("i");
 
 function updateDarkModeIcon(theme) {
-    if(theme === "dark") {
+    if (theme === "dark") {
         darkToggleIcon.classList.remove("fa-moon");
         darkToggleIcon.classList.add("fa-sun");
     } else {
@@ -302,45 +318,48 @@ darkToggleBtn.onclick = () => {
     updateDarkModeIcon(root.dataset.theme);
 };
 
-
-// ------------------ Clickable Rows ------------------
 document.querySelectorAll(".main-row").forEach(row => {
     row.addEventListener("click", () => {
         window.location.href = row.dataset.href;
     });
 
-    // Expandable on double-click
-    row.addEventListener("dblclick", () => {
+    row.addEventListener("dblclick", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
         const exp = row.nextElementSibling;
         exp.style.display = exp.style.display === "table-row" ? "none" : "table-row";
     });
 });
 
-
-// ------------------ Filtering ------------------
 function applyFilters() {
-    const global = globalFilter.value.toLowerCase();
-    const server = serverFilter.value.toLowerCase();
-    const cn = cnFilter.value.toLowerCase();
-    const from = dateFrom.value;
-    const to = dateTo.value;
+    const global = document.getElementById("globalFilter").value.toLowerCase();
+    const server = document.getElementById("serverFilter").value.toLowerCase();
+    const cn = document.getElementById("cnFilter").value.toLowerCase();
+    const from = document.getElementById("dateFrom").value;
+    const to = document.getElementById("dateTo").value;
 
     document.querySelectorAll(".main-row").forEach(row => {
         let show = true;
-        let cells = row.children;
-
+        const cells = row.children;
         const rowText = row.innerText.toLowerCase();
 
         if (global && !rowText.includes(global)) show = false;
-        if (server && !cells[4].innerText.toLowerCase().includes(server)) show = false;
+        if (server && !cells[5].innerText.toLowerCase().includes(server)) show = false;
         if (cn && !cells[3].innerText.toLowerCase().includes(cn)) show = false;
 
-        let dateText = cells[2].innerText.split("\n")[0].trim();
-        if (from && dateText < from) show = false;
-        if (to && dateText > to) show = false;
+        const dateText = cells[2].innerText.split("\n")[0].trim();
+
+        if (dateText !== "N/A") {
+            if (from && dateText < from) show = false;
+            if (to && dateText > to) show = false;
+        }
 
         row.style.display = show ? "" : "none";
-        if (!show) row.nextElementSibling.style.display = "none";
+
+        if (!show && row.nextElementSibling) {
+            row.nextElementSibling.style.display = "none";
+        }
     });
 }
 
@@ -348,26 +367,39 @@ document.querySelectorAll("input").forEach(inp => {
     inp.addEventListener("input", applyFilters);
 });
 
-
-// ------------------ Sorting ------------------
 function parseDate(text) {
-    // Expecting date format YYYY-MM-DD
-    let parts = text.trim().split("-");
-    if(parts.length !== 3) return new Date(0);
+    const cleanText = text.trim();
+
+    if (!cleanText || cleanText === "N/A") {
+        return new Date(8640000000000000);
+    }
+
+    const parts = cleanText.split("-");
+    if (parts.length !== 3) {
+        return new Date(8640000000000000);
+    }
+
     return new Date(parts[0], parts[1] - 1, parts[2]);
 }
 
-function sortTableByColumn(index, ascending) {
+function sortTableByColumn(index, ascending, type = "text") {
     const table = document.querySelector("#sslTable tbody");
     const rows = Array.from(table.querySelectorAll(".main-row"));
 
     rows.sort((a, b) => {
-        const A = parseDate(a.children[index].innerText.split("\n")[0].trim());
-        const B = parseDate(b.children[index].innerText.split("\n")[0].trim());
+        let A = a.children[index].innerText.trim();
+        let B = b.children[index].innerText.trim();
 
-        if (A < B) return ascending ? -1 : 1;
-        if (A > B) return ascending ? 1 : -1;
-        return 0;
+        if (type === "date") {
+            A = parseDate(A.split("\n")[0].trim());
+            B = parseDate(B.split("\n")[0].trim());
+
+            if (A < B) return ascending ? -1 : 1;
+            if (A > B) return ascending ? 1 : -1;
+            return 0;
+        }
+
+        return ascending ? A.localeCompare(B) : B.localeCompare(A);
     });
 
     rows.forEach(row => {
@@ -377,22 +409,19 @@ function sortTableByColumn(index, ascending) {
     });
 }
 
-// Initialize sorting by Expiry column (index 2) ascending (soonest first)
 document.addEventListener("DOMContentLoaded", () => {
     const expiryTh = document.querySelector('th[data-col="expiry"]');
     expiryTh.dataset.sort = "asc";
 
-    sortTableByColumn(2, true);
+    sortTableByColumn(2, true, "date");
 });
 
-// Make columns sortable by clicking headers (preserves previous behavior but now supports date parsing for expiry)
 document.querySelectorAll("th[data-col]").forEach(th => {
     th.addEventListener("click", () => {
         const index = th.cellIndex;
         const currentSort = th.dataset.sort === "asc";
         const ascending = !currentSort;
 
-        // Clear sort on all headers except clicked
         document.querySelectorAll("th[data-col]").forEach(otherTh => {
             if (otherTh !== th) {
                 delete otherTh.dataset.sort;
@@ -401,29 +430,14 @@ document.querySelectorAll("th[data-col]").forEach(th => {
 
         th.dataset.sort = ascending ? "asc" : "desc";
 
-        // For expiry column, sort by date, for others by text
-        if(th.dataset.col === "expiry") {
-            sortTableByColumn(index, ascending);
+        if (th.dataset.col === "expiry") {
+            sortTableByColumn(index, ascending, "date");
         } else {
-            // Text sort fallback
-            const table = document.querySelector("#sslTable tbody");
-            const rows = Array.from(table.querySelectorAll(".main-row"));
-            rows.sort((a, b) => {
-                const A = a.children[index].innerText.trim();
-                const B = b.children[index].innerText.trim();
-                return ascending ? A.localeCompare(B) : B.localeCompare(A);
-            });
-            rows.forEach(row => {
-                const exp = row.nextElementSibling;
-                table.append(row);
-                table.append(exp);
-            });
+            sortTableByColumn(index, ascending, "text");
         }
     });
 });
-
 </script>
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 

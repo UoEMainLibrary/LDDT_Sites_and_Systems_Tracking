@@ -62,6 +62,7 @@ class Website(models.Model):
     ssl_expiry_date = models.DateField(blank=True, default=None, null=True)
     ssl_expiry_date_new = models.DateField(blank=True, default=None, null=True)
     url = models.CharField('URL', blank=True, null=True, max_length=100)
+    url_ip = models.GenericIPAddressField(blank=True, null=True)
     function = models.CharField('Function', blank=True, null=True, max_length=150)
     common_name = models.CharField('Common Name', blank=True, null=True, max_length=150)
     server = models.CharField('Server', blank=True, null=True, max_length=150)

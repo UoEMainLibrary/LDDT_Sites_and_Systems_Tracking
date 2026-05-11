@@ -48,7 +48,7 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from .models import GoogleAnalyticsStats
-
+from django.utils import timezone
 
 import logging
 logger = logging.getLogger(__name__)
@@ -126,24 +126,39 @@ def home(request):
 #######################################################################################################################
 
 def websites_home(request):
-    websites = Website.objects.filter(
-        Q(type__name__exact="SITE") & ~Q(activity__name__exact="DECOMMISSIONED")
-    ).order_by('ssl_expiry_date')
-    table_item_count_sites = Website.objects.filter(
-        Q(type__name__exact="SITE") & ~Q(activity__name__exact="DECOMMISSIONED")
-    ).count
+    base_queryset = Website.objects.filter(
+        Q(type__name__exact="SITE") &
+        ~Q(activity__name__exact="DECOMMISSIONED")
+    )
+
+    websites = base_queryset.order_by("ssl_expiry_date_new")
+
     myFilter = WebsiteFilter(request.GET, queryset=websites)
     shortFilter = shortwebsiteFilter(request.GET, queryset=websites)
+
     websites = myFilter.qs
+
+    next_expiry = (
+        websites
+        .filter(
+            ssl_expiry_date_new__isnull=False,
+            ssl_expiry_date_new__gte=timezone.now().date()
+        )
+        .order_by("ssl_expiry_date_new")
+        .first()
+    )
+
     current_datetime_now = datetime.now()
     current_datetime_now_tostring = current_datetime_now.strftime("%Y/%B")
 
-    return render(request, 'website/websites_home.html', {
-        'websites': websites,
-        'myFilter': myFilter,
-        'shortFilter': shortFilter,
-        'table_item_count_sites': table_item_count_sites,
-        'current_datetime_now_tostring': current_datetime_now_tostring,
+    return render(request, "website/websites_home.html", {
+        "websites": websites,
+        "myFilter": myFilter,
+        "shortFilter": shortFilter,
+        "table_item_count_sites": websites.count(),
+        "current_datetime_now_tostring": current_datetime_now_tostring,
+        "next_expiry": next_expiry,
+        "now": timezone.now(),
     })
 
 
