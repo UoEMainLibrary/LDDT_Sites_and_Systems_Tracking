@@ -116,6 +116,46 @@ class Website(models.Model):
     url_access_scope_manual = models.BooleanField(
         default=False
     )
+    HTTP_STATUS_CHOICES = [
+        ("OK", "OK"),
+        ("BLOCKED", "BLOCKED"),
+        ("REDIRECT", "REDIRECT"),
+        ("OFFLINE", "OFFLINE"),
+        ("SSL_ERROR", "SSL ERROR"),
+        ("ERROR", "ERROR"),
+    ]
+
+    http_check_status = models.CharField(
+        "HTTP Check Status",
+        max_length=20,
+        choices=HTTP_STATUS_CHOICES,
+        blank=True,
+        null=True,
+    )
+
+    http_status_code = models.IntegerField(
+        "HTTP Status Code",
+        blank=True,
+        null=True,
+    )
+
+    response_time_ms = models.IntegerField(
+        "Response Time ms",
+        blank=True,
+        null=True,
+    )
+
+    last_checked = models.DateTimeField(
+        "Last Checked",
+        blank=True,
+        null=True,
+    )
+
+    last_error = models.TextField(
+        "Last Error",
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return self.url

@@ -86,11 +86,6 @@ table.table {
     background: var(--hover);
 }
 
-.badge-ok      { background: #2ecc71; }
-.badge-working { background: #f1c40f; color: black; }
-.badge-issue   { background: #e74c3c; }
-.badge-sent    { background: #3498db; }
-
 .expiring-soon {
     background: rgba(255, 0, 0, 0.15) !important;
 }
@@ -109,8 +104,41 @@ table.table {
 }
 
 .provider-cell,
-.scope-cell {
+.scope-cell,
+.http-status-cell {
     white-space: nowrap;
+}
+
+.http-status-box {
+    display: inline-block;
+    padding: 6px 8px;
+    border-radius: 8px;
+    min-width: 90px;
+}
+
+.http-ok {
+    background: #198754;
+    color: #fff;
+}
+
+.http-warning {
+    background: #ffc107;
+    color: #000;
+}
+
+.http-bad {
+    background: #dc3545;
+    color: #fff;
+}
+
+.http-empty {
+    background: #6c757d;
+    color: #fff;
+}
+
+.http-small {
+    font-size: 0.75rem;
+    line-height: 1.2;
 }
 </style>
 </head>
@@ -167,10 +195,9 @@ table.table {
 
 <header>
     <div class="container-fluid">
-        <h1>WebSites - SSL Certificates</h1>
-
-        <p>
-            Total records: <b>{{ table_item_count_sites }}</b><br>
+        <p class="mb-0">
+            Total services: <b>{{ table_item_count_sites }}</b><br>
+            Showing after search: <b id="visibleCount">{{ table_item_count_sites }}</b><br>
 
             Next SSL expiration:
 
@@ -222,6 +249,20 @@ table.table {
             </div>
 
             <div class="col-md-4">
+                <label>HTTP/HTTPS Status Filter:</label>
+                <select id="httpStatusFilter" class="form-select">
+                    <option value="">All HTTP/HTTPS Statuses</option>
+                    <option value="OK">OK</option>
+                    <option value="BLOCKED">BLOCKED</option>
+                    <option value="REDIRECT">REDIRECT</option>
+                    <option value="OFFLINE">OFFLINE</option>
+                    <option value="SSL_ERROR">SSL ERROR</option>
+                    <option value="ERROR">ERROR</option>
+                    <option value="N/A">N/A</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
                 <label>Server Filter:</label>
                 <input id="serverFilter" class="form-control" placeholder="Server name">
             </div>
@@ -252,14 +293,20 @@ table.table {
                 </select>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label>Expiry Date From:</label>
                 <input type="date" id="dateFrom" class="form-control">
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label>Expiry Date To:</label>
                 <input type="date" id="dateTo" class="form-control">
+            </div>
+
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
+                    Clear Filters
+                </button>
             </div>
 
         </div>
@@ -272,7 +319,7 @@ table.table {
 
             <thead>
                 <tr>
-                    <th data-col="status">Status</th>
+                    <th data-col="http">HTTP/HTTPS Status</th>
                     <th data-col="activity">Activity</th>
                     <th data-col="expiry">Expiry</th>
                     <th data-col="cn">Common Name</th>
@@ -293,17 +340,59 @@ table.table {
                         expiring-soon
                     {% endif %}
                 "
-                data-href="{% url 'website_details' website.id %}">
+                data-href="{% url 'website_details' website.id %}"
+                data-http-status="{% if website.http_check_status %}{{ website.http_check_status }}{% else %}N/A{% endif %}">
 
-                    <td>
-                        {% if website.tech_status_light == "OK" %}
-                            <span class="badge badge-ok">OK</span>
-                        {% elif website.tech_status_light == "WORKING ON" %}
-                            <span class="badge badge-working">WORKING</span>
-                        {% elif website.tech_status_light == "ISSUE" %}
-                            <span class="badge badge-issue">ISSUE</span>
-                        {% elif website.tech_status_light == "CERT SENT" %}
-                            <span class="badge badge-sent">CERT SENT</span>
+                    <td class="http-status-cell">
+                        {% if website.http_check_status == "OK" %}
+                            <div class="http-status-box http-ok">
+                                <strong>OK</strong>
+
+                                {% if website.http_status_code %}
+                                    <br>
+                                    <small class="http-small">HTTP {{ website.http_status_code }}</small>
+                                {% endif %}
+
+                                {% if website.response_time_ms %}
+                                    <br>
+                                    <small class="http-small">{{ website.response_time_ms }}ms</small>
+                                {% endif %}
+                            </div>
+
+                        {% elif website.http_check_status == "BLOCKED" or website.http_check_status == "REDIRECT" %}
+                            <div class="http-status-box http-warning">
+                                <strong>{{ website.http_check_status }}</strong>
+
+                                {% if website.http_status_code %}
+                                    <br>
+                                    <small class="http-small">HTTP {{ website.http_status_code }}</small>
+                                {% endif %}
+
+                                {% if website.response_time_ms %}
+                                    <br>
+                                    <small class="http-small">{{ website.response_time_ms }}ms</small>
+                                {% endif %}
+                            </div>
+
+                        {% elif website.http_check_status %}
+                            <div class="http-status-box http-bad">
+                                <strong>{{ website.http_check_status }}</strong>
+
+                                {% if website.http_status_code %}
+                                    <br>
+                                    <small class="http-small">HTTP {{ website.http_status_code }}</small>
+                                {% endif %}
+
+                                {% if website.response_time_ms %}
+                                    <br>
+                                    <small class="http-small">{{ website.response_time_ms }}ms</small>
+                                {% endif %}
+                            </div>
+
+                        {% else %}
+                            <div class="http-status-box http-empty">
+                                <strong>N/A</strong>
+                            </div>
                         {% endif %}
                     </td>
 
@@ -436,8 +525,16 @@ document.querySelectorAll(".main-row").forEach(row => {
     });
 });
 
+function updateVisibleCount() {
+    const visibleRows = Array.from(document.querySelectorAll(".main-row"))
+        .filter(row => row.style.display !== "none").length;
+
+    document.getElementById("visibleCount").innerText = visibleRows;
+}
+
 function applyFilters() {
     const global = document.getElementById("globalFilter").value.toLowerCase();
+    const httpStatus = document.getElementById("httpStatusFilter").value;
     const server = document.getElementById("serverFilter").value.toLowerCase();
     const cn = document.getElementById("cnFilter").value.toLowerCase();
     const ip = document.getElementById("ipFilter").value.toLowerCase();
@@ -451,8 +548,10 @@ function applyFilters() {
 
         const cells = row.children;
         const rowText = row.innerText.toLowerCase();
+        const rowHttpStatus = row.dataset.httpStatus || "N/A";
 
         if (global && !rowText.includes(global)) show = false;
+        if (httpStatus && rowHttpStatus !== httpStatus) show = false;
         if (server && !cells[6].innerText.toLowerCase().includes(server)) show = false;
         if (cn && !cells[3].innerText.toLowerCase().includes(cn)) show = false;
         if (ip && cells[4].innerText.trim().toLowerCase() !== ip) show = false;
@@ -472,11 +571,21 @@ function applyFilters() {
             row.nextElementSibling.style.display = "none";
         }
     });
+
+    updateVisibleCount();
 }
 
 document.querySelectorAll("input, select").forEach(element => {
     element.addEventListener("input", applyFilters);
     element.addEventListener("change", applyFilters);
+});
+
+document.getElementById("clearFilters").addEventListener("click", () => {
+    document.querySelectorAll("input, select").forEach(element => {
+        element.value = "";
+    });
+
+    applyFilters();
 });
 
 function parseDate(text) {
@@ -549,6 +658,8 @@ function sortTableByColumn(index, ascending, type = "text") {
         table.append(row);
         table.append(exp);
     });
+
+    updateVisibleCount();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -563,6 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
     expiryTh.dataset.sort = "asc";
 
     sortTableByColumn(2, true, "date");
+    updateVisibleCount();
 });
 
 document.querySelectorAll("th[data-col]").forEach(th => {
