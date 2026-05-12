@@ -1,99 +1,492 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <title>My Example</title>
+    <title>{{ website.common_name }} - Details</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'style_detail_form.css' %}" >
 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<style>
+:root {
+    --bg: #ffffff;
+    --text: #222;
+    --card-bg: #ffffff;
+    --muted: #666;
+    --border: #ddd;
+    --header-bg: #6B6B6D;
+    --header-text: #fff;
+}
+
+html[data-theme="dark"] {
+    --bg: #1c1c1c;
+    --text: #e5e5e5;
+    --card-bg: #2b2b2b;
+    --muted: #aaa;
+    --border: #555;
+    --header-bg: #444;
+    --header-text: #fff;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Open Sans", Arial, sans-serif;
+}
+
+.navbar {
+    background: var(--card-bg);
+    border-bottom: 2px solid var(--border);
+    padding: 12px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar a {
+    color: var(--text);
+    text-decoration: none;
+    margin-right: 15px;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.navbar a:hover,
+.navbar a.active {
+    background: var(--header-bg);
+    color: var(--header-text);
+}
+
+.main_body {
+    padding: 25px;
+}
+
+.page-header {
+    background: var(--header-bg);
+    color: var(--header-text);
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.page-header p {
+    margin: 8px 0 0 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 18px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+}
+
+.field {
+    margin-bottom: 10px;
+}
+
+.label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.value {
+    font-size: 15px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-green {
+    background: #198754;
+    color: white;
+}
+
+.badge-yellow {
+    background: #ffc107;
+    color: black;
+}
+
+.badge-red {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-blue {
+    background: #0d6efd;
+    color: white;
+}
+
+.badge-grey {
+    background: #6c757d;
+    color: white;
+}
+
+.code {
+    color: #0dcaf0;
+    font-family: monospace;
+}
+
+.notes-card {
+    margin-top: 18px;
+}
+
+.text-block {
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+a {
+    color: #0dcaf0;
+}
+
+@media (max-width: 1100px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 </head>
+
 <body>
-<div class="main_body" >
-    <div class="navbar">
-        <a href="{% url 'websites_home' %}">Back</a>
-        <a class="active" href="#">View Mode</a>
-        <a href="{% url 'update_website' website.id %}">Edit Mode</a>
-        <a href="{% url 'delete_website' website.id %}">Delete</a>
+
+<div class="navbar">
+    <a href="{% url 'websites_home' %}">Back</a>
+    <a class="active" href="#">View Mode</a>
+    <a href="{% url 'update_website' website.id %}">Edit Mode</a>
+    <a href="{% url 'delete_website' website.id %}">Delete</a>
+</div>
+
+<div class="main_body">
+
+    <div class="page-header">
+        <h1>{{ website.common_name|default:"Website Details" }}</h1>
+        <p>{{ website.function|default:"No function recorded" }}</p>
+
+        {% if website.url %}
+            <p>
+                <a href="{{ website.url }}" target="_blank">
+                    {{ website.url }}
+                </a>
+            </p>
+        {% endif %}
+    </div>
+
+    <div class="grid">
+
+        <div class="card">
+            <h2>Service Health</h2>
+
+            <div class="field">
+                <span class="label">HTTP/HTTPS Status</span>
+                <span class="value">
+                    {% if website.http_check_status == "OK" %}
+                        <span class="badge badge-green">OK</span>
+                    {% elif website.http_check_status == "BLOCKED" or website.http_check_status == "REDIRECT" %}
+                        <span class="badge badge-yellow">{{ website.http_check_status }}</span>
+                    {% elif website.http_check_status %}
+                        <span class="badge badge-red">{{ website.http_check_status }}</span>
+                    {% else %}
+                        <span class="badge badge-grey">N/A</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="field">
+                <span class="label">HTTP Status Code</span>
+                <span class="value">{{ website.http_status_code|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Response Time</span>
+                <span class="value">
+                    {% if website.response_time_ms %}
+                        {{ website.response_time_ms }}ms
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="field">
+                <span class="label">Last Checked</span>
+                <span class="value">
+                    {% if website.last_checked %}
+                        {{ website.last_checked|date:"Y-m-d H:i" }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="field">
+                <span class="label">Last Error</span>
+                <span class="value">{{ website.last_error|default:"N/A" }}</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>SSL Certificate</h2>
+
+            <div class="field">
+                <span class="label">SSL Expiry Date</span>
+                <span class="value">
+                    {% if website.ssl_expiry_date_new %}
+                        {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
+                        <br>
+                        <small>in {{ website.ssl_expiry_date_new|timeuntil }}</small>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="field">
+                <span class="label">Old SSL Expiry Date</span>
+                <span class="value">
+                    {% if website.ssl_expiry_date %}
+                        {{ website.ssl_expiry_date|date:"Y-m-d" }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="field">
+                <span class="label">SSL Provider</span>
+                <span class="value">{{ website.ssl_certificate_provider|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">SSL Type</span>
+                <span class="value">{{ website.ssl_type|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Cert Manager</span>
+                <span class="value">{{ website.cert_manager|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">SSL Process</span>
+                <span class="value">{{ website.ssl_cert_process|default:"N/A" }}</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Network & Access</h2>
+
+            <div class="field">
+                <span class="label">Resolved URL IP</span>
+                <span class="value">
+                    {% if website.url_ip %}
+                        <span class="code">{{ website.url_ip }}</span>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="field">
+                <span class="label">Access Scope</span>
+                <span class="value">
+                    {% if website.url_access_scope == "GLOBAL" %}
+                        {% if website.url_access_scope_manual %}
+                            <span class="badge badge-yellow">Global-manual</span>
+                        {% else %}
+                            <span class="badge badge-green">Global</span>
+                        {% endif %}
+                    {% elif website.url_access_scope == "EDLAN_ONLY" %}
+                        {% if website.url_access_scope_manual %}
+                            <span class="badge badge-yellow">EdLan-only-manual</span>
+                        {% else %}
+                            <span class="badge badge-blue">EdLan-only</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge badge-grey">N/A</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="field">
+                <span class="label">Server</span>
+                <span class="value">{{ website.server|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">VM IP Address</span>
+                <span class="value">{{ website.vm_ip_address|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Port</span>
+                <span class="value">{{ website.port|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Load Balancer</span>
+                <span class="value">{{ website.load_balancer|default:"N/A" }}</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Ownership</h2>
+
+            <div class="field">
+                <span class="label">User</span>
+                <span class="value">{{ website.user|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Major User</span>
+                <span class="value">{{ website.major_user|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">External Support</span>
+                <span class="value">{{ website.external_support|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Expected Response</span>
+                <span class="value">{{ website.expected_response|default:"N/A" }}</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Service Metadata</h2>
+
+            <div class="field">
+                <span class="label">Tech Status</span>
+                <span class="value">{{ website.tech_status|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Activity</span>
+                <span class="value">{{ website.activity|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Ours</span>
+                <span class="value">{{ website.ours|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Environment</span>
+                <span class="value">{{ website.environment|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Application</span>
+                <span class="value">{{ website.application|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Handle Prefix</span>
+                <span class="value">{{ website.handle_prefix|default:"N/A" }}</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Compliance & Analytics</h2>
+
+            <div class="field">
+                <span class="label">Personal Data Held</span>
+                <span class="value">{{ website.personal_data_held|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Vulnerability Checked</span>
+                <span class="value">{{ website.vulnerability_checked|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">Accessibility Statement</span>
+                <span class="value">{{ website.accessibility_statement|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">GA4 Required?</span>
+                <span class="value">{{ website.ga4_required|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">GA4 Active?</span>
+                <span class="value">{{ website.ga4_y_n|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">GA4 Path</span>
+                <span class="value">{{ website.ga4_path|default:"N/A" }}</span>
+            </div>
+
+            <div class="field">
+                <span class="label">EASE Expiry</span>
+                <span class="value">
+                    {% if website.ease_expiry %}
+                        {{ website.ease_expiry|date:"Y-m-d" }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </span>
+            </div>
+        </div>
 
     </div>
 
-    <table>
-        <tr>
-            <td colspan="3" style="text-align: center; padding:20px"><span style="color: gray; font-size:12px">Function:</span> <span style="font-size: 20px">{{ website.function }}</span></td>
-        </tr>
-        <tr>
-            <td><span style="color: gray; font-size:12px">URL:</span> <a href=" {{ website.url }}" target="_blank">{{ website.url }}</a></td>
-            <td><span style="color: gray; font-size:12px">Server:</span> {{ website.server }}</td>
-            <td><span style="color: gray; font-size:12px">SSL Expiry Date:</span> {{ website.ssl_expiry_date | date:"d/m/Y" }}</td>
-        </tr>
-    </table>
+    <div class="card notes-card">
+        <h2>Restore Action</h2>
+        <div class="text-block">
+            {{ website.restore_action|default:"N/A"|linebreaks }}
+        </div>
+    </div>
 
-    <br>
+    <div class="card notes-card">
+        <h2>SSL Certificate Action</h2>
+        <div class="text-block">
+            {{ website.ssl_certificate_action|default:"N/A"|linebreaks }}
+        </div>
+    </div>
 
-    <table>
-        <tr>
-            <td style="vertical-align: top; width: 20%; border-left: 5px solid gray; border-right: 1px solid white; border-top: 1px solid white; border-bottom: 1px solid white">
-                <span style="color: gray; font-size:12px">Status:</span> {{ website.tech_status }}<br>
-                <span style="color: gray; font-size:12px">Activity:</span> {{ website.activity }}<br>
-                <span style="color: gray; font-size:12px">Common Name::</span> {{ website.common_name }}<br>
-                <span style="color: gray; font-size:12px">Ours:</span> {{ website.ours }}<br>
-                <span style="color: gray; font-size:12px">Environment:</span> {{ website.environment }}<br>
-                <hr>
-                <span style="color: gray; font-size:12px">Application:</span> {{ website.application }}<br>
-                <hr>
-                <span style="color: gray; font-size:12px">Port:</span> {{ website.port }}<br>
-                <span style="color: gray; font-size:12px">VM IP Address:</span> {{ website.vm_ip_address }}<br>
-                <span style="color: gray; font-size:12px">DNS IP Address:</span> {{ website.dns_ip_address }}<br>
-                <span style="color: gray; font-size:12px">DNS Network Status:</span> {{ website.dns_network_status }}<br>
-                <span style="color: gray; font-size:12px">VM Network Status:</span> {{ website.vm_network_status }}<br>
-                <hr>
-                <span style="color: gray; font-size:12px">Load Balancer:</span> {{ website.load_balancer }}<br>
-                <span style="color: gray; font-size:12px">Cert-Manager:</span> {{ website.cert_manager }}<br>
-                <span style="color: gray; font-size:12px">SSL Process:</span> {{ website.ssl_cert_process }}<br>
-            </td>
+    <div class="card notes-card">
+        <h2>Google Analytics Notes</h2>
+        <div class="text-block">
+            {{ website.ga4_notes|default:"N/A"|linebreaks }}
+        </div>
+    </div>
 
-            <td style="vertical-align: top; width: 30%; border-left: 5px solid gray; border-right: 1px solid white; ">
-                <span style="color: gray; font-size:12px">User:</span> {{ website.user }} <br>
-                <span style="color: gray; font-size:12px">Major User:</span> {{ website.major_user }} <br>
-                <hr>
-                <span style="color: gray; font-size:12px">External Support:</span> {{ website.external_support }} <br>
-                <span style="color: gray; font-size:12px">Expected Response:</span> {{ website.expected_response }} <br>
-                <hr>
-                <span style="color: gray; font-size:12px">Personal Data Held:</span> {{ website.personal_data_held }} <br>
-                <span style="color: gray; font-size:12px">SSL Type:</span> {{ website.ssl_type }} <br>
-                <span style="color: gray; font-size:12px">EASE Expiry:</span> {{ website.ease_expiry }} <br>
-                <span style="color: gray; font-size:12px">Handle Prefix:</span> {{ website.handle_prefix }} <br>
-                <hr>
-                <span style="color: gray; font-size:12px">Vulnerability Checked:</span> {{ website.vulnerability_checked }} <br>
-                <span style="color: gray; font-size:12px">Accessibility Statement:</span> {{ website.accessibility_statement }} <br>
-                <hr>
-                <span style="color: gray; font-size:12px">GA4 Required?:</span> {{ website.ga4_required }} <br>
-                <span style="color: gray; font-size:12px">GA4 Active?:</span> {{ website.ga4_y_n }} <br>
-                <span style="color: gray; font-size:12px">GA4 Path:</span> {{ website.ga4_path }} <br>
+    <div class="card notes-card">
+        <h2>Notes</h2>
+        <div class="text-block">
+            {{ website.notes|default:"N/A"|linebreaks }}
+        </div>
+    </div>
 
-
-            </td>
-            <td style="vertical-align: top; width: 40%; border-left: 5px solid gray; border-right: 1px solid white;">
-                <p style="color: gray; font-size:12px">Restore Action:</p> <span style="font-size: 15px"> {{ website.restore_action | linebreaks }} </span> <br>
-                <hr>
-                <p style="color: gray; font-size:12px">SSL Certificate Action:</p> <span style="font-size: 15px"> {{ website.ssl_certificate_action | linebreaks }} </span><br>
-                <hr>
-                <p style="color: gray; font-size:12px">Google Analytics Notes:</p> <span style="font-size: 15px"> {{ website.ga4_notes | linebreaks }} </span><br>
-
-            </td>
-        </tr>
-    </table>
-    <br>
-    <table>
-        <tr>
-            <td>
-                <p style="color: gray; font-size:12px">Notes:</p> <span style="font-size:13px">{{ website.notes | linebreaks}} </span><br>
-            </td>
-        </tr>
-    </table>
 </div>
-
 
 </body>
 </html>

@@ -1,107 +1,624 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+    <title>Edit {{ website.common_name }}</title>
     {% load static %}
-    <title>Website Form</title>
-    <link rel="stylesheet" href="{% static 'style_detail_form.css' %}" >
+    {% load crispy_forms_tags %}
 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<style>
+:root {
+    --bg: #ffffff;
+    --text: #222;
+    --card-bg: #ffffff;
+    --muted: #666;
+    --border: #ddd;
+    --header-bg: #6B6B6D;
+    --header-text: #fff;
+}
+
+html[data-theme="dark"] {
+    --bg: #1c1c1c;
+    --text: #e5e5e5;
+    --card-bg: #2b2b2b;
+    --muted: #aaa;
+    --border: #555;
+    --header-bg: #444;
+    --header-text: #fff;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Open Sans", Arial, sans-serif;
+}
+
+.navbar {
+    background: var(--card-bg);
+    border-bottom: 2px solid var(--border);
+    padding: 12px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar a {
+    color: var(--text);
+    text-decoration: none;
+    margin-right: 15px;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.navbar a:hover,
+.navbar a.active {
+    background: var(--header-bg);
+    color: var(--header-text);
+}
+
+.main_body {
+    padding: 25px;
+}
+
+.page-header {
+    background: var(--header-bg);
+    color: var(--header-text);
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.page-header p {
+    margin: 8px 0 0 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 18px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+}
+
+.field {
+    margin-bottom: 12px;
+}
+
+label,
+.label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px;
+    font-size: 14px;
+}
+
+textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+.helptext {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.errorlist {
+    color: #ff7675;
+    font-size: 12px;
+    margin: 4px 0;
+    padding-left: 16px;
+}
+
+.readonly-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-green {
+    background: #198754;
+    color: white;
+}
+
+.badge-yellow {
+    background: #ffc107;
+    color: black;
+}
+
+.badge-red {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-blue {
+    background: #0d6efd;
+    color: white;
+}
+
+.badge-grey {
+    background: #6c757d;
+    color: white;
+}
+
+.code {
+    color: #0dcaf0;
+    font-family: monospace;
+}
+
+.notes-card {
+    margin-top: 18px;
+}
+
+.save-bar {
+    position: sticky;
+    bottom: 0;
+    margin-top: 25px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    z-index: 900;
+}
+
+.btn {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.btn-save {
+    background: #198754;
+    color: white;
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+}
+
+@media (max-width: 1100px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .save-bar {
+        flex-direction: column;
+    }
+
+    .btn {
+        text-align: center;
+    }
+}
+</style>
 </head>
-{% load crispy_forms_tags %}
+
 <body>
-<div class="main_body" >
-    <div class="navbar">
-        <a href="{% url 'lddt_subsites_home' %}">Back</a>
-        <a href = "{% url 'website_details' website.id %}">View Mode</a>
-        <a class="active" href="{% url 'update_website' website.id %}">Edit Mode</a>
-        <a href="{% url 'delete_website' website.id %}">Delete</a>
+
+<div class="navbar">
+    <a href="{% url 'websites_home' %}">Back</a>
+    <a href="{% url 'website_details' website.id %}">View Mode</a>
+    <a class="active" href="{% url 'update_website' website.id %}">Edit Mode</a>
+    <a href="{% url 'delete_website' website.id %}">Delete</a>
+</div>
+
+<div class="main_body">
+
+    <div class="page-header">
+        <h1>Edit Website</h1>
+        <p>{{ website.common_name|default:"Website Details" }}</p>
+
+        {% if website.url %}
+            <p>
+                <a href="{{ website.url }}" target="_blank" style="color:#0dcaf0;">
+                    {{ website.url }}
+                </a>
+            </p>
+        {% endif %}
     </div>
-<form method="POST">
-    {% csrf_token %}
-    <table>
-        <tr>
-            <td colspan="3" style="text-align: center; padding:20px">
-                <span style="color: gray; font-size:15px">Function:</span> <span style="font-size: 20px">{{ website_form.function }}</span><br>
-                <br>
-                <span style="color: gray; font-size:10px">Type:</span> <span style="font-size: 13px">{{ website_form.type  }}</span>
 
-            </td>
-        </tr>
-        <tr>
-            <td><span style="color: gray; font-size:12px">URL:</span> {{ website_form.url }}</td>
-            <td><span style="color: gray; font-size:12px">Server:</span> {{ website_form.server }}</td>
-            <td><span style="color: gray; font-size:12px">SSL Expiry Date:</span> {{ website_form.ssl_expiry_date }}</td>
-        </tr>
-    </table>
-    <br>
-    <table>
-        <tr>
-            <td style="vertical-align: top; width: 20%; border-left: 5px solid gray; border-right: 1px solid white; border-top: 1px solid white; border-bottom: 1px solid white">
-                <span style="color: gray; font-size:12px">Status:</span> {{ website_form.tech_status }}<br>
-                <span style="color: gray; font-size:12px">Activity:</span> {{ website_form.activity }}<br>
-                <span style="color: gray; font-size:12px">Common Name::</span> {{ website_form.common_name }}<br>
-                <span style="color: gray; font-size:12px">Ours:</span> {{ website_form.ours }}<br>
-                <span style="color: gray; font-size:12px">Environment:</span> {{ website_form.environment }}<br>
-                <hr>
-                <span style="color: gray; font-size:12px">Application:</span> {{ website_form.application }}<br>
-                <hr>
-                <span style="color: gray; font-size:12px">Port:</span> {{ website_form.port }}<br>
-                <span style="color: gray; font-size:12px">VM IP Address:</span> {{ website_form.vm_ip_address }}<br>
-                <span style="color: gray; font-size:12px">DNS IP Address:</span> {{ website.dns_ip_address }}<br>
-                <span style="color: gray; font-size:12px">DNS Network Status:</span> {{ website.dns_network_status }}<br>
-                <span style="color: gray; font-size:12px">VM Network Status:</span> {{ website.vm_network_status }}<br>
-                <hr>
-                <span style="color: gray; font-size:12px">Load Balancer:</span> {{ website_form.load_balancer }}<br>
-                <span style="color: gray; font-size:12px">Cert-Manager:</span> {{ website_form.cert_manager }}<br>
-                <span style="color: gray; font-size:12px">SSL Process:</span> {{ website_form.ssl_cert_process }}<br>
-            </td>
+    <form method="POST">
+        {% csrf_token %}
 
-            <td style="vertical-align: top; width: 30%; border-left: 5px solid gray; border-right: 1px solid white; ">
-                <span style="color: gray; font-size:12px">User:</span> {{ website_form.user }} <br>
-                <span style="color: gray; font-size:12px">Major User:</span> {{ website_form.major_user }} <br>
-                <hr>
-                <span style="color: gray; font-size:12px">External Support:</span> {{ website_form.external_support }} <br>
-                <span style="color: gray; font-size:12px">Expected Response:</span> {{ website_form.expected_response }} <br>
-                <hr>
-                <span style="color: gray; font-size:12px">Personal Data Held:</span> {{ website_form.personal_data_held }} <br>
-                <span style="color: gray; font-size:12px">SSL Type:</span> {{ website_form.ssl_type }} <br>
-                <span style="color: gray; font-size:12px">EASE Expiry:</span> {{ website_form.ease_expiry }} <br>
-                <span style="color: gray; font-size:12px">Handle Prefix:</span> {{ website_form.handle_prefix }} <br>
-                <hr>
-                <span style="color: gray; font-size:12px">Vulnerability Checked:</span> {{ website_form.vulnerability_checked }} <br>
-                <span style="color: gray; font-size:12px">Accessibility Statement Y/N:</span> {{ website_form.access_statement_y_n }} <br>
-                <span style="color: gray; font-size:12px">Accessibility Statement:</span> {{ website_form.accessibility_statement }} <br>
-                <hr>
-                <span style="color: gray; font-size:12px">GA4 Required?:</span> {{ website_form.ga4_required }} <br>
-                <span style="color: gray; font-size:12px">GA4 Active?:</span> {{ website_form.ga4_y_n }} <br>
-                <span style="color: gray; font-size:12px">GA4 Path:</span> {{ website_form.ga4_path }} <br>
+        {{ website_form.non_field_errors }}
 
+        <div class="grid">
 
-            </td>
-            <td style="vertical-align: top; width: 40%; border-left: 5px solid gray; border-right: 1px solid white;">
-                <p style="color: gray; font-size:12px">Restore Action:</p> <span style="font-size: 15px"> {{ website_form.restore_action  }} </span> <br>
-                <hr>
-                <p style="color: gray; font-size:12px">SSL Certificate Action:</p> <span style="font-size: 15px"> {{ website_form.ssl_certificate_action  }} </span><br>
-                <hr>
-                <p style="color: gray; font-size:12px">Google Analytics Notes:</p> <span style="font-size: 15px"> {{ website_form.ga4_notes  }} </span><br>
-            </td>
-        </tr>
-    </table>
-    <table>
-        <tr style="width: 100%">
-            <td>
-                <p style="color: gray; font-size:12px">Notes:</p> <span style="font-size: 15px; width:100%"> {{ website_form.notes }} </span>
-            </td>
-        </tr>
-    </table>
-    <button type="submit">Submit</button>
-</form>
+            <div class="card">
+                <h2>Core Details</h2>
 
+                <div class="field">
+                    <label>Function</label>
+                    {{ website_form.function }}
+                    {{ website_form.function.errors }}
+                </div>
 
+                <div class="field">
+                    <label>Type</label>
+                    {{ website_form.type }}
+                    {{ website_form.type.errors }}
+                </div>
 
+                <div class="field">
+                    <label>URL</label>
+                    {{ website_form.url }}
+                    {{ website_form.url.errors }}
+                </div>
 
+                <div class="field">
+                    <label>Common Name</label>
+                    {{ website_form.common_name }}
+                    {{ website_form.common_name.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Server</label>
+                    {{ website_form.server }}
+                    {{ website_form.server.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Application</label>
+                    {{ website_form.application }}
+                    {{ website_form.application.errors }}
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Service Health</h2>
+
+                <div class="field">
+                    <span class="label">HTTP/HTTPS Status</span>
+                    {% if website.http_check_status == "OK" %}
+                        <span class="badge badge-green">OK</span>
+                    {% elif website.http_check_status == "BLOCKED" or website.http_check_status == "REDIRECT" %}
+                        <span class="badge badge-yellow">{{ website.http_check_status }}</span>
+                    {% elif website.http_check_status %}
+                        <span class="badge badge-red">{{ website.http_check_status }}</span>
+                    {% else %}
+                        <span class="badge badge-grey">N/A</span>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <span class="label">HTTP Status Code</span>
+                    <div class="readonly-box">{{ website.http_status_code|default:"N/A" }}</div>
+                </div>
+
+                <div class="field">
+                    <span class="label">Response Time</span>
+                    <div class="readonly-box">
+                        {% if website.response_time_ms %}
+                            {{ website.response_time_ms }}ms
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <span class="label">Last Checked</span>
+                    <div class="readonly-box">
+                        {% if website.last_checked %}
+                            {{ website.last_checked|date:"Y-m-d H:i" }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Tech Status</label>
+                    {{ website_form.tech_status }}
+                    {{ website_form.tech_status.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Activity</label>
+                    {{ website_form.activity }}
+                    {{ website_form.activity.errors }}
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>SSL Certificate</h2>
+
+                <div class="field">
+                    <label>SSL Expiry Date</label>
+                    {{ website_form.ssl_expiry_date }}
+                    {{ website_form.ssl_expiry_date.errors }}
+                </div>
+
+                {% if website_form.ssl_expiry_date_new %}
+                    <div class="field">
+                        <label>SSL Expiry Date New</label>
+                        {{ website_form.ssl_expiry_date_new }}
+                        {{ website_form.ssl_expiry_date_new.errors }}
+                    </div>
+                {% else %}
+                    <div class="field">
+                        <span class="label">SSL Expiry Date New</span>
+                        <div class="readonly-box">
+                            {% if website.ssl_expiry_date_new %}
+                                {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="field">
+                    <span class="label">SSL Provider</span>
+                    <div class="readonly-box">
+                        {{ website.ssl_certificate_provider|default:"N/A" }}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>SSL Type</label>
+                    {{ website_form.ssl_type }}
+                    {{ website_form.ssl_type.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Cert Manager</label>
+                    {{ website_form.cert_manager }}
+                    {{ website_form.cert_manager.errors }}
+                </div>
+
+                <div class="field">
+                    <label>SSL Process</label>
+                    {{ website_form.ssl_cert_process }}
+                    {{ website_form.ssl_cert_process.errors }}
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Network & Access</h2>
+
+                <div class="field">
+                    <span class="label">Resolved URL IP</span>
+                    <div class="readonly-box">
+                        {% if website.url_ip %}
+                            <span class="code">{{ website.url_ip }}</span>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if website_form.url_access_scope %}
+                    <div class="field">
+                        <label>Access Scope</label>
+                        {{ website_form.url_access_scope }}
+                        {{ website_form.url_access_scope.errors }}
+                    </div>
+                {% else %}
+                    <div class="field">
+                        <span class="label">Access Scope</span>
+                        <div class="readonly-box">
+                            {{ website.get_url_access_scope_display|default:"N/A" }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if website_form.url_access_scope_manual %}
+                    <div class="field">
+                        <label>Access Scope Manual?</label>
+                        {{ website_form.url_access_scope_manual }}
+                        {{ website_form.url_access_scope_manual.errors }}
+                    </div>
+                {% endif %}
+
+                <div class="field">
+                    <label>Port</label>
+                    {{ website_form.port }}
+                    {{ website_form.port.errors }}
+                </div>
+
+                <div class="field">
+                    <label>VM IP Address</label>
+                    {{ website_form.vm_ip_address }}
+                    {{ website_form.vm_ip_address.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Load Balancer</label>
+                    {{ website_form.load_balancer }}
+                    {{ website_form.load_balancer.errors }}
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Ownership</h2>
+
+                <div class="field">
+                    <label>User</label>
+                    {{ website_form.user }}
+                    {{ website_form.user.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Major User</label>
+                    {{ website_form.major_user }}
+                    {{ website_form.major_user.errors }}
+                </div>
+
+                <div class="field">
+                    <label>External Support</label>
+                    {{ website_form.external_support }}
+                    {{ website_form.external_support.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Expected Response</label>
+                    {{ website_form.expected_response }}
+                    {{ website_form.expected_response.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Ours</label>
+                    {{ website_form.ours }}
+                    {{ website_form.ours.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Environment</label>
+                    {{ website_form.environment }}
+                    {{ website_form.environment.errors }}
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Compliance & Analytics</h2>
+
+                <div class="field">
+                    <label>Personal Data Held</label>
+                    {{ website_form.personal_data_held }}
+                    {{ website_form.personal_data_held.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Vulnerability Checked</label>
+                    {{ website_form.vulnerability_checked }}
+                    {{ website_form.vulnerability_checked.errors }}
+                </div>
+
+                {% if website_form.access_statement_y_n %}
+                    <div class="field">
+                        <label>Accessibility Statement Y/N</label>
+                        {{ website_form.access_statement_y_n }}
+                        {{ website_form.access_statement_y_n.errors }}
+                    </div>
+                {% endif %}
+
+                <div class="field">
+                    <label>Accessibility Statement</label>
+                    {{ website_form.accessibility_statement }}
+                    {{ website_form.accessibility_statement.errors }}
+                </div>
+
+                <div class="field">
+                    <label>EASE Expiry</label>
+                    {{ website_form.ease_expiry }}
+                    {{ website_form.ease_expiry.errors }}
+                </div>
+
+                <div class="field">
+                    <label>Handle Prefix</label>
+                    {{ website_form.handle_prefix }}
+                    {{ website_form.handle_prefix.errors }}
+                </div>
+
+                <div class="field">
+                    <label>GA4 Required?</label>
+                    {{ website_form.ga4_required }}
+                    {{ website_form.ga4_required.errors }}
+                </div>
+
+                <div class="field">
+                    <label>GA4 Active?</label>
+                    {{ website_form.ga4_y_n }}
+                    {{ website_form.ga4_y_n.errors }}
+                </div>
+
+                <div class="field">
+                    <label>GA4 Path</label>
+                    {{ website_form.ga4_path }}
+                    {{ website_form.ga4_path.errors }}
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card notes-card">
+            <h2>Restore Action</h2>
+            {{ website_form.restore_action }}
+            {{ website_form.restore_action.errors }}
+        </div>
+
+        <div class="card notes-card">
+            <h2>SSL Certificate Action</h2>
+            {{ website_form.ssl_certificate_action }}
+            {{ website_form.ssl_certificate_action.errors }}
+        </div>
+
+        <div class="card notes-card">
+            <h2>Google Analytics Notes</h2>
+            {{ website_form.ga4_notes }}
+            {{ website_form.ga4_notes.errors }}
+        </div>
+
+        <div class="card notes-card">
+            <h2>Notes</h2>
+            {{ website_form.notes }}
+            {{ website_form.notes.errors }}
+        </div>
+
+        <div class="save-bar">
+            <a href="{% url 'website_details' website.id %}" class="btn btn-cancel">Cancel</a>
+            <a href="{% url 'delete_website' website.id %}" class="btn btn-delete">Delete</a>
+            <button type="submit" class="btn btn-save">Save Changes</button>
+        </div>
+
+    </form>
+
+</div>
 
 </body>
 </html>
