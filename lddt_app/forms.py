@@ -8,325 +8,244 @@ class WebsiteForm(forms.ModelForm):
         model = Website
 
         fields = [
-            'ssl_expiry_date',
-            'url',
-            'activity',
-            'common_name',
-            'function',
-            'server',
-            'vm_ip_address',
-            'type',
-            'tech_status',
-            'cert_manager',
-            'ssl_cert_process',
-            'vulnerability_checked',
-            'personal_data_held',
-            'port',
-            'load_balancer',
-            'ours',
-            'environment',
-            'ssl_type',
-            'ease_expiry',
-            'application',
-            'restore_action',
-            'ssl_certificate_action',
-            'user',
-            'major_user',
-            'external_support',
-            'expected_response',
-            'handle_prefix',
-            'accessibility_statement',
-            'access_statement_y_n',
-            #'group',
-            'notes',
-            'ga4_required',
-            'ga4_y_n',
-            'ga4_notes',
-            'ga4_path',
+            "ssl_expiry_date",
+            "url",
+            "activity",
+            "common_name",
+            "function",
+            "server",
+            "vm_ip_address",
+            "type",
+            "tech_status",
+            "cert_manager",
+            "ssl_cert_process",
+            "vulnerability_checked",
+            "personal_data_held",
+            "port",
+            "load_balancer",
+            "ours",
+            "environment",
+            "ssl_type",
+            "ease_expiry",
+            "application",
+            "restore_action",
+            "ssl_certificate_action",
+            "user",
+            "major_user",
+            "external_support",
+            "expected_response",
+            "handle_prefix",
+            "accessibility_statement",
+            "access_statement_y_n",
+            "url_access_scope",
+            "url_access_scope_manual",
+            # "group",
+            "notes",
+            "ga4_required",
+            "ga4_y_n",
+            "ga4_notes",
+            "ga4_path",
         ]
 
-
         help_texts = {
-            "ssl_expiry_date": (
-                "* SSL Expiry Date exmp. 2022-04-13"
-            ),
-            "url": (
-                "* URL"
-            ),
-            "function": (
-                "* Function"
-            ),
-            "activity": (
-                "* Activity"
-            ),
-            "ssl_cert_process": (
-                "* SSL Cert Process"
-            ),
-            "cert_manager": (
-                "* Cert-Manager"
-            ),
-            "common_name": (
-                "* Common name examp. test.service.collections.ed.ac.uk"
-            ),
-            "server": (
-                "lac-serv-live21.is.ed.ac.uk"
-            ),
-            "vm_ip_address": (
-                "* VM IP Address"
-            ),
-            "vulnerability_checked": (
-                "* Vulnerability checked"
-            ),
-            "personal_data_held": (
-                "* Personal Data Held"
-            ),
-            "port": (
-                "* Port"
-            ),
-            "load_balancer": (
-                "* Load Balancer"
-            ),
-            "ours": (
-                "* Ours"
-            ),
-            "environment": (
-                ""
-            ),
-            "ssl_type": (
-                ""
-            ),
-            "ease_expiry": (
-                ""
-            ),
-            "application": (
-                ""
-            ),
-            "user": (
-                ""
-            ),
-            "major_user": (
-                ""
-            ),
-            "restore_action": (
-                "*Restore Action notes"
-            ),
-            "ssl_certificate_action": (
-                "*SSL Certificate Action:"
-            ),
-            "external_support": (
-                ""
-            ),
-            "expected_response": (
-                ""
-            ),
-            "handle_prefix": (
-                ""
-            ),
-            "accessibility_statement": (
-                ""
-            ),
-            "notes": (
-                ""
-            ),
-            "ga4_y_n": (
-                "GA4 Active?"
-            ),
-            "ga4_required": (
-                "GA4 Required?"
-            ),
+            "ssl_expiry_date": "* SSL Expiry Date, example: 2022-04-13",
+            "url": "* URL",
+            "function": "* Function",
+            "activity": "* Activity",
+            "ssl_cert_process": "* SSL Cert Process",
+            "cert_manager": "* Cert-Manager",
+            "common_name": "* Common name, example: test.service.collections.ed.ac.uk",
+            "server": "Example: lac-serv-live21.is.ed.ac.uk",
+            "vm_ip_address": "* VM IP Address",
+            "vulnerability_checked": "* Vulnerability checked",
+            "personal_data_held": "* Personal Data Held",
+            "port": "* Port",
+            "load_balancer": "* Load Balancer",
+            "ours": "* Ours",
+            "restore_action": "* Restore Action notes",
+            "ssl_certificate_action": "* SSL Certificate Action",
+            "ga4_y_n": "GA4 Active?",
+            "ga4_required": "GA4 Required?",
+            "url_access_scope": "Global or EdLan-only. This can be manually overridden.",
+            "url_access_scope_manual": "Tick when the access scope has been manually overridden.",
         }
+
         widgets = {
-            "ssl_expiry_date": forms.TextInput(
+            "ssl_expiry_date": forms.DateInput(
                 attrs={
-                    "id": "key_id",
-                    "required": True,
+                    "type": "date",
                     "placeholder": "SSL Expiry Date",
-                    "style": "text-align: center; color:black",
                 },
+                format="%Y-%m-%d",
             ),
+
+            "ease_expiry": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "placeholder": "EASE Expiry Date",
+                },
+                format="%Y-%m-%d",
+            ),
+
             "url": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "URL",
                 },
             ),
+
             "function": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Function",
                 },
             ),
+
             "server": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Server",
                 },
             ),
+
             "vm_ip_address": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "VM IP Address",
                 },
             ),
 
             "vulnerability_checked": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Vulnerability Checked",
                 },
             ),
+
             "personal_data_held": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Personal Data Held",
                 },
             ),
+
             "port": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Port",
                 },
             ),
+
             "load_balancer": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Load Balancer",
                 },
             ),
+
             "ours": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Ours",
                 },
             ),
+
             "environment": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Environment",
                 },
             ),
+
             "ssl_type": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "SSL Type",
                 },
             ),
-            "ease_expiry": forms.TextInput(
-                attrs={
-                    "id": "key_id",
-                    "required": False,
-                    "placeholder": "Expiry Date",
-                },
-            ),
+
             "application": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Application",
                 },
             ),
+
             "user": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "User",
                 },
             ),
-            "restore_action": forms.Textarea(
-                attrs={
-                    "id": "key_id",
-                    "required": False,
-                    "placeholder": "Restore Action",
-                    "style": "width: 100%; height: 150px; padding: 12px 20px; box-sizing: border-box; border: 2px solid #ccc; border-radius: 4px; background-color: #f8f8f8; font-size: 13px; resize: none;"
 
-                },
-            ),
-            "ssl_certificate_action": forms.Textarea(
-                attrs={
-                    "id": "key_id",
-                    "required": False,
-                    "placeholder": "SSL Certificate Action",
-                    "style": "width: 100%; height: 150px; padding: 12px 20px; box-sizing: border-box; border: 2px solid #ccc; border-radius: 4px; background-color: #f8f8f8; font-size: 13px; resize: none;"
-
-                },
-            ),
             "major_user": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Major User",
                 },
             ),
+
             "external_support": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "External Support",
                 },
             ),
+
             "expected_response": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Expected Response",
                 },
             ),
+
             "handle_prefix": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Handle Prefix",
                 },
             ),
 
             "accessibility_statement": forms.TextInput(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Accessibility Statement",
+                },
+            ),
+
+            "ga4_path": forms.TextInput(
+                attrs={
+                    "placeholder": "GA4 File Path",
+                },
+            ),
+
+            "restore_action": forms.Textarea(
+                attrs={
+                    "placeholder": "Restore Action",
+                    "rows": 6,
+                },
+            ),
+
+            "ssl_certificate_action": forms.Textarea(
+                attrs={
+                    "placeholder": "SSL Certificate Action",
+                    "rows": 6,
                 },
             ),
 
             "notes": forms.Textarea(
                 attrs={
-                    "id": "key_id",
-                    "required": False,
                     "placeholder": "Notes",
-                    "style": "width: 100%; height: 150px; padding: 12px 20px; box-sizing: border-box; border: 2px solid #ccc; border-radius: 4px; background-color: #f8f8f8; font-size: 13px; resize: none;"
-                },
-            ),
-            "ga4_notes": forms.Textarea(
-                attrs={
-                    "id": "key_id",
-                    "required": False,
-                    "placeholder": "GA4 Notes",
-                    "style": "width: 100%; height: 150px; padding: 12px 20px; box-sizing: border-box; border: 2px solid #ccc; border-radius: 4px; background-color: #f8f8f8; font-size: 13px; resize: none;"
-                },
-            ),
-            "ga4_path": forms.TextInput(
-                attrs={
-                    "id": "key_id",
-                    "required": False,
-                    "placeholder": "GA4 File Path",
+                    "rows": 6,
                 },
             ),
 
+            "ga4_notes": forms.Textarea(
+                attrs={
+                    "placeholder": "GA4 Notes",
+                    "rows": 6,
+                },
+            ),
         }
+
     def __init__(self, *args, **kwargs):
         super(WebsiteForm, self).__init__(*args, **kwargs)
+
         self.helper = FormHelper()
         self.helper.form_show_labels = False
+
+        self.fields["ssl_expiry_date"].input_formats = ["%Y-%m-%d"]
+        self.fields["ease_expiry"].input_formats = ["%Y-%m-%d"]
+
+        if "url_access_scope" in self.fields:
+            self.fields["url_access_scope"].required = False
+            self.fields["url_access_scope"].label = "Access Scope"
+
+        if "url_access_scope_manual" in self.fields:
+            self.fields["url_access_scope_manual"].required = False
+            self.fields["url_access_scope_manual"].label = "Manual Access Scope"
 
 
 class VmForm(forms.ModelForm):

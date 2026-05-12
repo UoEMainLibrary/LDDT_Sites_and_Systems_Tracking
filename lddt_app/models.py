@@ -62,6 +62,7 @@ class Website(models.Model):
     ssl_expiry_date = models.DateField(blank=True, default=None, null=True)
     ssl_expiry_date_new = models.DateField(blank=True, default=None, null=True)
     url = models.CharField('URL', blank=True, null=True, max_length=100)
+    url_ip = models.GenericIPAddressField(blank=True, null=True)
     function = models.CharField('Function', blank=True, null=True, max_length=150)
     common_name = models.CharField('Common Name', blank=True, null=True, max_length=150)
     server = models.CharField('Server', blank=True, null=True, max_length=150)
@@ -96,6 +97,65 @@ class Website(models.Model):
     ga4_y_n = models.ForeignKey(ga4_y_n, on_delete=models.CASCADE, null=True, blank=True)
     ga4_notes = models.TextField('GA4 Notes', blank=True, null=True)
     ga4_path = models.TextField('GA4 path', blank=True, null=True)
+    ssl_certificate_provider = models.CharField(
+        "SSL Certificate Provider",
+        blank=True,
+        null=True,
+        max_length=255
+    )
+    url_access_scope = models.CharField(
+        "URL Access Scope",
+        max_length=20,
+        choices=[
+            ("GLOBAL", "Global"),
+            ("EDLAN_ONLY", "EdLan-only"),
+        ],
+        blank=True,
+        null=True,
+    )
+    url_access_scope_manual = models.BooleanField(
+        default=False
+    )
+    HTTP_STATUS_CHOICES = [
+        ("OK", "OK"),
+        ("BLOCKED", "BLOCKED"),
+        ("REDIRECT", "REDIRECT"),
+        ("OFFLINE", "OFFLINE"),
+        ("SSL_ERROR", "SSL ERROR"),
+        ("ERROR", "ERROR"),
+    ]
+
+    http_check_status = models.CharField(
+        "HTTP Check Status",
+        max_length=20,
+        choices=HTTP_STATUS_CHOICES,
+        blank=True,
+        null=True,
+    )
+
+    http_status_code = models.IntegerField(
+        "HTTP Status Code",
+        blank=True,
+        null=True,
+    )
+
+    response_time_ms = models.IntegerField(
+        "Response Time ms",
+        blank=True,
+        null=True,
+    )
+
+    last_checked = models.DateTimeField(
+        "Last Checked",
+        blank=True,
+        null=True,
+    )
+
+    last_error = models.TextField(
+        "Last Error",
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return self.url

@@ -2,16 +2,284 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Delete_Confirmation</title>
+    <title>Delete Website</title>
+
+    {% load static %}
+
+    <link rel="stylesheet" href="{% static 'style_detail_form.css' %}">
+
+    <style>
+
+        body {
+            background: #f4f6f9;
+            font-family: "Open Sans", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main_body {
+            width: 95%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+        .navbar {
+            overflow: hidden;
+            background-color: #2f3e46;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .navbar a {
+            float: left;
+            color: #f1f1f1;
+            text-align: center;
+            padding: 16px 20px;
+            text-decoration: none;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .navbar a:hover {
+            background-color: #52796f;
+            color: white;
+        }
+
+        .navbar a.active {
+            background-color: #bc4749;
+            color: white;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 35px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffe69c;
+            color: #664d03;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 15px;
+        }
+
+        .service-title {
+            font-size: 30px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+
+        .service-url {
+            margin-bottom: 30px;
+        }
+
+        .service-url a {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+        .detail-card {
+            background: #f8f9fa;
+            border-left: 5px solid #6c757d;
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .detail-label {
+            color: gray;
+            font-size: 12px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: #222;
+            word-break: break-word;
+        }
+
+        .delete-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn-delete {
+            background: #bc4749;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-delete:hover {
+            background: #a33638;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #5c636a;
+            color: white;
+        }
+
+        .danger-text {
+            color: #bc4749;
+            font-weight: bold;
+        }
+
+    </style>
 
 </head>
+
 <body>
-<form method="post">
-    {% csrf_token  %}
-    <h2> Are you sure you want to remove: {{ website.url }}</h2>
-    <button type="submit">CONFIRM</button>
-    <a href="{% url 'websites_home' %}"><button type="button">CANCEL</button></a>
-</form>
+
+<div class="main_body">
+
+    <div class="navbar">
+        <a href="{% url 'websites_home' %}">Back</a>
+
+        <a href="{% url 'website_details' website.id %}">
+            View Mode
+        </a>
+
+        <a href="{% url 'update_website' website.id %}">
+            Edit Mode
+        </a>
+
+        <a class="active" href="#">
+            Delete
+        </a>
+    </div>
+
+    <div class="card">
+
+        <div class="warning-box">
+            <strong>Warning:</strong>
+            You are about to permanently delete this service record.
+            This action cannot be undone.
+        </div>
+
+        <div class="service-title">
+            {{ website.common_name }}
+        </div>
+
+        <div class="service-url">
+            <a href="{{ website.url }}" target="_blank">
+                {{ website.url }}
+            </a>
+        </div>
+
+        <div class="details-grid">
+
+            <div class="detail-card">
+                <span class="detail-label">Function</span>
+                <div class="detail-value">
+                    {{ website.function }}
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <span class="detail-label">Server</span>
+                <div class="detail-value">
+                    {{ website.server }}
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <span class="detail-label">Environment</span>
+                <div class="detail-value">
+                    {{ website.environment }}
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <span class="detail-label">Access Scope</span>
+                <div class="detail-value">
+
+                    {% if website.url_access_scope_manual %}
+                        <span class="danger-text">
+                            {{ website.get_url_access_scope_display }}-manual
+                        </span>
+                    {% else %}
+                        {{ website.get_url_access_scope_display }}
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <span class="detail-label">HTTP Status</span>
+                <div class="detail-value">
+                    {{ website.http_check_status }}
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <span class="detail-label">SSL Expiry</span>
+                <div class="detail-value">
+                    {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
+                </div>
+            </div>
+
+        </div>
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <p class="danger-text">
+                Are you sure you want to delete this website?
+            </p>
+
+            <div class="delete-actions">
+
+                <button type="submit" class="btn-delete">
+                    <i class="fa fa-trash"></i>
+                    Confirm Delete
+                </button>
+
+                <a href="{% url 'website_details' website.id %}"
+                   class="btn-cancel">
+
+                    Cancel
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
 
 </body>
 </html>
