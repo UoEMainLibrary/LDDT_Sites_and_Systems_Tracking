@@ -1,255 +1,107 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Tracking Home</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+{% extends 'base.html' %}
 
-    {% load static %}
+{% load static %}
 
-    <link rel="stylesheet" href="{% static 'w3.css' %}">
-    <link rel="stylesheet" href="{% static 'w3-theme-blue-grey.css' %}">
-    <link rel="stylesheet" href="{% static 'family-open-sans.css' %}">
-    <link rel="stylesheet" href="{% static 'font-awsome-min.css' %}">
+{% block head %}
+<title>Tracking Home</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="{% static 'w3.css' %}">
+<link rel="stylesheet" href="{% static 'w3-theme-blue-grey.css' %}">
+<link rel="stylesheet" href="{% static 'family-open-sans.css' %}">
+<link rel="stylesheet" href="{% static 'font-awsome-min.css' %}">
 
-    <style>
-        html, body, h1, h2, h3, h4, h5 {
-            font-family: "Open Sans", sans-serif;
-        }
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
 
-        .dashboard-card {
-            border-radius: 12px;
-        }
+<style>
+    html, body, h1, h2, h3, h4, h5 {
+        font-family: "Open Sans", sans-serif;
+    }
 
-        .navbar-logo {
-            width: 50px;
-        }
+    .dashboard-card {
+        border-radius: 12px;
+    }
 
-        .top-title {
-            margin: 0;
-            padding: 12px;
-            color: white;
-        }
+    .open-link {
+        text-decoration: none;
+    }
 
-        .open-link {
-            text-decoration: none;
-        }
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
 
+    .quick-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 12px;
+        margin: 20px 0;
+    }
+
+    .quick-stat {
+        background: #f5f5f5;
+        padding: 12px;
+        border-radius: 8px;
+        border-left: 6px solid #417690;
+    }
+
+    .quick-stat h4 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: bold;
+    }
+
+    .quick-stat small {
+        font-size: 12px;
+        color: #444;
+    }
+
+    .stat-blue { border-left-color: #417690; }
+    .stat-green { border-left-color: #2ecc71; }
+    .stat-yellow { border-left-color: #f1c40f; }
+    .stat-orange { border-left-color: #f39c12; }
+    .stat-red { border-left-color: #e74c3c; }
+    .stat-purple { border-left-color: #6c5ce7; }
+
+    .summary-box {
+        margin-top: 20px;
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+
+    .chart-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .side-summary {
+        font-size: 13px;
+        text-align: left;
+    }
+
+    canvas {
+        max-height: 280px;
+    }
+
+    @media (max-width: 1100px) {
         .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .quick-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 12px;
-            margin: 20px 0;
-        }
-
-        .quick-stat {
-            background: #f5f5f5;
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 6px solid #417690;
-        }
-
-        .quick-stat h4 {
-            margin: 0;
-            font-size: 26px;
-            font-weight: bold;
-        }
-
-        .quick-stat small {
-            font-size: 12px;
-            color: #444;
-        }
-
-        .stat-blue { border-left-color: #417690; }
-        .stat-green { border-left-color: #2ecc71; }
-        .stat-yellow { border-left-color: #f1c40f; }
-        .stat-orange { border-left-color: #f39c12; }
-        .stat-red { border-left-color: #e74c3c; }
-        .stat-purple { border-left-color: #6c5ce7; }
-
-        .summary-box {
-            margin-top: 20px;
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 13px;
-        }
-
-        .chart-grid {
-            display: grid;
             grid-template-columns: 1fr;
-            gap: 20px;
         }
+    }
+</style>
+{% endblock %}
 
-        .side-summary {
-            font-size: 13px;
-            text-align: left;
-        }
+{% block body %}
 
-        canvas {
-            max-height: 280px;
-        }
-
-        @media (max-width: 1100px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-
-<body class="w3-theme-l5">
-
-<div class="w3-top">
-    <div class="w3-bar w3-theme-d2 w3-left-align w3-large">
-        <a href="https://www.ed.ac.uk/" class="w3-bar-item w3-button w3-padding-large w3-theme-d4">
-            <img alt="UoE Home Page" class="card-img navbar-logo" src="/static/img/uni_logo_1.jpg">
-        </a>
-        <h1 class="top-title">Digital Library Tracking App</h1>
-    </div>
-</div>
-
-<div class="w3-container w3-content" style="max-width:1700px;margin-top:90px">
+<div class="w3-container w3-content" style="max-width:1700px;">
 
     <div class="w3-row">
 
-        <!-- LEFT COLUMN -->
-        <div class="w3-col m2">
-
-            <div class="w3-card w3-round w3-white dashboard-card">
-                <div class="w3-container">
-                    <h3 class="w3-center">Welcome {{ user }}</h3>
-                    <hr>
-
-                    <p>
-                        <i class="fa fa-user fa-fw w3-margin-right w3-text-theme"></i>
-                        {{ user.groups }}
-                    </p>
-
-                    <p>
-                        <i class="fa fa-calendar fa-fw w3-margin-right w3-text-theme"></i>
-                        {{ current_datetime_now_tostring }}
-                    </p>
-                </div>
-            </div>
-
-            <br>
-
-            <h3>Main Menu:</h3>
-
-            <div class="w3-card w3-round">
-                <div class="w3-white">
-
-                    <button style="font-size:16px" onclick="myFunction('Demo4')" class="fa fa-deaf w3-button w3-block w3-theme-l1 w3-left-align">
-                        &#10148; WebSites
-                    </button>
-                    <div id="Demo4" class="w3-hide w3-container">
-                        <p style="font-size:12px">
-                            Monitor SSL certificates, HTTP health, access scope and providers.
-                        </p>
-                        <p style="text-align:center; font-size:11px">
-                            <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">
-                                <a class="open-link" href="{% url 'websites_home' %}">Open</a>
-                            </button>
-                        </p>
-                    </div>
-
-                    <button style="font-size:16px" onclick="myFunction('Demo6')" class="fa fa-deaf w3-button w3-block w3-theme-l1 w3-left-align">
-                        &#10148; VM's
-                    </button>
-                    <div id="Demo6" class="w3-hide w3-container">
-                        <p style="font-size:12px">
-                            VM inventory, ownership, status and technical notes.
-                        </p>
-                        <p style="text-align:center; font-size:11px">
-                            <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">
-                                <a class="open-link" href="{% url 'vms_home' %}">Open</a>
-                            </button>
-                        </p>
-                    </div>
-
-                    <button style="font-size:16px" onclick="myFunction('Demo5')" class="fa fa-deaf w3-button w3-block w3-theme-l1 w3-left-align">
-                        &#10148; SubSites
-                    </button>
-                    <div id="Demo5" class="w3-hide w3-container">
-                        <p style="font-size:12px">
-                            View and maintain tracked subsites.
-                        </p>
-                        <p style="text-align:center; font-size:11px">
-                            <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">
-                                <a class="open-link" href="{% url 'lddt_subsites_home' %}">Open</a>
-                            </button>
-                        </p>
-                    </div>
-
-                    <button style="font-size:16px" onclick="myFunction('Demo1')" class="fa fa-deaf w3-button w3-block w3-theme-l1 w3-left-align">
-                        &#10148; Accessibility
-                    </button>
-                    <div id="Demo1" class="w3-hide w3-container">
-                        <p style="font-size:12px">
-                            Monitor accessibility statement and testing progress.
-                        </p>
-                        <p style="text-align:center; font-size:11px">
-                            <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">
-                                <a class="open-link" href="{% url 'access_statement_home' %}">Open</a>
-                            </button>
-                        </p>
-                    </div>
-
-                    <button style="font-size:16px" onclick="myFunction('Demo7')" class="fa fa-deaf w3-button w3-block w3-theme-l1 w3-left-align">
-                        &#10148; Google Analytics
-                    </button>
-                    <div id="Demo7" class="w3-hide w3-container">
-                        <p style="font-size:12px">
-                            Monitor Google Analytics and GA4 tracking.
-                        </p>
-                        <p style="text-align:center; font-size:11px">
-                            <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">
-                                <a class="open-link" href="{% url 'ga4_report' %}">Open</a>
-                            </button>
-                        </p>
-                    </div>
-
-                    <button style="font-size:16px" onclick="myFunction('Demo2')" class="fa fa-book w3-button w3-block w3-theme-l1 w3-left-align">
-                        &#10148; Tutorials
-                    </button>
-                    <div id="Demo2" class="w3-hide w3-container">
-                        <p style="font-size:12px">In development.</p>
-                        <p style="text-align:center; font-size:11px">
-                            <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">
-                                <a class="open-link" href="{% url 'tutorials_home' %}">Open</a>
-                            </button>
-                        </p>
-                    </div>
-
-                    <button style="font-size:16px" onclick="myFunction('Demo3')" class="fa fa-book w3-button w3-block w3-theme-l1 w3-left-align">
-                        &#10148; Tech Docs
-                    </button>
-                    <div id="Demo3" class="w3-hide w3-container">
-                        <p style="font-size:12px">In development.</p>
-                        <p style="text-align:center; font-size:11px">
-                            <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">
-                                <a class="open-link" href="{% url 'tech_docs_home' %}">Open</a>
-                            </button>
-                        </p>
-                    </div>
-
-                </div>
-            </div>
-
-            <br>
-        </div>
-
         <!-- MAIN COLUMN -->
-        <div class="w3-col m8">
+        <div class="w3-col m10">
 
             <div class="dashboard-grid">
 
@@ -472,21 +324,6 @@
 <br>
 
 <script>
-function myFunction(id) {
-    var x = document.getElementById(id);
-
-    if (x.className.indexOf("w3-show") == -1) {
-        x.className += " w3-show";
-        x.previousElementSibling.className += " w3-theme-d1";
-    } else {
-        x.className = x.className.replace("w3-show", "");
-        x.previousElementSibling.className =
-            x.previousElementSibling.className.replace(" w3-theme-d1", "");
-    }
-}
-</script>
-
-<script>
 let websitesHttpChartCtx = document.getElementById("websitesHttpChart").getContext("2d");
 
 new Chart(websitesHttpChartCtx, {
@@ -596,5 +433,4 @@ new Chart(vmsChartCtx, {
 });
 </script>
 
-</body>
-</html>
+{% endblock %}

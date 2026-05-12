@@ -1,64 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
-        crossorigin="anonymous">
-  {% block head %}
-    <title>Base</title>
-  {% endblock %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    {% block head %}
+        <title>Digital Library Tracking App</title>
+    {% endblock %}
+
+    <style>
+        :root {
+            --corporate: #690051;
+            --corporate-dark: #430034;
+            --corporate-light: #8a006b;
+            --corporate-soft: #f5e8f1;
+            --page-bg: #f4f6f9;
+        }
+
+        body {
+            background: var(--page-bg);
+            font-family: "Open Sans", Arial, sans-serif;
+        }
+
+        .app-navbar {
+            background: linear-gradient(90deg, var(--corporate), var(--corporate-dark));
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+            padding: 10px 0;
+        }
+
+        .navbar-brand-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .app-logo {
+            height: 48px;
+            width: auto;
+            background: white;
+            border-radius: 6px;
+            padding: 4px;
+        }
+
+        .app-title {
+            color: white;
+            font-weight: 700;
+            line-height: 1.1;
+            font-size: 18px;
+        }
+
+        .app-subtitle {
+            color: #f2d9ec;
+            font-size: 12px;
+        }
+
+        .navbar-nav .nav-link {
+            color: #f8edf6 !important;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 9px 13px !important;
+            margin: 0 2px;
+        }
+
+        .navbar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white !important;
+        }
+
+        .navbar-nav .nav-link.active {
+            background: white;
+            color: var(--corporate) !important;
+        }
+
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            border-radius: 12px;
+            padding: 8px 12px;
+            min-width: 190px;
+        }
+
+        .welcome-card small {
+            color: #f2d9ec;
+            display: block;
+            line-height: 1.2;
+        }
+
+        .logout-btn {
+            background: white;
+            color: var(--corporate);
+            border: none;
+            font-weight: 700;
+            border-radius: 8px;
+            padding: 8px 14px;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            background: var(--corporate-soft);
+            color: var(--corporate-dark);
+        }
+
+        .page-shell {
+            padding-top: 95px;
+        }
+
+        .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .navbar-toggler-icon {
+            filter: invert(1);
+        }
+
+        @media (max-width: 991px) {
+            .welcome-card {
+                margin-top: 12px;
+                margin-bottom: 12px;
+            }
+
+            .logout-btn {
+                display: inline-block;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
 </head>
 
-<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #041E42">
-  <div class="container-fluid">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+<body>
 
-      <nav class="navbar navbar-light ">
-        <div class="container">
-          <a class="navbar-brand" href="#">
-            <img src="/static/img/library_logo.jpg" alt="" width="200" height="50">
-          </a>
+<nav class="navbar navbar-expand-lg app-navbar fixed-top">
+    <div class="container-fluid px-4">
+
+        <a class="navbar-brand navbar-brand-box" href="{% url 'home' %}">
+            <img src="/static/img/library_logo.jpg" alt="Library Logo" class="app-logo">
+
+            <span>
+                <span class="app-title">Digital Library Tracking App</span>
+                <span class="app-subtitle d-block">Service, SSL, VM and compliance tracking</span>
+            </span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainTrackingNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainTrackingNav">
+
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'websites_home' %}">
+                        Websites
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'vms_home' %}">
+                        VM's
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'ga4_report' %}">
+                        GA4
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'access_statement_home' %}">
+                        Accessibility Statements
+                    </a>
+                </li>
+
+            </ul>
+
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+
+                <div class="welcome-card">
+                    <strong>Welcome {{ user }}</strong>
+                    <small>
+                        {% if user.is_authenticated %}
+                            Signed in
+                        {% else %}
+                            Guest session
+                        {% endif %}
+                    </small>
+                </div>
+
+                <a href="{% url 'logout' %}" class="logout-btn">
+                    Log out
+                </a>
+
+            </div>
+
         </div>
-      </nav>
-
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" style="color: white; font-size: 25px" href="#">Digital Library Tracking App</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#" style="color: white; font-size: 25px"></a>
-        </li>
-      </ul>
-
-      <form class="d-flex">
-        <input class="form-control me-2 " type="search" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success" type="submit" style="color: white; border: 2px solid white">Search</button>
-      </form>
-
-      <ul class="navbar-nav me-0 mb-2 mb-lg-0" >
-        <li class="nav-item" style="margin-left: 50px">
-          <button class="btn btn-outline-success" type="submit" style="color: white; border: 2px solid white; background-color: white">
-            <a href="{% url 'logout' %}" style="text-decoration:none; color:#0280a5; ">Log out</a>
-          </button>
-        </li>
-      </ul>
     </div>
-  </div>
 </nav>
 
-<br>
-<br>
-<br>
-<br>
-<br>
-{% block body %}
+<main class="page-shell">
+    {% block body %}
+    {% endblock %}
+</main>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
-
-
-{% endblock %}
-
-
+</body>
+</html>
