@@ -1,5 +1,5 @@
 from datetime import datetime
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -8,11 +8,6 @@ from .filters import WebsiteFilter, VmFilter, shortwebsiteFilter, shortvmFilter
 from .models import *
 from datetime import *
 from django.db.models import Max, Min
-from openpyxl import Workbook
-from openpyxl.drawing.image import Image as XLImage
-from io import BytesIO
-import base64
-from datetime import date, timedelta, datetime
 from datetime import date, timedelta, datetime
 import calendar
 from django.core.cache import cache
@@ -60,63 +55,119 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------------------------------------------------
 #######################################################################################################################
 def home(request):
-    # --------------websites
-    websites = Website.objects.filter(
-        Q(type__name__exact="SITE") & ~Q(activity__name__exact="DECOMMISSIONED")
-    ).order_by('ssl_expiry_date')
-    count_all_sites = Website.objects.filter(
+    today = timezone.now().date()
+    soon_date = today + timedelta(days=30)
+
+    sites = Website.objects.filter(
         Q(type__name__exact="SITE")
-    ).count
-    count_all_active = Website.objects.filter(
-        Q(type__name__exact="SITE") & Q(activity__name__exact="ACTIVE")
-    ).count
-    count_sites_workingon = Website.objects.filter(
-        Q(type__name__exact="SITE") & Q(tech_status__name__exact="WORKING ON")
-    ).count
-    count_sites_cert_sent = Website.objects.filter(
-        Q(type__name__exact="SITE") & Q(tech_status__name__exact="CERT SENT")
-    ).count
+    )
 
-    count_sites_issue = Website.objects.filter(
-        Q(type__name__exact="SITE") & Q(tech_status__name__exact="ISSUE")
-    ).count
+    active_sites = sites.exclude(activity__name__exact="DECOMMISSIONED")
+
+    websites = active_sites.order_by("ssl_expiry_date_new")
+
+    count_all_sites = sites.count()
+    count_all_active = sites.filter(activity__name__exact="ACTIVE").count()
+    count_sites_workingon = sites.filter(tech_status__name__exact="WORKING ON").count()
+    count_sites_cert_sent = sites.filter(tech_status__name__exact="CERT SENT").count()
+    count_sites_issue = sites.filter(tech_status__name__exact="ISSUE").count()
+
+    next_expiry = (
+        active_sites
+        .filter(
+            ssl_expiry_date_new__isnull=False,
+            ssl_expiry_date_new__gte=today
+        )
+        .order_by("ssl_expiry_date_new")
+        .first()
+    )
+
+    count_ssl_expired = active_sites.filter(
+        ssl_expiry_date_new__isnull=False,
+        ssl_expiry_date_new__lt=today
+    ).count()
+
+    count_ssl_expiring_30 = active_sites.filter(
+        ssl_expiry_date_new__isnull=False,
+        ssl_expiry_date_new__gte=today,
+        ssl_expiry_date_new__lte=soon_date
+    ).count()
+
+    count_http_ok = active_sites.filter(http_check_status="OK").count()
+    count_http_blocked = active_sites.filter(http_check_status="BLOCKED").count()
+    count_http_redirect = active_sites.filter(http_check_status="REDIRECT").count()
+    count_http_offline = active_sites.filter(http_check_status="OFFLINE").count()
+    count_http_ssl_error = active_sites.filter(http_check_status="SSL_ERROR").count()
+    count_http_error = active_sites.filter(http_check_status="ERROR").count()
+
+    count_global = active_sites.filter(url_access_scope="GLOBAL").count()
+    count_edlan_only = active_sites.filter(url_access_scope="EDLAN_ONLY").count()
+    count_manual_access = active_sites.filter(url_access_scope_manual=True).count()
+
+    top_ssl_providers = (
+        active_sites
+        .exclude(ssl_certificate_provider__isnull=True)
+        .exclude(ssl_certificate_provider="")
+        .values("ssl_certificate_provider")
+        .annotate(total=Count("id"))
+        .order_by("-total")[:5]
+    )
+
+    provider_labels = [item["ssl_certificate_provider"] for item in top_ssl_providers]
+    provider_counts = [item["total"] for item in top_ssl_providers]
+
     # -----------------subsites
-    count_all_subsites = Website.objects.filter(Q(type__name__exact="SUB-SITE")).count
-    count_all_active_subsites = Website.objects.filter(
-        Q(type__name__exact="SUB-SITE") & Q(activity__name__exact="ACTIVE")
-    ).count
-    count_subsites_workingon = Website.objects.filter(
-        Q(type__name__exact="SUB-SITE") & Q(tech_status__name__exact="WORKING ON")
-    ).count
-    count_subsites_issue = Website.objects.filter(
-        Q(type__name__exact="SUB-SITE") & Q(tech_status__name__exact="ISSUE")
-    ).count
-    # -----------------vm's
-    table_item_count_vms = Vm.objects.all().count
-    vms_working_on_status_count = Vm.objects.filter(
-        Q(vm_type__name__exact="VM") & Q(vm_status__name__exact="Working On")
-    ).count
+    subsites = Website.objects.filter(Q(type__name__exact="SUB-SITE"))
 
-    current_datetime_now = datetime.now()
-    current_datetime_now_tostring = current_datetime_now
+    count_all_subsites = subsites.count()
+    count_all_active_subsites = subsites.filter(activity__name__exact="ACTIVE").count()
+    count_subsites_workingon = subsites.filter(tech_status__name__exact="WORKING ON").count()
+    count_subsites_issue = subsites.filter(tech_status__name__exact="ISSUE").count()
 
-    return render(request, 'index.html', {
-        'count_all_sites': count_all_sites,
-        'count_all_active': count_all_active,
-        'count_sites_workingon': count_sites_workingon,
-        'count_sites_issue': count_sites_issue,
-        'websites': websites,
+    # -----------------VMs
+    vms = Vm.objects.filter(vm_type__name__exact="VM")
+
+    table_item_count_vms = vms.count()
+    vms_working_on_status_count = vms.filter(vm_status__name__exact="Working On").count()
+    vms_operational_count = table_item_count_vms - vms_working_on_status_count
+
+    current_datetime_now_tostring = timezone.now()
+
+    return render(request, "index.html", {
+        # websites
+        "websites": websites,
+        "count_all_sites": count_all_sites,
+        "count_all_active": count_all_active,
+        "count_sites_workingon": count_sites_workingon,
+        "count_sites_cert_sent": count_sites_cert_sent,
+        "count_sites_issue": count_sites_issue,
+        "next_expiry": next_expiry,
+        "count_ssl_expired": count_ssl_expired,
+        "count_ssl_expiring_30": count_ssl_expiring_30,
+        "count_http_ok": count_http_ok,
+        "count_http_blocked": count_http_blocked,
+        "count_http_redirect": count_http_redirect,
+        "count_http_offline": count_http_offline,
+        "count_http_ssl_error": count_http_ssl_error,
+        "count_http_error": count_http_error,
+        "count_global": count_global,
+        "count_edlan_only": count_edlan_only,
+        "count_manual_access": count_manual_access,
+        "provider_labels_json": json.dumps(provider_labels),
+        "provider_counts_json": json.dumps(provider_counts),
+
         # subsites
-        'count_all_subsites': count_all_subsites,
-        'count_all_active_subsites': count_all_active_subsites,
-        'count_subsites_workingon': count_subsites_workingon,
-        'count_subsites_issue': count_subsites_issue,
-        'current_datetime_now_tostring': current_datetime_now_tostring,
-        # vm's
-        'table_item_count_vms': table_item_count_vms,
-        'count_sites_cert_sent': count_sites_cert_sent,
-        'vms_working_on_status_count': vms_working_on_status_count,
+        "count_all_subsites": count_all_subsites,
+        "count_all_active_subsites": count_all_active_subsites,
+        "count_subsites_workingon": count_subsites_workingon,
+        "count_subsites_issue": count_subsites_issue,
 
+        # VMs
+        "table_item_count_vms": table_item_count_vms,
+        "vms_working_on_status_count": vms_working_on_status_count,
+        "vms_operational_count": vms_operational_count,
+
+        "current_datetime_now_tostring": current_datetime_now_tostring,
     })
 
 #######################################################################################################################
