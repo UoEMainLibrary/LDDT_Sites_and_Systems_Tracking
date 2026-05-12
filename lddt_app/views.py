@@ -317,14 +317,31 @@ def website_details(request, id):
 
 
 def update_website(request, id):
+
     website = Website.objects.get(id=id)
-    website_form = WebsiteForm(request.POST or None, instance=website)
+
+    website_form = WebsiteForm(
+        request.POST or None,
+        instance=website
+    )
 
     if website_form.is_valid():
-        website_form.save()
-        return redirect('websites_home')
 
-    return render(request, 'website_form.html', {'website_form': website_form, 'website': website})
+        website_form.save()
+
+        return redirect(
+            'website_details',
+            website.id
+        )
+
+    return render(
+        request,
+        'website_form.html',
+        {
+            'website_form': website_form,
+            'website': website
+        }
+    )
 
 
 def delete_website(request, id):
