@@ -600,8 +600,16 @@ def ga4_report(request):
     months = []
 
     sample = stats.first()
-    if sample and sample.monthly_users_data:
-        months = sorted(sample.monthly_users_data.keys())
+    if sample:
+        month_keys = set()
+
+        if sample.monthly_users_data:
+            month_keys.update(sample.monthly_users_data.keys())
+
+        if sample.monthly_sessions_data:
+            month_keys.update(sample.monthly_sessions_data.keys())
+
+        months = sorted(month_keys)
 
     properties = []
 
@@ -609,7 +617,17 @@ def ga4_report(request):
         properties.append({
             "property_name": stat.property_name,
             "earliest_data_date": stat.earliest_data_date,
-            "monthly_data": stat.monthly_users_data,
+
+            # Active users by month
+            "monthly_users_data": stat.monthly_users_data or {},
+
+            # Sessions by month
+            "monthly_sessions_data": stat.monthly_sessions_data or {},
+
+            # Temporary visits value.
+            # At the moment this uses sessions because your model does not yet
+            # have a separate monthly_visits_data field.
+            "monthly_visits_data": stat.monthly_sessions_data or {},
         })
 
     context = {

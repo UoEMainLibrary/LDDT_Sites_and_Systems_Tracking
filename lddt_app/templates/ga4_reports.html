@@ -115,6 +115,31 @@
         padding: 10px 14px;
     }
 
+    .metric-toggles {
+        display: inline-flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .metric-toggle {
+        background: #f5e8f1;
+        color: #690051;
+        font-weight: 800;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        margin-bottom: 0;
+        user-select: none;
+    }
+
+    .metric-toggle input {
+        margin-right: 5px;
+        accent-color: #690051;
+    }
+
     .table-card {
         width: 100%;
         background: white;
@@ -167,6 +192,38 @@
         min-width: 260px;
     }
 
+    .metric-cell {
+        min-width: 105px;
+        font-size: 12px;
+        line-height: 1.35;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+    }
+
+    .metric-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        border-bottom: 1px solid #f1eef1;
+        padding: 2px 0;
+    }
+
+    .metric-row:last-child {
+        border-bottom: none;
+    }
+
+    .metric-label {
+        font-weight: 900;
+        color: #690051;
+        min-width: 18px;
+    }
+
+    .metric-value {
+        font-weight: 700;
+        color: #323c4e;
+        text-align: right;
+    }
+
     .sort-buttons {
         display: inline-flex;
         gap: 3px;
@@ -193,14 +250,6 @@
         padding: 30px;
         color: #6c757d;
     }
-
-    .badge-soft {
-        background: #f5e8f1;
-        color: #690051;
-        font-weight: 700;
-        border-radius: 999px;
-        padding: 6px 10px;
-    }
 </style>
 {% endblock %}
 
@@ -213,7 +262,7 @@
             <div class="col-lg-8">
                 <span class="badge bg-light text-dark mb-3">GA4 Analytics</span>
                 <h1>GA4 Dashboard</h1>
-                <p>Monthly GA4 visits across tracked Digital Library services.</p>
+                <p>Monthly GA4 visits, sessions and active users across tracked Digital Library services.</p>
             </div>
 
             <div class="col-lg-4 text-lg-end ga4-actions">
@@ -264,6 +313,10 @@
                     <option value="9">Last 9 months</option>
                     <option value="12" selected>Last 12 months</option>
                 </select>
+
+                <div class="last-update">
+                    Use this to shrink or expand the monthly view.
+                </div>
             </div>
         </div>
 
@@ -271,10 +324,10 @@
             <div class="metric-card">
                 <small>Current report</small>
                 <div class="metric-line">
-                    <strong>Visits</strong>
+                    <strong>Combined metrics</strong>
                 </div>
                 <div class="last-update">
-                    Property-level monthly GA4 traffic report
+                    Use the checkboxes below to show or hide visits, sessions and active users.
                 </div>
             </div>
         </div>
@@ -285,7 +338,7 @@
         <ul class="nav nav-pills flex-wrap">
             <li class="nav-item">
                 <a class="nav-link active" href="#">
-                    Last 12 months visits
+                    Combined monthly report
                 </a>
             </li>
 
@@ -322,15 +375,46 @@
                     type="text"
                     id="globalSearch"
                     class="form-control"
-                    placeholder="Search services, dates or numbers..."
+                    placeholder="Search services, dates, visits, sessions or users..."
                     onkeyup="filterTable()"
                 >
             </div>
 
             <div class="col-lg-6 text-lg-end">
-                <span class="badge-soft">
-                    Showing property-level monthly visits
-                </span>
+                <div class="metric-toggles">
+                    <label class="metric-toggle">
+                        <input
+                            type="checkbox"
+                            class="metric-checkbox"
+                            data-metric="visits"
+                            checked
+                            onchange="updateVisibleMetrics()"
+                        >
+                        V = Visits
+                    </label>
+
+                    <label class="metric-toggle">
+                        <input
+                            type="checkbox"
+                            class="metric-checkbox"
+                            data-metric="sessions"
+                            checked
+                            onchange="updateVisibleMetrics()"
+                        >
+                        S = Sessions
+                    </label>
+
+                    <label class="metric-toggle">
+                        <input
+                            type="checkbox"
+                            class="metric-checkbox"
+                            data-metric="users"
+                            checked
+                            onchange="updateVisibleMetrics()"
+                        >
+                        U = Active users
+                    </label>
+                </div>
             </div>
         </div>
     </section>
@@ -381,11 +465,30 @@
 
                             {% for month in months %}
                                 <td
-                                    class="month-col"
+                                    class="month-col metric-cell"
                                     data-month-index="{{ forloop.counter }}"
-                                    data-value="{{ prop.monthly_data|get_item:month|default:0 }}"
+                                    data-value="{{ prop.monthly_visits_data|get_item:month|default:0 }}"
                                 >
-                                    {{ prop.monthly_data|get_item:month|default:"0" }}
+                                    <div class="metric-row metric-visits">
+                                        <span class="metric-label">V</span>
+                                        <span class="metric-value">
+                                            {{ prop.monthly_visits_data|get_item:month|default:"0" }}
+                                        </span>
+                                    </div>
+
+                                    <div class="metric-row metric-sessions">
+                                        <span class="metric-label">S</span>
+                                        <span class="metric-value">
+                                            {{ prop.monthly_sessions_data|get_item:month|default:"0" }}
+                                        </span>
+                                    </div>
+
+                                    <div class="metric-row metric-users">
+                                        <span class="metric-label">U</span>
+                                        <span class="metric-value">
+                                            {{ prop.monthly_users_data|get_item:month|default:"0" }}
+                                        </span>
+                                    </div>
                                 </td>
                             {% endfor %}
                         </tr>
@@ -483,6 +586,19 @@ function updateVisibleMonths() {
     });
 }
 
+function updateVisibleMetrics() {
+    const checkboxes = document.querySelectorAll(".metric-checkbox");
+
+    checkboxes.forEach(checkbox => {
+        const metric = checkbox.dataset.metric;
+        const rows = document.querySelectorAll(`.metric-${metric}`);
+
+        rows.forEach(row => {
+            row.style.display = checkbox.checked ? "flex" : "none";
+        });
+    });
+}
+
 function formatLastUpdate() {
     const element = document.getElementById("lastUpdate");
     if (!element) return;
@@ -527,6 +643,7 @@ function formatLastUpdate() {
 
 document.addEventListener("DOMContentLoaded", function () {
     updateVisibleMonths();
+    updateVisibleMetrics();
     filterTable();
     formatLastUpdate();
 });
