@@ -1,98 +1,129 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <title>Websites</title>
-    {% load static %}
+{% extends "base.html" %}
+{% load static %}
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% block head %}
+<title>Websites</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-:root {
-    --bg: #ffffff;
-    --text: #222;
-    --card-bg: #ffffff;
-    --header-bg: #6B6B6D;
-    --header-text: white;
-    --hover: #f3f3f3;
-    --border: #ccc;
+.summary-filter-bar {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    transition: all 0.25s ease;
+    overflow: hidden;
 }
 
-html[data-theme='dark'] {
-    --bg: #1c1c1c;
-    --text: #e5e5e5;
-    --card-bg: #2b2b2b;
-    --header-bg: #444;
-    --header-text: white;
-    --hover: #333;
-    --border: #555;
-}
-
-body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: "Open Sans", sans-serif;
-}
-
-.navbar-custom {
-    background: var(--card-bg);
-    border-bottom: 2px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 1100;
-}
-
-header {
-    background: var(--header-bg);
-    color: var(--header-text);
-    padding: 20px;
-}
-
-.filter-box {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    padding: 15px;
-    border-radius: 10px;
+.summary-filter-bar.summary-hidden {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
     margin-bottom: 0;
-    position: sticky;
-    top: 58px;
-    z-index: 1040;
+    border: 0;
+}
+
+.summary-box {
+    font-size: 0.86rem;
+    line-height: 1.4;
+    border-right: 1px solid #ddd;
+    padding-right: 16px;
+}
+
+.next-expiry-list {
+    margin: 4px 0 0 0;
+    padding-left: 14px;
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+.next-expiry-list li {
+    margin-bottom: 2px;
+}
+
+.search-results-box {
+    background: #690051;
+    color: white;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    min-height: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.filter-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: #555;
 }
 
 .table-responsive-sticky {
     overflow: auto;
-    max-height: calc(100vh - 260px);
-    margin-top: 20px;
+    max-height: calc(100vh - 235px);
+    transition: max-height 0.25s ease;
 }
 
-table.table {
-    width: 100% !important;
-    background: var(--card-bg);
+.table-expanded {
+    max-height: calc(100vh - 115px);
 }
 
 .table thead th {
-    background: var(--header-bg);
-    color: var(--header-text);
-    cursor: pointer;
+    background: #690051;
+    color: white;
     position: sticky;
     top: 0;
-    z-index: 1030;
+    z-index: 10;
+    white-space: nowrap;
+    vertical-align: top;
+}
+
+.th-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.sort-controls {
+    display: flex;
+    gap: 3px;
+}
+
+.sort-btn {
+    border: 1px solid rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.12);
+    color: white;
+    border-radius: 5px;
+    padding: 1px 5px;
+    font-size: 0.65rem;
+    line-height: 1.2;
+}
+
+.sort-btn:hover,
+.sort-btn.active {
+    background: white;
+    color: #690051;
 }
 
 .table tbody tr:hover {
-    background: var(--hover);
+    background: #f5e8f1;
 }
 
 .expiring-soon {
-    background: rgba(255, 0, 0, 0.15) !important;
+    background: rgba(220, 53, 69, 0.12) !important;
 }
 
 .expandable {
     display: none;
-    background: var(--card-bg);
+    background: white;
 }
 
 .main-row {
@@ -100,234 +131,295 @@ table.table {
 }
 
 .ip-code {
-    color: #0dcaf0;
+    color: #0d6efd;
+    font-size: 0.78rem;
 }
 
+.status-cell,
 .provider-cell,
-.scope-cell,
-.http-status-cell {
+.scope-cell {
     white-space: nowrap;
 }
 
-.http-status-box {
+.status-box {
     display: inline-block;
-    padding: 6px 8px;
-    border-radius: 8px;
-    min-width: 90px;
+    padding: 3px 7px;
+    border-radius: 7px;
+    min-width: 62px;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.1;
 }
 
-.http-ok {
+.status-ok {
     background: #198754;
     color: #fff;
 }
 
-.http-warning {
+.status-warning {
     background: #ffc107;
     color: #000;
 }
 
-.http-bad {
+.status-bad {
     background: #dc3545;
     color: #fff;
 }
 
-.http-empty {
+.status-empty {
     background: #6c757d;
     color: #fff;
 }
 
-.http-small {
-    font-size: 0.75rem;
-    line-height: 1.2;
+.expiry-cell {
+    font-size: 0.76rem;
+    white-space: nowrap;
+}
+
+.expiry-expired {
+    color: #dc3545;
+    font-weight: 700;
+}
+
+.small-text-cell {
+    font-size: 0.78rem;
+}
+
+.scope-cell {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.scope-cell .badge {
+    font-size: 0.72rem;
+}
+
+@media (max-width: 1199px) {
+    .summary-box {
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        padding-right: 0;
+        padding-bottom: 12px;
+        margin-bottom: 6px;
+    }
 }
 </style>
-</head>
+{% endblock %}
 
-<body>
+{% block body %}
 
-<nav class="navbar navbar-expand-lg navbar-custom px-3">
-    <a class="navbar-brand fw-bold" href="{% url 'home' %}" style="color: var(--text);">
-        SSL Dashboard
-    </a>
+<div class="container-fluid px-4">
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+    <div class="summary-filter-bar" id="summaryFilterBar">
 
-    <div class="collapse navbar-collapse" id="mainNav">
-        <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'home' %}" style="color: var(--text);">
-                    <i class="fa fa-home"></i> Home
-                </a>
-            </li>
+        <div class="row g-3 align-items-start">
 
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'create_subsite' %}" style="color: var(--text);">
-                    + Add New
-                </a>
-            </li>
+            <div class="col-xl-4 col-lg-12">
+                <div class="summary-box">
 
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'lddt_subsites_home' %}" style="color: var(--text);">
-                    Subsites
-                </a>
-            </li>
+                    <b>Total services:</b> {{ table_item_count_sites }}<br>
 
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'vms_home' %}" style="color: var(--text);">
-                    VM's
-                </a>
-            </li>
+                    <b>Next SSL expiration:</b>
 
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'websites_full_table' %}" style="color: var(--text);">
-                    Full Table
-                </a>
-            </li>
-        </ul>
+                    {% if next_expiry %}
 
-        <button id="darkToggle" class="btn btn-outline-secondary btn-sm">
-            <i class="fa fa-sun"></i>
-        </button>
-    </div>
-</nav>
+                        <ul class="next-expiry-list">
+                            {% for website in websites %}
+                                {% if website.ssl_expiry_date_new|date:"Y-m-d" == next_expiry.ssl_expiry_date_new|date:"Y-m-d" %}
+                                    <li>
+                                        {{ website.common_name }}
 
-<header>
-    <div class="container-fluid">
-        <p class="mb-0">
-            Total services: <b>{{ table_item_count_sites }}</b><br>
-            Showing after search: <b id="visibleCount">{{ table_item_count_sites }}</b><br>
+                                        {% if website.ssl_certificate_provider %}
+                                            ( {{ website.ssl_certificate_provider }} )
+                                        {% endif %}
 
-            Next SSL expiration:
+                                        — {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
+                                        — in {{ website.ssl_expiry_date_new|timeuntil }};
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
 
-            {% if next_expiry %}
-                <b>
-                    {{ next_expiry.ssl_expiry_date_new|date:"Y-m-d" }}
-                    — in {{ next_expiry.ssl_expiry_date_new|timeuntil }}
-                </b>
+                    {% else %}
 
-                <br>
+                        <br>
+                        No upcoming SSL expirations
 
-                <small>
-                    {{ next_expiry.common_name }}
-
-                    {% if next_expiry.url_ip %}
-                        — {{ next_expiry.url_ip }}
                     {% endif %}
 
-                    {% if next_expiry.url_access_scope %}
-                        —
-                        {% if next_expiry.url_access_scope_manual %}
-                            {{ next_expiry.get_url_access_scope_display }}-manual
-                        {% else %}
-                            {{ next_expiry.get_url_access_scope_display }}
-                        {% endif %}
-                    {% endif %}
+                    <div class="mt-2">
+                        <a href="{% url 'create_subsite' %}" class="btn btn-success btn-sm">
+                            <i class="fa fa-plus"></i> Add New
+                        </a>
+                    </div>
 
-                    {% if next_expiry.ssl_certificate_provider %}
-                        — {{ next_expiry.ssl_certificate_provider }}
-                    {% endif %}
-                </small>
-
-            {% else %}
-                <b>No upcoming SSL expirations</b>
-            {% endif %}
-        </p>
-    </div>
-</header>
-
-<div class="container-fluid mt-4">
-
-    <div class="filter-box shadow-sm">
-
-        <div class="row g-3">
-
-            <div class="col-md-4">
-                <label>Global Search:</label>
-                <input id="globalFilter" class="form-control" placeholder="Type to search...">
+                </div>
             </div>
 
-            <div class="col-md-4">
-                <label>HTTP/HTTPS Status Filter:</label>
-                <select id="httpStatusFilter" class="form-select">
-                    <option value="">All HTTP/HTTPS Statuses</option>
-                    <option value="OK">OK</option>
-                    <option value="BLOCKED">BLOCKED</option>
-                    <option value="REDIRECT">REDIRECT</option>
-                    <option value="OFFLINE">OFFLINE</option>
-                    <option value="SSL_ERROR">SSL ERROR</option>
-                    <option value="ERROR">ERROR</option>
-                    <option value="N/A">N/A</option>
-                </select>
-            </div>
+            <div class="col-xl-8 col-lg-12">
 
-            <div class="col-md-4">
-                <label>Server Filter:</label>
-                <input id="serverFilter" class="form-control" placeholder="Server name">
-            </div>
+                <div class="row g-1">
 
-            <div class="col-md-4">
-                <label>Common Name Filter:</label>
-                <input id="cnFilter" class="form-control" placeholder="Common name">
-            </div>
+                    <div class="col-md-9">
+                        <input id="globalFilter"
+                               class="form-control form-control-sm"
+                               placeholder="Global search">
+                    </div>
 
-            <div class="col-md-4">
-                <label>IP Address Filter:</label>
-                <select id="ipFilter" class="form-select">
-                    <option value="">All IP Addresses</option>
-                </select>
-            </div>
+                    <div class="col-md-3">
+                        <div class="search-results-box">
+                            Search results:
+                            <span id="visibleCount" class="ms-1">{{ table_item_count_sites }}</span>
+                        </div>
+                    </div>
 
-            <div class="col-md-4">
-                <label>Access Filter:</label>
-                <select id="accessFilter" class="form-select">
-                    <option value="">All Access</option>
-                </select>
-            </div>
+                    <div class="col-md-6">
+                        <input id="cnFilter"
+                               class="form-control form-control-sm"
+                               placeholder="Common name">
+                    </div>
 
-            <div class="col-md-4">
-                <label>SSL Provider Filter:</label>
-                <select id="providerFilter" class="form-select">
-                    <option value="">All SSL Providers</option>
-                </select>
-            </div>
+                    <div class="col-md-6">
+                        <input id="serverFilter"
+                               class="form-control form-control-sm"
+                               placeholder="Server">
+                    </div>
 
-            <div class="col-md-4">
-                <label>Expiry Date From:</label>
-                <input type="date" id="dateFrom" class="form-control">
-            </div>
+                    <div class="col-md-4">
+                        <select id="httpStatusFilter"
+                                class="form-select form-select-sm">
 
-            <div class="col-md-4">
-                <label>Expiry Date To:</label>
-                <input type="date" id="dateTo" class="form-control">
-            </div>
+                            <option value="">HTTP/S</option>
+                            <option value="OK">OK</option>
+                            <option value="BLOCKED">BLOCKED</option>
+                            <option value="REDIRECT">REDIRECT</option>
+                            <option value="OFFLINE">OFFLINE</option>
+                            <option value="SSL_ERROR">SSL ERROR</option>
+                            <option value="ERROR">ERROR</option>
+                            <option value="N/A">N/A</option>
 
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
-                    Clear Filters
-                </button>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <select id="accessFilter"
+                                class="form-select form-select-sm">
+
+                            <option value="">Access</option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <select id="providerFilter"
+                                class="form-select form-select-sm">
+
+                            <option value="">SSL Provider</option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-5">
+                        <label class="filter-label">Expiry Date From</label>
+                        <input type="date"
+                               id="dateFrom"
+                               class="form-control form-control-sm">
+                    </div>
+
+                    <div class="col-md-5">
+                        <label class="filter-label">Expiry Date To</label>
+                        <input type="date"
+                               id="dateTo"
+                               class="form-control form-control-sm">
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button"
+                                id="clearFilters"
+                                class="btn btn-outline-secondary btn-sm w-100">
+                            Clear
+                        </button>
+                    </div>
+
+                </div>
+
             </div>
 
         </div>
 
     </div>
 
-    <div class="table-responsive-sticky">
+    <div class="table-responsive-sticky" id="tableContainer">
 
-        <table class="table table-hover table-striped" id="sslTable">
+        <table class="table table-hover table-striped align-middle"
+               id="sslTable">
 
             <thead>
                 <tr>
-                    <th data-col="http">HTTP/HTTPS Status</th>
-                    <th data-col="activity">Activity</th>
-                    <th data-col="expiry">Expiry</th>
-                    <th data-col="cn">Common Name</th>
-                    <th data-col="ip">IP Address</th>
-                    <th data-col="scope">Access</th>
-                    <th data-col="server">Server</th>
-                    <th>LB</th>
-                    <th data-col="provider">SSL Provider</th>
+                    <th>
+                        <div class="th-title">Status</div>
+                        <div class="sort-controls">
+                            <button type="button" class="sort-btn" data-index="0" data-sort="asc" data-type="text">Asc</button>
+                            <button type="button" class="sort-btn" data-index="0" data-sort="desc" data-type="text">Desc</button>
+                        </div>
+                    </th>
+
+                    <th>
+                        <div class="th-title">Expiry</div>
+                        <div class="sort-controls">
+                            <button type="button" class="sort-btn active" data-index="1" data-sort="asc" data-type="date">Asc</button>
+                            <button type="button" class="sort-btn" data-index="1" data-sort="desc" data-type="date">Desc</button>
+                        </div>
+                    </th>
+
+                    <th>
+                        <div class="th-title">Common Name</div>
+                        <div class="sort-controls">
+                            <button type="button" class="sort-btn" data-index="2" data-sort="asc" data-type="text">Asc</button>
+                            <button type="button" class="sort-btn" data-index="2" data-sort="desc" data-type="text">Desc</button>
+                        </div>
+                    </th>
+
+                    <th>
+                        <div class="th-title">IP Address</div>
+                        <div class="sort-controls">
+                            <button type="button" class="sort-btn" data-index="3" data-sort="asc" data-type="text">Asc</button>
+                            <button type="button" class="sort-btn" data-index="3" data-sort="desc" data-type="text">Desc</button>
+                        </div>
+                    </th>
+
+                    <th>
+                        <div class="th-title">Access</div>
+                        <div class="sort-controls">
+                            <button type="button" class="sort-btn" data-index="4" data-sort="asc" data-type="text">Asc</button>
+                            <button type="button" class="sort-btn" data-index="4" data-sort="desc" data-type="text">Desc</button>
+                        </div>
+                    </th>
+
+                    <th>
+                        <div class="th-title">Server</div>
+                        <div class="sort-controls">
+                            <button type="button" class="sort-btn" data-index="5" data-sort="asc" data-type="text">Asc</button>
+                            <button type="button" class="sort-btn" data-index="5" data-sort="desc" data-type="text">Desc</button>
+                        </div>
+                    </th>
+
+                    <th>
+                        <div class="th-title">LB</div>
+                        <div class="sort-controls">
+                            <button type="button" class="sort-btn" data-index="6" data-sort="asc" data-type="text">Asc</button>
+                            <button type="button" class="sort-btn" data-index="6" data-sort="desc" data-type="text">Desc</button>
+                        </div>
+                    </th>
+
+                    <th>
+                        <div class="th-title">SSL Provider</div>
+                        <div class="sort-controls">
+                            <button type="button" class="sort-btn" data-index="7" data-sort="asc" data-type="text">Asc</button>
+                            <button type="button" class="sort-btn" data-index="7" data-sort="desc" data-type="text">Desc</button>
+                        </div>
+                    </th>
                 </tr>
             </thead>
 
@@ -340,109 +432,124 @@ table.table {
                         expiring-soon
                     {% endif %}
                 "
+
                 data-href="{% url 'website_details' website.id %}"
+
                 data-http-status="{% if website.http_check_status %}{{ website.http_check_status }}{% else %}N/A{% endif %}">
 
-                    <td class="http-status-cell">
+                    <td class="status-cell">
+
                         {% if website.http_check_status == "OK" %}
-                            <div class="http-status-box http-ok">
-                                <strong>OK</strong>
 
-                                {% if website.http_status_code %}
-                                    <br>
-                                    <small class="http-small">HTTP {{ website.http_status_code }}</small>
-                                {% endif %}
-
-                                {% if website.response_time_ms %}
-                                    <br>
-                                    <small class="http-small">{{ website.response_time_ms }}ms</small>
-                                {% endif %}
+                            <div class="status-box status-ok">
+                                OK
                             </div>
 
                         {% elif website.http_check_status == "BLOCKED" or website.http_check_status == "REDIRECT" %}
-                            <div class="http-status-box http-warning">
-                                <strong>{{ website.http_check_status }}</strong>
+
+                            <div class="status-box status-warning">
+
+                                {{ website.http_check_status }}
 
                                 {% if website.http_status_code %}
-                                    <br>
-                                    <small class="http-small">HTTP {{ website.http_status_code }}</small>
+                                    - {{ website.http_status_code }}
                                 {% endif %}
 
-                                {% if website.response_time_ms %}
-                                    <br>
-                                    <small class="http-small">{{ website.response_time_ms }}ms</small>
-                                {% endif %}
                             </div>
 
                         {% elif website.http_check_status %}
-                            <div class="http-status-box http-bad">
-                                <strong>{{ website.http_check_status }}</strong>
+
+                            <div class="status-box status-bad">
+
+                                {{ website.http_check_status }}
 
                                 {% if website.http_status_code %}
-                                    <br>
-                                    <small class="http-small">HTTP {{ website.http_status_code }}</small>
+                                    - {{ website.http_status_code }}
                                 {% endif %}
 
-                                {% if website.response_time_ms %}
-                                    <br>
-                                    <small class="http-small">{{ website.response_time_ms }}ms</small>
-                                {% endif %}
                             </div>
 
                         {% else %}
-                            <div class="http-status-box http-empty">
-                                <strong>N/A</strong>
+
+                            <div class="status-box status-empty">
+                                N/A
                             </div>
+
                         {% endif %}
+
                     </td>
 
-                    <td>{{ website.activity }}</td>
+                    <td class="expiry-cell">
 
-                    <td>
                         {% if website.ssl_expiry_date_new %}
-                            {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
-                            <br>
-                            <small class="text-muted">
-                                in {{ website.ssl_expiry_date_new|timeuntil }}
-                            </small>
+
+                            {% if website.ssl_expiry_date_new|date:'U' < now|date:'U' %}
+                                <span class="expiry-expired">
+                                    {{ website.ssl_expiry_date_new|date:"Y-m-d" }} (expired)
+                                </span>
+                            {% else %}
+                                {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
+                                ({{ website.ssl_expiry_date_new|timeuntil }})
+                            {% endif %}
+
                         {% else %}
+
                             <span class="text-muted">N/A</span>
+
                         {% endif %}
+
                     </td>
 
-                    <td>{{ website.common_name }}</td>
+                    <td class="small-text-cell">{{ website.common_name }}</td>
 
                     <td>
+
                         {% if website.url_ip %}
                             <code class="ip-code">{{ website.url_ip }}</code>
                         {% else %}
-                            <span class="text-muted">N/A</span>
+                            <span class="text-muted small-text-cell">N/A</span>
                         {% endif %}
+
                     </td>
 
                     <td class="scope-cell">
+
                         {% if website.url_access_scope == "GLOBAL" %}
+
                             {% if website.url_access_scope_manual %}
-                                <span class="badge bg-warning text-dark">Global-manual</span>
+                                <span class="badge bg-warning text-dark">
+                                    Global-manual
+                                </span>
                             {% else %}
-                                <span class="badge bg-success">Global</span>
+                                <span class="badge bg-success">
+                                    Global
+                                </span>
                             {% endif %}
 
                         {% elif website.url_access_scope == "EDLAN_ONLY" %}
+
                             {% if website.url_access_scope_manual %}
-                                <span class="badge bg-warning text-dark">EdLan-only-manual</span>
+                                <span class="badge bg-warning text-dark">
+                                    EdLan-only-manual
+                                </span>
                             {% else %}
-                                <span class="badge bg-primary">EdLan-only</span>
+                                <span class="badge bg-primary">
+                                    EdLan-only
+                                </span>
                             {% endif %}
 
                         {% else %}
-                            <span class="text-muted">N/A</span>
+
+                            <span class="text-muted small-text-cell">N/A</span>
+
                         {% endif %}
+
                     </td>
 
-                    <td>{{ website.server }}</td>
+                    <td class="small-text-cell">{{ website.server }}</td>
 
                     <td>
+
                         {% if website.load_balancer|lower == "yes" %}
                             ✔️
                         {% elif website.load_balancer|lower == "no" %}
@@ -450,20 +557,23 @@ table.table {
                         {% else %}
                             ?
                         {% endif %}
+
                     </td>
 
-                    <td class="provider-cell">
+                    <td class="provider-cell small-text-cell">
+
                         {% if website.ssl_certificate_provider %}
                             {{ website.ssl_certificate_provider }}
                         {% else %}
                             <span class="text-muted">N/A</span>
                         {% endif %}
+
                     </td>
 
                 </tr>
 
                 <tr class="expandable">
-                    <td colspan="9">
+                    <td colspan="8">
                         <b>More details coming soon…</b>
                     </td>
                 </tr>
@@ -479,40 +589,43 @@ table.table {
 </div>
 
 <script>
+const summaryFilterBar = document.getElementById("summaryFilterBar");
+const tableContainer = document.getElementById("tableContainer");
 
-const root = document.documentElement;
-const darkToggleBtn = document.getElementById("darkToggle");
-const darkToggleIcon = darkToggleBtn.querySelector("i");
-
-function updateDarkModeIcon(theme) {
-    if (theme === "dark") {
-        darkToggleIcon.classList.remove("fa-moon");
-        darkToggleIcon.classList.add("fa-sun");
-    } else {
-        darkToggleIcon.classList.remove("fa-sun");
-        darkToggleIcon.classList.add("fa-moon");
-    }
+function hideSummaryFilterBar() {
+    summaryFilterBar.classList.add("summary-hidden");
+    tableContainer.classList.add("table-expanded");
 }
 
-root.dataset.theme = localStorage.getItem("theme") || "dark";
-updateDarkModeIcon(root.dataset.theme);
+function showSummaryFilterBar() {
+    summaryFilterBar.classList.remove("summary-hidden");
+    tableContainer.classList.remove("table-expanded");
+}
 
-darkToggleBtn.onclick = () => {
-    root.dataset.theme =
-        root.dataset.theme === "dark"
-        ? "light"
-        : "dark";
+tableContainer.addEventListener("scroll", () => {
+    if (tableContainer.scrollTop > 20) {
+        hideSummaryFilterBar();
+    } else {
+        showSummaryFilterBar();
+    }
+});
 
-    localStorage.setItem("theme", root.dataset.theme);
-    updateDarkModeIcon(root.dataset.theme);
-};
+window.addEventListener("scroll", () => {
+    if (window.scrollY > 20) {
+        hideSummaryFilterBar();
+    } else if (tableContainer.scrollTop <= 20) {
+        showSummaryFilterBar();
+    }
+});
 
 document.querySelectorAll(".main-row").forEach(row => {
+
     row.addEventListener("click", () => {
         window.location.href = row.dataset.href;
     });
 
-    row.addEventListener("dblclick", (event) => {
+    row.addEventListener("dblclick", event => {
+
         event.preventDefault();
         event.stopPropagation();
 
@@ -522,47 +635,69 @@ document.querySelectorAll(".main-row").forEach(row => {
             exp.style.display === "table-row"
             ? "none"
             : "table-row";
+
     });
+
 });
 
 function updateVisibleCount() {
-    const visibleRows = Array.from(document.querySelectorAll(".main-row"))
-        .filter(row => row.style.display !== "none").length;
+
+    const visibleRows = Array.from(
+        document.querySelectorAll(".main-row")
+    ).filter(row => row.style.display !== "none").length;
 
     document.getElementById("visibleCount").innerText = visibleRows;
+
 }
 
 function applyFilters() {
+
     const global = document.getElementById("globalFilter").value.toLowerCase();
+
     const httpStatus = document.getElementById("httpStatusFilter").value;
+
     const server = document.getElementById("serverFilter").value.toLowerCase();
+
     const cn = document.getElementById("cnFilter").value.toLowerCase();
-    const ip = document.getElementById("ipFilter").value.toLowerCase();
+
     const access = document.getElementById("accessFilter").value.toLowerCase();
+
     const provider = document.getElementById("providerFilter").value.toLowerCase();
+
     const from = document.getElementById("dateFrom").value;
+
     const to = document.getElementById("dateTo").value;
 
     document.querySelectorAll(".main-row").forEach(row => {
+
         let show = true;
 
         const cells = row.children;
+
         const rowText = row.innerText.toLowerCase();
+
         const rowHttpStatus = row.dataset.httpStatus || "N/A";
 
         if (global && !rowText.includes(global)) show = false;
-        if (httpStatus && rowHttpStatus !== httpStatus) show = false;
-        if (server && !cells[6].innerText.toLowerCase().includes(server)) show = false;
-        if (cn && !cells[3].innerText.toLowerCase().includes(cn)) show = false;
-        if (ip && cells[4].innerText.trim().toLowerCase() !== ip) show = false;
-        if (access && cells[5].innerText.trim().toLowerCase() !== access) show = false;
-        if (provider && cells[8].innerText.trim().toLowerCase() !== provider) show = false;
 
-        const dateText = cells[2].innerText.split("\n")[0].trim();
+        if (httpStatus && rowHttpStatus !== httpStatus) show = false;
+
+        if (server && !cells[5].innerText.toLowerCase().includes(server)) show = false;
+
+        if (cn && !cells[2].innerText.toLowerCase().includes(cn)) show = false;
+
+        if (access && cells[4].innerText.trim().toLowerCase() !== access) show = false;
+
+        if (provider && cells[7].innerText.trim().toLowerCase() !== provider) show = false;
+
+        const dateText = cells[1].innerText.split(" ")[0].trim();
 
         if (dateText !== "N/A") {
+
             if (from && dateText < from) show = false;
+
             if (to && dateText > to) show = false;
+
         }
 
         row.style.display = show ? "" : "none";
@@ -570,63 +705,83 @@ function applyFilters() {
         if (!show && row.nextElementSibling) {
             row.nextElementSibling.style.display = "none";
         }
+
     });
 
     updateVisibleCount();
+
 }
 
 document.querySelectorAll("input, select").forEach(element => {
+
     element.addEventListener("input", applyFilters);
+
     element.addEventListener("change", applyFilters);
+
 });
 
 document.getElementById("clearFilters").addEventListener("click", () => {
+
     document.querySelectorAll("input, select").forEach(element => {
         element.value = "";
     });
 
     applyFilters();
+
 });
 
 function parseDate(text) {
+
     const cleanText = text.trim();
 
     if (!cleanText || cleanText === "N/A") {
         return new Date(8640000000000000);
     }
 
-    const parts = cleanText.split("-");
+    const dateOnly = cleanText.split(" ")[0];
+
+    const parts = dateOnly.split("-");
 
     if (parts.length !== 3) {
         return new Date(8640000000000000);
     }
 
     return new Date(parts[0], parts[1] - 1, parts[2]);
+
 }
 
 function populateSelectFilter(selectId, columnIndex) {
+
     const select = document.getElementById(selectId);
+
     const values = new Set();
 
     document.querySelectorAll(".main-row").forEach(row => {
+
         const value = row.children[columnIndex].innerText.trim();
 
         if (value && value !== "N/A") {
             values.add(value);
         }
+
     });
 
     Array.from(values).sort().forEach(value => {
+
         const option = document.createElement("option");
 
         option.value = value;
+
         option.textContent = value;
 
         select.appendChild(option);
+
     });
+
 }
 
 function sortTableByColumn(index, ascending, type = "text") {
+
     const table = document.querySelector("#sslTable tbody");
 
     const rows = Array.from(
@@ -634,74 +789,87 @@ function sortTableByColumn(index, ascending, type = "text") {
     );
 
     rows.sort((a, b) => {
+
         let A = a.children[index].innerText.trim();
+
         let B = b.children[index].innerText.trim();
 
         if (type === "date") {
-            A = parseDate(A.split("\n")[0].trim());
-            B = parseDate(B.split("\n")[0].trim());
+
+            A = parseDate(A);
+
+            B = parseDate(B);
 
             if (A < B) return ascending ? -1 : 1;
+
             if (A > B) return ascending ? 1 : -1;
 
             return 0;
+
         }
 
         return ascending
             ? A.localeCompare(B)
             : B.localeCompare(A);
+
     });
 
     rows.forEach(row => {
+
         const exp = row.nextElementSibling;
 
         table.append(row);
+
         table.append(exp);
+
     });
 
     updateVisibleCount();
+
+}
+
+function setActiveSortButton(button) {
+
+    document.querySelectorAll(".sort-btn").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    button.classList.add("active");
+
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    populateSelectFilter("ipFilter", 4);
-    populateSelectFilter("accessFilter", 5);
-    populateSelectFilter("providerFilter", 8);
 
-    const expiryTh = document.querySelector(
-        'th[data-col="expiry"]'
-    );
+    populateSelectFilter("accessFilter", 4);
 
-    expiryTh.dataset.sort = "asc";
+    populateSelectFilter("providerFilter", 7);
 
-    sortTableByColumn(2, true, "date");
+    sortTableByColumn(1, true, "date");
+
     updateVisibleCount();
+
 });
 
-document.querySelectorAll("th[data-col]").forEach(th => {
-    th.addEventListener("click", () => {
-        const index = th.cellIndex;
-        const currentSort = th.dataset.sort === "asc";
-        const ascending = !currentSort;
+document.querySelectorAll(".sort-btn").forEach(button => {
 
-        document.querySelectorAll("th[data-col]").forEach(otherTh => {
-            if (otherTh !== th) {
-                delete otherTh.dataset.sort;
-            }
-        });
+    button.addEventListener("click", event => {
 
-        th.dataset.sort = ascending ? "asc" : "desc";
+        event.preventDefault();
+        event.stopPropagation();
 
-        if (th.dataset.col === "expiry") {
-            sortTableByColumn(index, ascending, "date");
-        } else {
-            sortTableByColumn(index, ascending, "text");
-        }
+        const index = parseInt(button.dataset.index, 10);
+
+        const ascending = button.dataset.sort === "asc";
+
+        const type = button.dataset.type;
+
+        sortTableByColumn(index, ascending, type);
+
+        setActiveSortButton(button);
+
     });
-});
 
+});
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
-</html>
+{% endblock %}
