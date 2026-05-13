@@ -322,7 +322,8 @@ class Command(BaseCommand):
 
                 defaults = {
                     "property_name": property_name,
-                    "date": today,  # last sync date
+                    "date": today,
+                    "last_synced_at": timezone.now(),
                     "daily_users": daily_users,
                     "monthly_users": monthly_users,
                     "earliest_data_date": earliest_date,

@@ -68,6 +68,7 @@
         color: #555;
         margin-top: 8px;
         line-height: 1.4;
+        font-weight: 600;
     }
 
     .month-select {
@@ -233,20 +234,17 @@
                 <small>Report summary</small>
 
                 <div class="metric-line">
-                    TOTAL: <strong>{{ table_item_count_vms }}</strong> services
+                    TOTAL: <strong>{{ total_services }}</strong> services
                 </div>
 
                 <div class="metric-line">
-                    SEARCH RESULT: <strong id="searchResultCount">{{ table_item_count_vms }}</strong> services
+                    SEARCH RESULT: <strong id="searchResultCount">{{ total_services }}</strong> services
                 </div>
 
                 <div class="last-update">
                     LAST UPDATE:
                     {% if last_update %}
-                        <span
-                            id="lastUpdate"
-                            data-last-update="{{ last_update|date:'c' }}"
-                        >
+                        <span id="lastUpdate" data-last-update="{{ last_update|date:'c' }}">
                             {{ last_update|date:"Y-M-d" }} at {{ last_update|date:"H:i" }}
                         </span>
                     {% else %}
@@ -259,6 +257,7 @@
         <div class="col-md-4">
             <div class="metric-card">
                 <small>Months shown</small>
+
                 <select id="monthSelector" class="month-select" onchange="updateVisibleMonths()">
                     <option value="3">Last 3 months</option>
                     <option value="6">Last 6 months</option>
@@ -501,8 +500,12 @@ function formatLastUpdate() {
     const year = updateDate.getFullYear();
     const month = months[updateDate.getMonth()];
     const day = String(updateDate.getDate()).padStart(2, "0");
-    const hours = String(updateDate.getHours()).padStart(2, "0");
+
+    let hours = updateDate.getHours();
     const minutes = String(updateDate.getMinutes()).padStart(2, "0");
+
+    const suffix = hours >= 12 ? "p.m" : "a.m";
+    hours = String(hours).padStart(2, "0");
 
     const diffMs = now - updateDate;
     const diffHoursTotal = Math.floor(diffMs / (1000 * 60 * 60));
@@ -519,7 +522,7 @@ function formatLastUpdate() {
         agoText = `${diffDays} day${diffDays === 1 ? "" : "s"} and ${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
     }
 
-    element.textContent = `${year}-${month}-${day} at ${hours}:${minutes} p.m (${agoText})`;
+    element.textContent = `${year}-${month}-${day} at ${hours}:${minutes} ${suffix} (${agoText})`;
 }
 
 document.addEventListener("DOMContentLoaded", function () {

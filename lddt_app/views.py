@@ -586,56 +586,37 @@ def delete_statement(request, id):
 
 # === Main view ===
 def ga4_report(request):
-    # ---------- LAST 12 MONTHS ----------
+    stats = GoogleAnalyticsStats.objects.all().order_by("property_name")
+
+    total_services = stats.count()
+
+    last_update_obj = (
+        GoogleAnalyticsStats.objects
+        .exclude(last_synced_at__isnull=True)
+        .order_by("-last_synced_at")
+        .first()
+    )
+
     months = []
-    today = date.today()
 
-    for i in range(11, -1, -1):
-        y = today.year
-        m = today.month - i
-        while m <= 0:
-            m += 12
-            y -= 1
-        months.append(f"{y}-{m:02d}")
-
-    # ---------- GET LATEST ROW PER PROPERTY ----------
-    property_ids = GoogleAnalyticsStats.objects.values_list(
-        "property_id", flat=True
-    ).distinct()
+    sample = stats.first()
+    if sample and sample.monthly_users_data:
+        months = sorted(sample.monthly_users_data.keys())
 
     properties = []
-    yearly_columns = set()
 
-    for pid in property_ids:
-        latest_date = (
-            GoogleAnalyticsStats.objects
-            .filter(property_id=pid)
-            .aggregate(Max("date"))["date__max"]
-        )
-
-        stat = GoogleAnalyticsStats.objects.get(
-            property_id=pid,
-            date=latest_date
-        )
-
-        # Directly use the field assuming it's already a dict or None
-        monthly_data = stat.monthly_users_data or {}
-
-        yearly_data = defaultdict(int)
-        for month_key, value in monthly_data.items():
-            year = int(month_key.split("-")[0])
-            yearly_data[year] += int(value)
-            yearly_columns.add(year)
-
-        stat.monthly_data = monthly_data
-        stat.yearly_data = yearly_data
-
-        properties.append(stat)
+    for stat in stats:
+        properties.append({
+            "property_name": stat.property_name,
+            "earliest_data_date": stat.earliest_data_date,
+            "monthly_data": stat.monthly_users_data,
+        })
 
     context = {
         "properties": properties,
         "months": months,
-        "yearly_columns": sorted(yearly_columns),
+        "total_services": total_services,
+        "last_update": last_update_obj.last_synced_at if last_update_obj else None,
     }
 
     return render(request, "ga4_reports.html", context)

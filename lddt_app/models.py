@@ -1084,12 +1084,15 @@ class AccessStatement(models.Model):
 
 
 class GoogleAnalyticsStats(models.Model):
-    # GA4 property identity (UNIQUE)
+    # GA4 property identity
     property_id = models.CharField(max_length=32, unique=True)
     property_name = models.CharField(max_length=255)
 
-    # Last sync date (not part of uniqueness anymore)
+    # Last sync date
     date = models.DateField()
+
+    # Exact last sync datetime
+    last_synced_at = models.DateTimeField(null=True, blank=True)
 
     # High-level aggregates
     daily_users = models.PositiveIntegerField(default=0)
@@ -1098,7 +1101,7 @@ class GoogleAnalyticsStats(models.Model):
     # First date GA has data for this property
     earliest_data_date = models.DateField(null=True, blank=True)
 
-    # Time-series data (key: YYYY-MM)
+    # Time-series data
     monthly_users_data = models.JSONField(default=dict, blank=True)
     monthly_sessions_data = models.JSONField(default=dict, blank=True)
 
@@ -1114,7 +1117,7 @@ class GoogleAnalyticsStats(models.Model):
         ordering = ["property_name"]
 
     def __str__(self):
-        return f"{self.property_name}"
+        return self.property_name
 
 
 
