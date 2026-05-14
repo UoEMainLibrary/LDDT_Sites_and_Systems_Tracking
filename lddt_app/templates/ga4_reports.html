@@ -8,7 +8,9 @@
 <style>
     .ga4-dashboard {
         width: 100%;
-        padding: 0 24px 40px 24px;
+        max-width: 100%;
+        padding: 0 16px 40px 16px;
+        overflow-x: hidden;
     }
 
     .ga4-hero {
@@ -71,7 +73,8 @@
         font-weight: 600;
     }
 
-    .month-select {
+    .month-select,
+    .service-filter-select {
         margin-top: 8px;
         border-radius: 10px;
         border: 1px solid #ced4da;
@@ -79,6 +82,17 @@
         font-weight: 700;
         color: #690051;
         width: 100%;
+        background: white;
+    }
+
+    .service-filter-label {
+        display: block;
+        margin-top: 12px;
+        color: #6c757d;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .04em;
     }
 
     .report-tabs {
@@ -115,6 +129,26 @@
         padding: 10px 14px;
     }
 
+    .search-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .search-input-wrap {
+        flex: 1 1 320px;
+    }
+
+    .search-result-pill {
+        background: #f5e8f1;
+        color: #690051;
+        font-weight: 800;
+        border-radius: 999px;
+        padding: 9px 14px;
+        white-space: nowrap;
+    }
+
     .metric-toggles {
         display: inline-flex;
         gap: 10px;
@@ -142,6 +176,7 @@
 
     .table-card {
         width: 100%;
+        max-width: 100%;
         background: white;
         border-radius: 18px;
         box-shadow: 0 8px 25px rgba(0,0,0,0.1);
@@ -150,16 +185,18 @@
 
     .table-responsive {
         width: 100%;
+        max-width: 100%;
         max-height: 72vh;
-        overflow: auto;
+        overflow-x: auto;
+        overflow-y: auto;
     }
 
     #myTable {
         width: 100%;
-        min-width: 100%;
+        max-width: 100%;
         margin-bottom: 0;
-        font-size: 13px;
-        table-layout: auto;
+        font-size: 12px;
+        table-layout: fixed;
     }
 
     #myTable thead th {
@@ -168,33 +205,48 @@
         z-index: 3;
         background: #323c4e;
         color: white;
-        white-space: nowrap;
+        white-space: normal;
         vertical-align: middle;
-        font-size: 14px;
+        font-size: 12px;
         border-bottom: none;
+        text-align: center;
+        padding: 8px 6px;
     }
 
     #myTable tbody td {
-        white-space: nowrap;
+        white-space: normal;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 34ch;
         vertical-align: middle;
+        padding: 8px 6px;
     }
 
     #myTable tbody tr:hover {
         background: #f5e8f1;
     }
 
+    .property-col {
+        width: 22%;
+        text-align: left !important;
+    }
+
+    .since-col {
+        width: 9%;
+    }
+
     .property-name {
         font-weight: 700;
         color: #430034;
-        min-width: 260px;
+        min-width: 0;
+    }
+
+    .month-col {
+        width: auto;
     }
 
     .metric-cell {
-        min-width: 105px;
-        font-size: 12px;
+        min-width: 0;
+        font-size: 11px;
         line-height: 1.35;
         padding-top: 8px !important;
         padding-bottom: 8px !important;
@@ -203,7 +255,7 @@
     .metric-row {
         display: flex;
         justify-content: space-between;
-        gap: 8px;
+        gap: 6px;
         border-bottom: 1px solid #f1eef1;
         padding: 2px 0;
     }
@@ -215,7 +267,7 @@
     .metric-label {
         font-weight: 900;
         color: #690051;
-        min-width: 18px;
+        min-width: 14px;
     }
 
     .metric-value {
@@ -224,10 +276,46 @@
         text-align: right;
     }
 
+    .before-tracking {
+        background: rgba(105, 0, 81, 0.12) !important;
+        color: rgba(67, 0, 52, 0.55);
+        position: relative;
+    }
+
+    .before-tracking .metric-row {
+        opacity: 0.35;
+    }
+
+    .before-tracking::after {
+        content: "Before tracking";
+        display: block;
+        margin-top: 4px;
+        font-size: 9px;
+        font-weight: 800;
+        color: rgba(105, 0, 81, 0.65);
+        text-align: center;
+    }
+
+    #myTable tbody tr:hover .before-tracking {
+        background: rgba(105, 0, 81, 0.18) !important;
+    }
+
+    .header-title {
+        display: block;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 4px;
+    }
+
     .sort-buttons {
-        display: inline-flex;
-        gap: 3px;
-        margin-left: 4px;
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        margin-top: 4px;
+    }
+
+    .property-col .sort-buttons {
+        justify-content: flex-start;
     }
 
     .sort-buttons button {
@@ -235,9 +323,10 @@
         background: rgba(255,255,255,0.16);
         color: white;
         border-radius: 5px;
-        font-size: 11px;
-        padding: 2px 5px;
+        font-size: 10px;
+        padding: 2px 6px;
         cursor: pointer;
+        line-height: 1.2;
     }
 
     .sort-buttons button:hover {
@@ -249,6 +338,21 @@
         text-align: center;
         padding: 30px;
         color: #6c757d;
+    }
+
+    @media (max-width: 991px) {
+        #myTable {
+            min-width: 980px;
+            table-layout: auto;
+        }
+
+        .property-col {
+            width: 240px;
+        }
+
+        .since-col {
+            width: 110px;
+        }
     }
 </style>
 {% endblock %}
@@ -286,10 +390,6 @@
                     TOTAL: <strong>{{ total_services }}</strong> services
                 </div>
 
-                <div class="metric-line">
-                    SEARCH RESULT: <strong id="searchResultCount">{{ total_services }}</strong> services
-                </div>
-
                 <div class="last-update">
                     LAST UPDATE:
                     {% if last_update %}
@@ -314,9 +414,13 @@
                     <option value="12" selected>Last 12 months</option>
                 </select>
 
-                <div class="last-update">
-                    Use this to shrink or expand the monthly view.
-                </div>
+                <span class="service-filter-label">Services shown</span>
+
+                <select id="serviceSinceFilter" class="service-filter-select" onchange="applyAllFilters()">
+                    <option value="all" selected>Show all services</option>
+                    <option value="with_since">Only services with Since date</option>
+                    <option value="without_since">Only services without Since date</option>
+                </select>
             </div>
         </div>
 
@@ -327,7 +431,7 @@
                     <strong>Combined metrics</strong>
                 </div>
                 <div class="last-update">
-                    Use the checkboxes below to show or hide visits, sessions and active users.
+                    Faded corporate cells mean the service was not tracking yet.
                 </div>
             </div>
         </div>
@@ -371,13 +475,23 @@
     <section class="toolbar">
         <div class="row align-items-center g-3">
             <div class="col-lg-6">
-                <input
-                    type="text"
-                    id="globalSearch"
-                    class="form-control"
-                    placeholder="Search services, dates, visits, sessions or users..."
-                    onkeyup="filterTable()"
-                >
+                <div class="search-row">
+                    <div class="search-input-wrap">
+                        <input
+                            type="text"
+                            id="globalSearch"
+                            class="form-control"
+                            placeholder="Search services, dates, visits, sessions or users..."
+                            onkeyup="applyAllFilters()"
+                        >
+                    </div>
+
+                    <div class="search-result-pill">
+                        SEARCH RESULT:
+                        <strong id="searchResultCount">{{ total_services }}</strong>
+                        services
+                    </div>
+                </div>
             </div>
 
             <div class="col-lg-6 text-lg-end">
@@ -424,16 +538,16 @@
             <table class="table table-hover align-middle" id="myTable">
                 <thead>
                     <tr>
-                        <th scope="col">
-                            Property Name
+                        <th scope="col" class="property-col">
+                            <span class="header-title">Property Name</span>
                             <span class="sort-buttons">
-                                <button onclick="sortTable(0, 'text', 'asc')">▲</button>
-                                <button onclick="sortTable(0, 'text', 'desc')">▼</button>
+                                <button onclick="sortTable(0, 'text', 'asc')">▲ Asc</button>
+                                <button onclick="sortTable(0, 'text', 'desc')">▼ Desc</button>
                             </span>
                         </th>
 
-                        <th scope="col">
-                            Since
+                        <th scope="col" class="since-col">
+                            <span class="header-title">Since</span>
                             <span class="sort-buttons">
                                 <button onclick="sortTable(1, 'text', 'asc')">▲</button>
                                 <button onclick="sortTable(1, 'text', 'desc')">▼</button>
@@ -441,8 +555,13 @@
                         </th>
 
                         {% for month in months %}
-                            <th scope="col" class="month-col" data-month-index="{{ forloop.counter }}">
-                                {{ month }}
+                            <th
+                                scope="col"
+                                class="month-col"
+                                data-month-index="{{ forloop.counter }}"
+                                data-month="{{ month }}"
+                            >
+                                <span class="header-title">{{ month }}</span>
                                 <span class="sort-buttons">
                                     <button onclick="sortTable({{ forloop.counter|add:1 }}, 'num', 'asc')">▲</button>
                                     <button onclick="sortTable({{ forloop.counter|add:1 }}, 'num', 'desc')">▼</button>
@@ -454,12 +573,15 @@
 
                 <tbody>
                     {% for prop in properties %}
-                        <tr>
+                        <tr data-has-since="{% if prop.earliest_data_date %}yes{% else %}no{% endif %}">
                             <td class="property-name" title="{{ prop.property_name }}">
                                 {{ prop.property_name }}
                             </td>
 
-                            <td>
+                            <td
+                                class="since-date"
+                                data-since="{{ prop.earliest_data_date|date:'Y-m-d' }}"
+                            >
                                 {{ prop.earliest_data_date|default:"—" }}
                             </td>
 
@@ -467,6 +589,8 @@
                                 <td
                                     class="month-col metric-cell"
                                     data-month-index="{{ forloop.counter }}"
+                                    data-month="{{ month }}"
+                                    data-since="{{ prop.earliest_data_date|date:'Y-m-d' }}"
                                     data-value="{{ prop.monthly_visits_data|get_item:month|default:0 }}"
                                 >
                                     <div class="metric-row metric-visits">
@@ -537,12 +661,19 @@ function sortTable(colIndex, type, direction) {
     });
 
     rows.forEach(row => tbody.appendChild(row));
+    applyAllFilters();
 }
 
-function filterTable() {
+function applyAllFilters() {
     const input = document.getElementById("globalSearch");
-    const filter = input.value.toLowerCase();
+    const filter = input ? input.value.toLowerCase() : "";
+
+    const serviceSinceFilter = document.getElementById("serviceSinceFilter");
+    const sinceMode = serviceSinceFilter ? serviceSinceFilter.value : "all";
+
     const table = document.getElementById("myTable");
+    if (!table) return;
+
     const tbody = table.tBodies[0];
     const rows = tbody.rows;
 
@@ -550,7 +681,19 @@ function filterTable() {
 
     for (let i = 0; i < rows.length; i++) {
         const rowText = rows[i].innerText.toLowerCase();
-        const isVisible = rowText.includes(filter);
+        const hasSince = rows[i].dataset.hasSince === "yes";
+
+        const matchesSearch = rowText.includes(filter);
+
+        let matchesSinceFilter = true;
+
+        if (sinceMode === "with_since") {
+            matchesSinceFilter = hasSince;
+        } else if (sinceMode === "without_since") {
+            matchesSinceFilter = !hasSince;
+        }
+
+        const isVisible = matchesSearch && matchesSinceFilter;
 
         rows[i].style.display = isVisible ? "" : "none";
 
@@ -599,6 +742,33 @@ function updateVisibleMetrics() {
     });
 }
 
+function markBeforeTrackingCells() {
+    const cells = document.querySelectorAll("td.metric-cell");
+
+    cells.forEach(cell => {
+        const month = cell.dataset.month;
+        const since = cell.dataset.since;
+
+        if (!month || !since) return;
+
+        const monthStart = new Date(`${month}-01T00:00:00`);
+        const sinceDate = new Date(`${since}T00:00:00`);
+
+        if (isNaN(monthStart.getTime()) || isNaN(sinceDate.getTime())) return;
+
+        const monthLastDay = new Date(
+            monthStart.getFullYear(),
+            monthStart.getMonth() + 1,
+            0
+        );
+
+        if (monthLastDay < sinceDate) {
+            cell.classList.add("before-tracking");
+            cell.setAttribute("title", "This month is before GA4 tracking started for this service");
+        }
+    });
+}
+
 function formatLastUpdate() {
     const element = document.getElementById("lastUpdate");
     if (!element) return;
@@ -644,10 +814,10 @@ function formatLastUpdate() {
 document.addEventListener("DOMContentLoaded", function () {
     updateVisibleMonths();
     updateVisibleMetrics();
-    filterTable();
+    markBeforeTrackingCells();
+    applyAllFilters();
     formatLastUpdate();
 });
 </script>
 
 {% endblock %}
-
