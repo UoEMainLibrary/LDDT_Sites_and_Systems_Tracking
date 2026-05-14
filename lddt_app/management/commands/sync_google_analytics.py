@@ -172,37 +172,29 @@ class Command(BaseCommand):
     def fetch_engaged_sessions(self, property_id, start_date, end_date):
         return self.fetch_metric(property_id, "engagedSessions", start_date, end_date)
 
-    def fetch_users_and_sessions(self, property_id, start_date, end_date):
-        """
-        Fetch activeUsers and engagedSessions in one API call.
-        """
+    def fetch_users_sessions_and_views(self, property_id, start_date, end_date):
         request = RunReportRequest(
             property=f"properties/{property_id}",
             date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
             metrics=[
                 Metric(name="activeUsers"),
-                Metric(name="engagedSessions"),
+                Metric(name="sessions"),
+                Metric(name="screenPageViews"),
             ],
         )
 
         response = self.run_report_with_retry(request)
 
         if not response.rows:
-            return 0, 0
+            return 0, 0, 0
 
         row = response.rows[0]
 
-        try:
-            users = self._safe_int(row.metric_values[0].value, default=0)
-        except (IndexError, AttributeError):
-            users = 0
+        users = self._safe_int(row.metric_values[0].value, default=0)
+        sessions = self._safe_int(row.metric_values[1].value, default=0)
+        views = self._safe_int(row.metric_values[2].value, default=0)
 
-        try:
-            sessions = self._safe_int(row.metric_values[1].value, default=0)
-        except (IndexError, AttributeError):
-            sessions = 0
-
-        return users, sessions
+        return users, sessions, views
 
     # ------------------------------------------------------------------
     # Date helpers
@@ -307,11 +299,12 @@ class Command(BaseCommand):
                 # monthly time series
                 monthly_users_data = {}
                 monthly_sessions_data = {}
+                monthly_views_data = {}
 
                 for i in range(12):
                     month_key, start_date, end_date = self.get_month_date_range(today, i)
 
-                    users, sessions = self.fetch_users_and_sessions(
+                    users, sessions, views = self.fetch_users_sessions_and_views(
                         property_id=property_id,
                         start_date=start_date.strftime("%Y-%m-%d"),
                         end_date=end_date.strftime("%Y-%m-%d"),
@@ -319,6 +312,7 @@ class Command(BaseCommand):
 
                     monthly_users_data[month_key] = users
                     monthly_sessions_data[month_key] = sessions
+                    monthly_views_data[month_key] = views
 
                 defaults = {
                     "property_name": property_name,
@@ -329,6 +323,7 @@ class Command(BaseCommand):
                     "earliest_data_date": earliest_date,
                     "monthly_users_data": monthly_users_data,
                     "monthly_sessions_data": monthly_sessions_data,
+                    "monthly_views_data": monthly_views_data,
                 }
 
                 try:

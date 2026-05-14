@@ -627,7 +627,7 @@ def ga4_report(request):
             # Temporary visits value.
             # At the moment this uses sessions because your model does not yet
             # have a separate monthly_visits_data field.
-            "monthly_visits_data": stat.monthly_sessions_data or {},
+            "monthly_visits_data": stat.monthly_views_data or {},
         })
 
     context = {
