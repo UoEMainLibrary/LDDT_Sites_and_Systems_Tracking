@@ -380,6 +380,22 @@
         </div>
     </section>
 
+    <section class="report-tabs">
+        <ul class="nav nav-pills flex-wrap">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">
+                    Combined Monthly Report
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'top_properties_last12m_sessions_chart' %}">
+                    Top 10 Charts
+                </a>
+            </li>
+        </ul>
+    </section>
+
     <section class="row g-3 mb-4">
 
         <div class="col-md-4">
@@ -427,49 +443,19 @@
         <div class="col-md-4">
             <div class="metric-card">
                 <small>Current report</small>
-                <div class="metric-line">
-                    <strong>Combined metrics</strong>
-                </div>
+
+                <select id="serviceActivityFilter" class="service-filter-select" onchange="applyAllFilters()">
+                    <option value="all" selected>Show all activity levels</option>
+                    <option value="top5">Top 5 busiest services</option>
+                    <option value="bottom5">Bottom 5 least busy services</option>
+                </select>
+
                 <div class="last-update">
-                    Faded corporate cells mean the service was not tracking yet.
+                    Top/bottom results ignore services without a Since date and use average monthly activity since tracking started.
                 </div>
             </div>
         </div>
 
-    </section>
-
-    <section class="report-tabs">
-        <ul class="nav nav-pills flex-wrap">
-            <li class="nav-item">
-                <a class="nav-link active" href="#">
-                    Combined monthly report
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'ga4_years_visits' %}">
-                    Years visits
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'ga4_last_12_months_sessions' %}">
-                    Last 12 months sessions
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'ga4_last_12_months_active_users' %}">
-                    Last 12 months active users
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'top_properties_last12m_sessions_chart' %}">
-                    Top 10 charts
-                </a>
-            </li>
-        </ul>
     </section>
 
     <section class="toolbar">
@@ -592,6 +578,9 @@
                                     data-month="{{ month }}"
                                     data-since="{{ prop.earliest_data_date|date:'Y-m-d' }}"
                                     data-value="{{ prop.monthly_visits_data|get_item:month|default:0 }}"
+                                    data-visits="{{ prop.monthly_visits_data|get_item:month|default:0 }}"
+                                    data-sessions="{{ prop.monthly_sessions_data|get_item:month|default:0 }}"
+                                    data-users="{{ prop.monthly_users_data|get_item:month|default:0 }}"
                                 >
                                     <div class="metric-row metric-visits">
                                         <span class="metric-label">V</span>
@@ -664,12 +653,75 @@ function sortTable(colIndex, type, direction) {
     applyAllFilters();
 }
 
+function calculateActivityRankings() {
+    const table = document.getElementById("myTable");
+    if (!table) {
+        return { top5: new Set(), bottom5: new Set() };
+    }
+
+    const rows = Array.from(table.tBodies[0].rows);
+    const scoredRows = [];
+
+    rows.forEach(row => {
+        const hasSince = row.dataset.hasSince === "yes";
+
+        if (!hasSince) {
+            return;
+        }
+
+        const metricCells = row.querySelectorAll("td.metric-cell");
+
+        let totalScore = 0;
+        let trackedMonths = 0;
+
+        metricCells.forEach(cell => {
+            if (cell.classList.contains("before-tracking")) {
+                return;
+            }
+
+            const visits = parseFloat(cell.dataset.visits || 0);
+            const sessions = parseFloat(cell.dataset.sessions || 0);
+            const users = parseFloat(cell.dataset.users || 0);
+
+            totalScore += visits + sessions + users;
+            trackedMonths++;
+        });
+
+        if (trackedMonths === 0) {
+            return;
+        }
+
+        scoredRows.push({
+            row: row,
+            score: totalScore / trackedMonths
+        });
+    });
+
+    const topSorted = scoredRows
+        .slice()
+        .sort((a, b) => b.score - a.score);
+
+    const bottomSorted = scoredRows
+        .slice()
+        .sort((a, b) => a.score - b.score);
+
+    return {
+        top5: new Set(topSorted.slice(0, 5).map(item => item.row)),
+        bottom5: new Set(bottomSorted.slice(0, 5).map(item => item.row))
+    };
+}
+
 function applyAllFilters() {
     const input = document.getElementById("globalSearch");
     const filter = input ? input.value.toLowerCase() : "";
 
     const serviceSinceFilter = document.getElementById("serviceSinceFilter");
     const sinceMode = serviceSinceFilter ? serviceSinceFilter.value : "all";
+
+    const serviceActivityFilter = document.getElementById("serviceActivityFilter");
+    const activityMode = serviceActivityFilter ? serviceActivityFilter.value : "all";
+
+    const rankings = calculateActivityRankings();
 
     const table = document.getElementById("myTable");
     if (!table) return;
@@ -680,8 +732,9 @@ function applyAllFilters() {
     let visibleCount = 0;
 
     for (let i = 0; i < rows.length; i++) {
-        const rowText = rows[i].innerText.toLowerCase();
-        const hasSince = rows[i].dataset.hasSince === "yes";
+        const row = rows[i];
+        const rowText = row.innerText.toLowerCase();
+        const hasSince = row.dataset.hasSince === "yes";
 
         const matchesSearch = rowText.includes(filter);
 
@@ -693,9 +746,20 @@ function applyAllFilters() {
             matchesSinceFilter = !hasSince;
         }
 
-        const isVisible = matchesSearch && matchesSinceFilter;
+        let matchesActivityFilter = true;
 
-        rows[i].style.display = isVisible ? "" : "none";
+        if (activityMode === "top5") {
+            matchesActivityFilter = rankings.top5.has(row);
+        } else if (activityMode === "bottom5") {
+            matchesActivityFilter = rankings.bottom5.has(row);
+        }
+
+        const isVisible =
+            matchesSearch &&
+            matchesSinceFilter &&
+            matchesActivityFilter;
+
+        row.style.display = isVisible ? "" : "none";
 
         if (isVisible) {
             visibleCount++;
