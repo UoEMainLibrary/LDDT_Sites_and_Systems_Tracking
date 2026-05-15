@@ -1,271 +1,1069 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>GA4 Dashboard</title>
-    {% load ga_extras %}
-    {% load static %}
-
-      <link rel="stylesheet" href="{% static '/statements_css/statement_top_menu.css' %}">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-
-    <style>
-    /* Small styles for sorting arrows */
-    th.sortable {
-      cursor: pointer;
-      user-select: none;
-      position: relative;
-    }
-
-    th.sortable .sort-arrow {
-      font-size: 0.7em;
-      margin-left: 5px;
-      display: inline-block;
-      width: 10px;
-      text-align: center;
-      color: #ccc;
-    }
-
-    th.sortable.asc .sort-arrow.asc-arrow {
-      color: #fff;
-    }
-
-    th.sortable.desc .sort-arrow.desc-arrow {
-      color: #fff;
-    }
-
-    /* Apply to all table cells */
-    #myTable th,
-    #myTable td {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 30ch;
-    }
-
-    /* ✅ TOP NAV — now correctly scoped */
-    .topnav {
-      background-color: #333;
-      overflow: hidden;
-      margin: 10px auto;
-      width: 96%;
-      border-radius: 6px;
-    }
-
-    .topnav a {
-      float: left;
-      color: #f2f2f2;
-      text-align: center;
-      padding: 12px 16px;
-      text-decoration: none;
-      font-size: 16px;
-    }
-
-    .topnav a:hover {
-      background-color: #ddd;
-      color: black;
-    }
-
-    .topnav a.active {
-      background-color: #04AA6D;
-      color: white;
-    }
-</style>
-</head>
-
-<body style="background-color: #0a0c11">
-
+{% extends "base.html" %}
 {% load static %}
 {% load ga_extras %}
 
-<section id="main" class="main">
-    <header>
-        <figure onClick="animate(this)">
-            <div id="logo">
-                <table>
-                    <tr>
-                        <td>
-                            <h1>GA4 Section</h1>
-                            <p style="font-size: 14px">
-                                The table contains: {{ table_item_count_vms }} records.<br>
-                            </p>
-                        </td>
-                    </tr>
-                </table>
+{% block head %}
+<title>GA4 Dashboard | Digital Library Tracking App</title>
+
+<style>
+    .ga4-dashboard {
+        width: 100%;
+        max-width: 100%;
+        padding: 0 16px 40px 16px;
+        overflow-x: hidden;
+    }
+
+    .ga4-hero {
+        background: linear-gradient(135deg, #690051, #430034);
+        color: white;
+        border-radius: 18px;
+        padding: 28px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+        margin-bottom: 24px;
+    }
+
+    .ga4-hero h1 {
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+    .ga4-hero p {
+        color: #f2d9ec;
+        margin-bottom: 0;
+    }
+
+    .ga4-actions a {
+        border-radius: 10px;
+        font-weight: 700;
+    }
+
+    .metric-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        height: 100%;
+        border-left: 6px solid #690051;
+    }
+
+    .metric-card small {
+        color: #6c757d;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .metric-line {
+        font-size: 16px;
+        margin-top: 8px;
+        color: #430034;
+        font-weight: 700;
+    }
+
+    .metric-line strong {
+        color: #690051;
+        font-size: 20px;
+    }
+
+    .last-update {
+        font-size: 14px;
+        color: #555;
+        margin-top: 8px;
+        line-height: 1.4;
+        font-weight: 600;
+    }
+
+    .month-select,
+    .service-filter-select {
+        margin-top: 8px;
+        border-radius: 10px;
+        border: 1px solid #ced4da;
+        padding: 8px 10px;
+        font-weight: 700;
+        color: #690051;
+        width: 100%;
+        background: white;
+    }
+
+    .report-tabs {
+        background: white;
+        border-radius: 16px;
+        padding: 10px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
+
+    .report-tabs .nav-link {
+        color: #690051;
+        font-weight: 700;
+        border-radius: 10px;
+        margin-right: 6px;
+    }
+
+    .report-tabs .nav-link.active {
+        background: #690051;
+        color: white;
+    }
+
+    .toolbar {
+        background: white;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        margin-bottom: 18px;
+    }
+
+    .toolbar input {
+        border-radius: 10px;
+        border: 1px solid #ced4da;
+        padding: 10px 14px;
+    }
+
+    .search-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .search-input-wrap {
+        flex: 1 1 320px;
+    }
+
+    .search-result-pill,
+    .pdf-export-btn {
+        background: #f5e8f1;
+        color: #690051;
+        font-weight: 800;
+        border-radius: 999px;
+        padding: 9px 14px;
+        white-space: nowrap;
+        border: none;
+    }
+
+    .pdf-export-btn:hover {
+        background: #690051;
+        color: white;
+    }
+
+    .metric-toggles {
+        display: inline-flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .metric-toggle {
+        background: #f5e8f1;
+        color: #690051;
+        font-weight: 800;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        margin-bottom: 0;
+        user-select: none;
+    }
+
+    .metric-toggle input {
+        margin-right: 5px;
+        accent-color: #690051;
+    }
+
+    .table-card {
+        width: 100%;
+        max-width: 100%;
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .table-responsive {
+        width: 100%;
+        max-width: 100%;
+        max-height: 72vh;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+
+    #myTable {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 0;
+        font-size: 12px;
+        table-layout: fixed;
+    }
+
+    #myTable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        background: #323c4e;
+        color: white;
+        white-space: normal;
+        vertical-align: middle;
+        font-size: 12px;
+        border-bottom: none;
+        text-align: center;
+        padding: 8px 6px;
+    }
+
+    #myTable tbody td {
+        white-space: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        padding: 8px 6px;
+    }
+
+    #myTable tbody tr:hover {
+        background: #f5e8f1;
+    }
+
+    .property-col {
+        width: 22%;
+        text-align: left !important;
+    }
+
+    .since-col {
+        width: 9%;
+    }
+
+    .property-name {
+        font-weight: 700;
+        color: #430034;
+        min-width: 0;
+    }
+
+    .metric-cell {
+        min-width: 0;
+        font-size: 11px;
+        line-height: 1.35;
+    }
+
+    .metric-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 6px;
+        border-bottom: 1px solid #f1eef1;
+        padding: 2px 0;
+    }
+
+    .metric-row:last-child {
+        border-bottom: none;
+    }
+
+    .metric-label {
+        font-weight: 900;
+        color: #690051;
+        min-width: 14px;
+    }
+
+    .metric-value {
+        font-weight: 700;
+        color: #323c4e;
+        text-align: right;
+    }
+
+    .before-tracking {
+        background: rgba(105, 0, 81, 0.12) !important;
+        color: rgba(67, 0, 52, 0.55);
+        position: relative;
+    }
+
+    .before-tracking .metric-row {
+        opacity: 0.35;
+    }
+
+    .before-tracking::after {
+        content: "Before tracking";
+        display: block;
+        margin-top: 4px;
+        font-size: 9px;
+        font-weight: 800;
+        color: rgba(105, 0, 81, 0.65);
+        text-align: center;
+    }
+
+    .header-title {
+        display: block;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 4px;
+    }
+
+    .sort-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        margin-top: 4px;
+    }
+
+    .property-col .sort-buttons {
+        justify-content: flex-start;
+    }
+
+    .sort-buttons button {
+        border: none;
+        background: rgba(255,255,255,0.16);
+        color: white;
+        border-radius: 5px;
+        font-size: 10px;
+        padding: 2px 6px;
+        cursor: pointer;
+    }
+
+    .sort-buttons button:hover {
+        background: white;
+        color: #690051;
+    }
+
+    @media (max-width: 991px) {
+        #myTable {
+            min-width: 980px;
+            table-layout: auto;
+        }
+
+        .property-col {
+            width: 240px;
+        }
+
+        .since-col {
+            width: 110px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="ga4-dashboard">
+
+    <section class="ga4-hero">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="badge bg-light text-dark mb-3">GA4 Analytics</span>
+                <h1>GA4 Dashboard</h1>
+                <p>Monthly GA4 visits, sessions and active users across tracked Digital Library services.</p>
             </div>
-        </figure>
 
-        <nav>
-            <ul>
-                <li style="color:black; background-color: #4F4845">
-                    <a href="{% url 'home' %}" style="color:white"><i class="fa fa-fw fa-home"></i>Home</a>
-                </li>
-                <li style="background-color: #4F4845">
-                    <a href="{% url 'ga4_export_all_excel' %}" style="color:white">
-                        <i class="fa fa-fw fa-file-excel-o"></i>Export Excel
-                    </a>
-                </li>
+            <div class="col-lg-4 text-lg-end ga4-actions">
+                <a href="{% url 'ga4_export_all_excel' %}" class="btn btn-light me-2">Export Excel</a>
+                <a href="{% url 'home' %}" class="btn btn-outline-light">Home</a>
+            </div>
+        </div>
+    </section>
 
-                <div class="clear"></div>
-            </ul>
+    <section class="report-tabs">
+        <ul class="nav nav-pills flex-wrap">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">Combined Monthly Report</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'top_properties_last12m_sessions_chart' %}">Top 10 Charts</a>
+            </li>
+        </ul>
+    </section>
 
+    <section class="row g-3 mb-4">
 
-        </nav>
-        <div class="clear"></div>
-    </header>
-</section>
-<br>
+        <div class="col-md-4">
+            <div class="metric-card">
+                <small>Report summary</small>
+                <div class="metric-line">
+                    TOTAL: <strong>{{ total_services }}</strong> services
+                </div>
+                <div class="last-update">
+                    LAST UPDATE:
+                    {% if last_update %}
+                        <span id="lastUpdate" data-last-update="{{ last_update|date:'c' }}">
+                            {{ last_update|date:"Y-M-d" }} at {{ last_update|date:"H:i" }}
+                        </span>
+                    {% else %}
+                        <span>Not available</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-<div style="width:96%; margin: 10px auto;">
-  <input
-    type="text"
-    id="globalSearch"
-    placeholder="🔍 Search properties, IDs, dates, numbers..."
-    onkeyup="filterTable()"
-    style="
-      width: 300px;
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid #555;
-      background-color: #1e2431;
-      color: white;
-    "
-  >
+        <div class="col-md-4">
+            <div class="metric-card">
+                <small>Months shown</small>
+
+                <select id="monthSelector" class="month-select" onchange="updateVisibleMonths()">
+                    <option value="3">Last 3 months</option>
+                    <option value="6">Last 6 months</option>
+                    <option value="9">Last 9 months</option>
+                    <option value="12" selected>Last 12 months</option>
+                </select>
+
+                <select id="serviceSinceFilter" class="service-filter-select" onchange="applyAllFilters()">
+                    <option value="all" selected>Show all services</option>
+                    <option value="with_since">Only services with Since date</option>
+                    <option value="without_since">Only services without Since date</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="metric-card">
+                <small>Current report</small>
+
+                <select id="serviceActivityFilter" class="service-filter-select" onchange="applyAllFilters()">
+                    <option value="all" selected>Show all activity levels</option>
+                    <option value="top5">Top 5 busiest services</option>
+                    <option value="bottom5">Bottom 5 least busy services</option>
+                </select>
+
+                <div class="last-update">
+                    Top/bottom results ignore services without a Since date and use average monthly activity since tracking started.
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="toolbar">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-7">
+                <div class="search-row">
+                    <div class="search-input-wrap">
+                        <input
+                            type="text"
+                            id="globalSearch"
+                            class="form-control"
+                            placeholder="Search services, dates, visits, sessions or users..."
+                            onkeyup="applyAllFilters()"
+                        >
+                    </div>
+
+                    <div class="search-result-pill">
+                        SEARCH RESULT:
+                        <strong id="searchResultCount">{{ total_services }}</strong>
+                        services
+                    </div>
+
+                    <button type="button" class="pdf-export-btn" onclick="exportFilteredTableToPDF()">
+                        Export filtered PDF
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-lg-5 text-lg-end">
+                <div class="metric-toggles">
+                    <label class="metric-toggle">
+                        <input type="checkbox" class="metric-checkbox" data-metric="visits" checked onchange="updateVisibleMetrics()">
+                        V = Visits
+                    </label>
+
+                    <label class="metric-toggle">
+                        <input type="checkbox" class="metric-checkbox" data-metric="sessions" checked onchange="updateVisibleMetrics()">
+                        S = Sessions
+                    </label>
+
+                    <label class="metric-toggle">
+                        <input type="checkbox" class="metric-checkbox" data-metric="users" checked onchange="updateVisibleMetrics()">
+                        U = Active users
+                    </label>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="table-card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="myTable">
+                <thead>
+                    <tr>
+                        <th scope="col" class="property-col">
+                            <span class="header-title">Property Name</span>
+                            <span class="sort-buttons">
+                                <button onclick="sortTable(0, 'text', 'asc')">▲ Asc</button>
+                                <button onclick="sortTable(0, 'text', 'desc')">▼ Desc</button>
+                            </span>
+                        </th>
+
+                        <th scope="col" class="since-col">
+                            <span class="header-title">Since</span>
+                            <span class="sort-buttons">
+                                <button onclick="sortTable(1, 'text', 'asc')">▲</button>
+                                <button onclick="sortTable(1, 'text', 'desc')">▼</button>
+                            </span>
+                        </th>
+
+                        {% for month in months %}
+                            <th scope="col" class="month-col" data-month-index="{{ forloop.counter }}" data-month="{{ month }}">
+                                <span class="header-title">{{ month }}</span>
+                                <span class="sort-buttons">
+                                    <button onclick="sortTable({{ forloop.counter|add:1 }}, 'num', 'asc')">▲</button>
+                                    <button onclick="sortTable({{ forloop.counter|add:1 }}, 'num', 'desc')">▼</button>
+                                </span>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for prop in properties %}
+                        <tr data-has-since="{% if prop.earliest_data_date %}yes{% else %}no{% endif %}">
+                            <td class="property-name" title="{{ prop.property_name }}">
+                                {{ prop.property_name }}
+                            </td>
+
+                            <td class="since-date" data-since="{{ prop.earliest_data_date|date:'Y-m-d' }}">
+                                {{ prop.earliest_data_date|default:"—" }}
+                            </td>
+
+                            {% for month in months %}
+                                <td
+                                    class="month-col metric-cell"
+                                    data-month-index="{{ forloop.counter }}"
+                                    data-month="{{ month }}"
+                                    data-since="{{ prop.earliest_data_date|date:'Y-m-d' }}"
+                                    data-value="{{ prop.monthly_visits_data|get_item:month|default:0 }}"
+                                    data-visits="{{ prop.monthly_visits_data|get_item:month|default:0 }}"
+                                    data-sessions="{{ prop.monthly_sessions_data|get_item:month|default:0 }}"
+                                    data-users="{{ prop.monthly_users_data|get_item:month|default:0 }}"
+                                >
+                                    <div class="metric-row metric-visits">
+                                        <span class="metric-label">V</span>
+                                        <span class="metric-value">{{ prop.monthly_visits_data|get_item:month|default:"0" }}</span>
+                                    </div>
+
+                                    <div class="metric-row metric-sessions">
+                                        <span class="metric-label">S</span>
+                                        <span class="metric-value">{{ prop.monthly_sessions_data|get_item:month|default:"0" }}</span>
+                                    </div>
+
+                                    <div class="metric-row metric-users">
+                                        <span class="metric-label">U</span>
+                                        <span class="metric-value">{{ prop.monthly_users_data|get_item:month|default:"0" }}</span>
+                                    </div>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{{ months|length|add:'2' }}" class="empty-row">
+                                No GA4 statistics found.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
 </div>
-<br>
 
-<div class="topnav">
-  <a class="active" href="#home">Last 12 months (visits)</a>
-  <a href="{% url 'ga4_years_visits' %}" >Years (visits)</a>
-  <a href="{% url 'ga4_last_12_months_sessions' %}" >Last 12 months (sessions)</a>
-  <a href="{% url 'ga4_last_12_months_active_users' %}" >Last 12 (active users)</a>
-  <a href="{% url 'top_properties_last12m_sessions_chart' %}">10 Top Charts</a>
-</div>
-
-<table class="table" id="myTable" style="background-color:#1e2431; margin: 0 auto; width: 96%; border-radius: 10px; overflow: hidden;">
-  <thead>
-    <tr class="header" style="position:sticky; z-index:1; top:0; background-color: #323c4e; color: white">
-      <!-- Property Name -->
-      <th scope="col" style="font-size: 18px">
-        Property Name <br>
-        <span class="sort-icons">
-          <button onclick="sortTable(0, 'text', 'asc')">⬆️</button>
-          <button onclick="sortTable(0, 'text', 'desc')">⬇️</button>
-        </span>
-      </th>
-
-      <!-- Property ID -->
-      <th scope="col" style="font-size: 18px">
-        Property ID <br>
-        <span class="sort-icons">
-          <button onclick="sortTable(1, 'text', 'asc')">⬆️</button>
-          <button onclick="sortTable(1, 'text', 'desc')">⬇️</button>
-        </span>
-      </th>
-
-      <!-- Since -->
-      <th scope="col" style="font-size: 18px">
-        Since <br>
-        <span class="sort-icons">
-          <button onclick="sortTable(2, 'text', 'asc')">⬆️</button>
-          <button onclick="sortTable(2, 'text', 'desc')">⬇️</button>
-        </span>
-      </th>
-
-      <!-- Monthly columns -->
-      {% for month in months %}
-        <th scope="col" style="font-size: 18px">
-          {{ month }} <br>
-          <span class="sort-icons">
-            <button onclick="sortTable({{ forloop.counter|add:2 }}, 'num', 'asc')">⬆️</button>
-            <button onclick="sortTable({{ forloop.counter|add:2 }}, 'num', 'desc')">⬇️</button>
-          </span>
-        </th>
-      {% endfor %}
-    </tr>
-  </thead>
-
-  <tbody>
-    {% for prop in properties %}
-      <tr style="font-size: 12px; vertical-align: top; padding-top:10px; color: #6e9fa6">
-        <td>{{ prop.property_name }}</td>
-        <td>{{ prop.property_id }}</td>
-        <td>{{ prop.earliest_data_date|default:"—" }}</td>
-
-        {% for month in months %}
-          <td data-value="{{ prop.monthly_data|get_item:month|default:0 }}">
-            {{ prop.monthly_data|get_item:month|default:"0" }}
-          </td>
-        {% endfor %}
-      </tr>
-    {% empty %}
-      <tr>
-        <td colspan="{{ months|length|add:'3' }}">
-          No stats found.
-        </td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 
 <script>
 function sortTable(colIndex, type, direction) {
-  const table = document.getElementById("myTable");
-  if (!table) return;
+    const table = document.getElementById("myTable");
+    if (!table) return;
 
-  const tbody = table.tBodies[0];
-  const rows = Array.from(tbody.rows);
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
 
-  rows.sort((a, b) => {
-    let valA = a.cells[colIndex]?.getAttribute("data-value")
-               ?? a.cells[colIndex].innerText.trim();
-    let valB = b.cells[colIndex]?.getAttribute("data-value")
-               ?? b.cells[colIndex].innerText.trim();
+    rows.sort((a, b) => {
+        let valA = a.cells[colIndex]?.getAttribute("data-value")
+            ?? a.cells[colIndex]?.innerText.trim()
+            ?? "";
 
-    if (type === 'num') {
-      valA = parseInt(valA || 0, 10);
-      valB = parseInt(valB || 0, 10);
-    } else {
-      valA = valA.toLowerCase();
-      valB = valB.toLowerCase();
+        let valB = b.cells[colIndex]?.getAttribute("data-value")
+            ?? b.cells[colIndex]?.innerText.trim()
+            ?? "";
+
+        if (type === "num") {
+            valA = parseFloat(String(valA).replace(/,/g, "")) || 0;
+            valB = parseFloat(String(valB).replace(/,/g, "")) || 0;
+        } else {
+            valA = String(valA).toLowerCase();
+            valB = String(valB).toLowerCase();
+        }
+
+        if (valA < valB) return direction === "asc" ? -1 : 1;
+        if (valA > valB) return direction === "asc" ? 1 : -1;
+        return 0;
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+    applyAllFilters();
+}
+
+function calculateActivityRankings() {
+    const table = document.getElementById("myTable");
+    if (!table) {
+        return { top5: new Set(), bottom5: new Set() };
     }
 
-    if (valA < valB) return direction === 'asc' ? -1 : 1;
-    if (valA > valB) return direction === 'asc' ? 1 : -1;
-    return 0;
-  });
+    const rows = Array.from(table.tBodies[0].rows);
+    const scoredRows = [];
 
-  rows.forEach(row => tbody.appendChild(row));
+    rows.forEach(row => {
+        const hasSince = row.dataset.hasSince === "yes";
+        if (!hasSince) return;
+
+        const metricCells = row.querySelectorAll("td.metric-cell");
+
+        let totalScore = 0;
+        let trackedMonths = 0;
+
+        metricCells.forEach(cell => {
+            if (cell.classList.contains("before-tracking")) return;
+
+            const visits = parseFloat(cell.dataset.visits || 0);
+            const sessions = parseFloat(cell.dataset.sessions || 0);
+            const users = parseFloat(cell.dataset.users || 0);
+
+            totalScore += visits + sessions + users;
+            trackedMonths++;
+        });
+
+        if (trackedMonths === 0) return;
+
+        scoredRows.push({
+            row: row,
+            score: totalScore / trackedMonths
+        });
+    });
+
+    const topSorted = scoredRows.slice().sort((a, b) => b.score - a.score);
+    const bottomSorted = scoredRows.slice().sort((a, b) => a.score - b.score);
+
+    return {
+        top5: new Set(topSorted.slice(0, 5).map(item => item.row)),
+        bottom5: new Set(bottomSorted.slice(0, 5).map(item => item.row))
+    };
 }
-</script>
-<script>
-    function filterTable() {
+
+function applyAllFilters() {
     const input = document.getElementById("globalSearch");
-    const filter = input.value.toLowerCase();
+    const filter = input ? input.value.toLowerCase() : "";
+
+    const serviceSinceFilter = document.getElementById("serviceSinceFilter");
+    const sinceMode = serviceSinceFilter ? serviceSinceFilter.value : "all";
+
+    const serviceActivityFilter = document.getElementById("serviceActivityFilter");
+    const activityMode = serviceActivityFilter ? serviceActivityFilter.value : "all";
+
+    const rankings = calculateActivityRankings();
+
     const table = document.getElementById("myTable");
+    if (!table) return;
+
     const tbody = table.tBodies[0];
     const rows = tbody.rows;
 
-for (let i = 0; i < rows.length; i++) {
-let rowText = rows[i].innerText.toLowerCase();
-rows[i].style.display = rowText.includes(filter) ? "" : "none";
-}
-}
-</script>
-<script>
-    function animate(k){
-    k.style.MozTransform = "rotateY(360deg)";
+    let visibleCount = 0;
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const rowText = row.innerText.toLowerCase();
+        const hasSince = row.dataset.hasSince === "yes";
+
+        const matchesSearch = rowText.includes(filter);
+
+        let matchesSinceFilter = true;
+
+        if (sinceMode === "with_since") {
+            matchesSinceFilter = hasSince;
+        } else if (sinceMode === "without_since") {
+            matchesSinceFilter = !hasSince;
+        }
+
+        let matchesActivityFilter = true;
+
+        if (activityMode === "top5") {
+            matchesActivityFilter = rankings.top5.has(row);
+        } else if (activityMode === "bottom5") {
+            matchesActivityFilter = rankings.bottom5.has(row);
+        }
+
+        const isVisible = matchesSearch && matchesSinceFilter && matchesActivityFilter;
+
+        row.style.display = isVisible ? "" : "none";
+
+        if (isVisible) {
+            visibleCount++;
+        }
     }
-    window.addEventListener("load",function(){
-    //alert(document.documentElement.clientHeight);
+
+    const resultCounter = document.getElementById("searchResultCount");
+    if (resultCounter) {
+        resultCounter.textContent = visibleCount;
+    }
+}
+
+function updateVisibleMonths() {
+    const selectedMonths = parseInt(document.getElementById("monthSelector").value, 10);
+    const monthCells = document.querySelectorAll(".month-col");
+
+    let maxMonthIndex = 0;
+
+    monthCells.forEach(cell => {
+        const monthIndex = parseInt(cell.dataset.monthIndex, 10);
+        if (monthIndex > maxMonthIndex) {
+            maxMonthIndex = monthIndex;
+        }
     });
+
+    const firstVisibleMonth = maxMonthIndex - selectedMonths + 1;
+
+    monthCells.forEach(cell => {
+        const monthIndex = parseInt(cell.dataset.monthIndex, 10);
+        cell.style.display = monthIndex >= firstVisibleMonth ? "" : "none";
+    });
+}
+
+function updateVisibleMetrics() {
+    const checkboxes = document.querySelectorAll(".metric-checkbox");
+
+    checkboxes.forEach(checkbox => {
+        const metric = checkbox.dataset.metric;
+        const rows = document.querySelectorAll(`.metric-${metric}`);
+
+        rows.forEach(row => {
+            row.style.display = checkbox.checked ? "flex" : "none";
+        });
+    });
+}
+
+function markBeforeTrackingCells() {
+    const cells = document.querySelectorAll("td.metric-cell");
+
+    cells.forEach(cell => {
+        const month = cell.dataset.month;
+        const since = cell.dataset.since;
+
+        if (!month || !since) return;
+
+        const monthStart = new Date(`${month}-01T00:00:00`);
+        const sinceDate = new Date(`${since}T00:00:00`);
+
+        if (isNaN(monthStart.getTime()) || isNaN(sinceDate.getTime())) return;
+
+        const monthLastDay = new Date(
+            monthStart.getFullYear(),
+            monthStart.getMonth() + 1,
+            0
+        );
+
+        if (monthLastDay < sinceDate) {
+            cell.classList.add("before-tracking");
+            cell.setAttribute("title", "This month is before GA4 tracking started for this service");
+        }
+    });
+}
+
+function formatLastUpdate() {
+    const element = document.getElementById("lastUpdate");
+    if (!element) return;
+
+    const rawDate = element.dataset.lastUpdate;
+    if (!rawDate) return;
+
+    const updateDate = new Date(rawDate);
+    const now = new Date();
+
+    if (isNaN(updateDate.getTime())) return;
+
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    const year = updateDate.getFullYear();
+    const month = months[updateDate.getMonth()];
+    const day = String(updateDate.getDate()).padStart(2, "0");
+
+    let hours = updateDate.getHours();
+    const minutes = String(updateDate.getMinutes()).padStart(2, "0");
+
+    const suffix = hours >= 12 ? "p.m" : "a.m";
+    hours = String(hours).padStart(2, "0");
+
+    const diffMs = now - updateDate;
+    const diffHoursTotal = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHoursTotal / 24);
+    const diffHours = diffHoursTotal % 24;
+
+    let agoText = "";
+
+    if (diffHoursTotal < 1) {
+        agoText = "less than 1 hour ago";
+    } else if (diffDays === 0) {
+        agoText = `${diffHoursTotal} hour${diffHoursTotal === 1 ? "" : "s"} ago`;
+    } else {
+        agoText = `${diffDays} day${diffDays === 1 ? "" : "s"} and ${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+    }
+
+    element.textContent = `${year}-${month}-${day} at ${hours}:${minutes} ${suffix} (${agoText})`;
+}
+
+function exportFilteredTableToPDF() {
+    const table = document.getElementById("myTable");
+
+    if (!table) {
+        alert("Table not found.");
+        return;
+    }
+
+    const monthsShownText = document.getElementById("monthSelector")?.selectedOptions[0]?.text || "";
+    const servicesShownText = document.getElementById("serviceSinceFilter")?.selectedOptions[0]?.text || "";
+    const activityFilterText = document.getElementById("serviceActivityFilter")?.selectedOptions[0]?.text || "";
+    const searchText = document.getElementById("globalSearch")?.value || "None";
+
+    const activeMetrics = Array.from(document.querySelectorAll(".metric-checkbox"))
+        .filter(cb => cb.checked)
+        .map(cb => cb.parentElement.innerText.trim())
+        .join(", ");
+
+    const activityFilter = document.getElementById("serviceActivityFilter")?.value || "all";
+
+    let reportType = "ALL_SERVICES";
+
+    if (activityFilter === "top5") {
+        reportType = "TOP5";
+    } else if (activityFilter === "bottom5") {
+        reportType = "BOTTOM5";
+    }
+
+    const todayForFilename = new Date().toISOString().split("T")[0];
+    const pdfFilename = `TrackingGA4_${reportType}_${todayForFilename}.pdf`;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a3"
+    });
+
+    const exportedAt = new Date().toLocaleString();
+
+    doc.setFontSize(16);
+    doc.setTextColor(105, 0, 81);
+    doc.text("GA4 Filtered Report", 14, 14);
+
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Exported from Digital Library Tracking App on ${exportedAt}`, 14, 21);
+    doc.text(`Visible services: ${document.getElementById("searchResultCount")?.textContent || "0"}`, 14, 26);
+    doc.text(`Months: ${monthsShownText}`, 14, 31);
+    doc.text(`Services: ${servicesShownText}`, 14, 36);
+    doc.text(`Activity: ${activityFilterText}`, 14, 41);
+    doc.text(`Metrics: ${activeMetrics || "None"}`, 14, 46);
+    doc.text(`Search: ${searchText || "None"}`, 14, 51);
+
+    const visibleHeaderCells = Array.from(table.querySelectorAll("thead th"))
+        .filter(th => th.offsetParent !== null && getComputedStyle(th).display !== "none");
+
+    const headers = visibleHeaderCells.map(th => {
+        const title = th.querySelector(".header-title");
+        return title ? title.innerText.trim() : th.innerText.trim();
+    });
+
+    const allRows = Array.from(table.querySelectorAll("tbody tr"));
+    const visibleRows = allRows.filter(row => row.style.display !== "none");
+
+    const body = visibleRows.map(row => {
+        const visibleCells = Array.from(row.cells)
+            .filter(cell => cell.offsetParent !== null && getComputedStyle(cell).display !== "none");
+
+        return visibleCells.map(cell => {
+            let text = "";
+
+            if (cell.classList.contains("metric-cell")) {
+                const parts = [];
+
+                const visitsRow = cell.querySelector(".metric-visits");
+                const sessionsRow = cell.querySelector(".metric-sessions");
+                const usersRow = cell.querySelector(".metric-users");
+
+                if (visitsRow && getComputedStyle(visitsRow).display !== "none") {
+                    parts.push(`V ${cell.dataset.visits || "0"}`);
+                }
+
+                if (sessionsRow && getComputedStyle(sessionsRow).display !== "none") {
+                    parts.push(`S ${cell.dataset.sessions || "0"}`);
+                }
+
+                if (usersRow && getComputedStyle(usersRow).display !== "none") {
+                    parts.push(`U ${cell.dataset.users || "0"}`);
+                }
+
+                text = parts.join("\n");
+
+                if (cell.classList.contains("before-tracking")) {
+                    text += "\nBefore tracking";
+                }
+            } else {
+                text = cell.innerText.trim();
+            }
+
+            return text;
+        });
+    });
+
+    doc.autoTable({
+        head: [headers],
+        body: body,
+        startY: 58,
+        theme: "grid",
+        styles: {
+            fontSize: 6,
+            cellPadding: 1.6,
+            overflow: "linebreak",
+            valign: "middle"
+        },
+        headStyles: {
+            fillColor: [50, 60, 78],
+            textColor: [255, 255, 255],
+            fontStyle: "bold",
+            halign: "center"
+        },
+        bodyStyles: {
+            textColor: [40, 40, 40]
+        },
+        alternateRowStyles: {
+            fillColor: [248, 248, 248]
+        },
+        columnStyles: {
+            0: { cellWidth: 55, halign: "left" },
+            1: { cellWidth: 24, halign: "center" }
+        },
+        didParseCell: function (data) {
+            if (data.section === "body" && data.cell.raw && String(data.cell.raw).includes("Before tracking")) {
+                data.cell.styles.fillColor = [245, 232, 241];
+                data.cell.styles.textColor = [105, 0, 81];
+            }
+        },
+        margin: {
+            top: 58,
+            right: 8,
+            bottom: 12,
+            left: 8
+        },
+        pageBreak: "auto",
+        rowPageBreak: "avoid"
+    });
+
+    const finalY = doc.lastAutoTable.finalY || 58;
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    if (finalY > pageHeight - 90) {
+        doc.addPage();
+    }
+
+    const chartStartY = finalY > pageHeight - 90 ? 20 : finalY + 14;
+
+    const activeMetricKeys = Array.from(document.querySelectorAll(".metric-checkbox"))
+        .filter(cb => cb.checked)
+        .map(cb => cb.dataset.metric);
+
+    const visibleMonthHeaders = Array.from(table.querySelectorAll("thead th.month-col"))
+        .filter(th => th.offsetParent !== null && getComputedStyle(th).display !== "none")
+        .map(th => th.dataset.month);
+
+    const chartRows = visibleRows.map(row => {
+        const serviceName = row.querySelector(".property-name")?.innerText.trim() || "Unknown service";
+
+        const metricCells = Array.from(row.querySelectorAll("td.metric-cell"))
+            .filter(cell => {
+                return (
+                    cell.offsetParent !== null &&
+                    getComputedStyle(cell).display !== "none" &&
+                    visibleMonthHeaders.includes(cell.dataset.month) &&
+                    !cell.classList.contains("before-tracking")
+                );
+            });
+
+        let total = 0;
+
+        metricCells.forEach(cell => {
+            if (activeMetricKeys.includes("visits")) {
+                total += parseFloat(cell.dataset.visits || 0);
+            }
+
+            if (activeMetricKeys.includes("sessions")) {
+                total += parseFloat(cell.dataset.sessions || 0);
+            }
+
+            if (activeMetricKeys.includes("users")) {
+                total += parseFloat(cell.dataset.users || 0);
+            }
+        });
+
+        return {
+            serviceName: serviceName,
+            total: total
+        };
+    })
+    .filter(item => item.total > 0)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 12);
+
+    doc.setFontSize(13);
+    doc.setTextColor(105, 0, 81);
+    doc.text("Activity chart for exported rows", 14, chartStartY);
+
+    doc.setFontSize(8);
+    doc.setTextColor(80, 80, 80);
+    doc.text("Total activity is calculated from the visible metrics and visible months in the exported table.", 14, chartStartY + 6);
+
+    if (chartRows.length === 0) {
+        doc.setFontSize(9);
+        doc.setTextColor(80, 80, 80);
+        doc.text("No chart data available for the current filtered view.", 14, chartStartY + 16);
+    } else {
+        const chartLeft = 14;
+        const chartTop = chartStartY + 14;
+        const chartWidth = doc.internal.pageSize.getWidth() - 28;
+        const barHeight = 6;
+        const gap = 3;
+        const labelWidth = 80;
+        const maxBarWidth = chartWidth - labelWidth - 24;
+
+        const maxTotal = Math.max(...chartRows.map(item => item.total));
+
+        chartRows.forEach((item, index) => {
+            const y = chartTop + index * (barHeight + gap);
+            const barWidth = maxTotal > 0 ? (item.total / maxTotal) * maxBarWidth : 0;
+
+            let label = item.serviceName;
+
+            if (label.length > 42) {
+                label = label.substring(0, 39) + "...";
+            }
+
+            doc.setFontSize(7);
+            doc.setTextColor(40, 40, 40);
+            doc.text(label, chartLeft, y + 4.5);
+
+            doc.setFillColor(105, 0, 81);
+            doc.rect(chartLeft + labelWidth, y, barWidth, barHeight, "F");
+
+            doc.setFontSize(7);
+            doc.setTextColor(80, 80, 80);
+            doc.text(
+                String(Math.round(item.total).toLocaleString()),
+                chartLeft + labelWidth + barWidth + 2,
+                y + 4.5
+            );
+        });
+    }
+
+    doc.save(pdfFilename);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    updateVisibleMonths();
+    updateVisibleMetrics();
+    markBeforeTrackingCells();
+    applyAllFilters();
+    formatLastUpdate();
+});
 </script>
 
-</body>
-</html>
-
-
-
+{% endblock %}

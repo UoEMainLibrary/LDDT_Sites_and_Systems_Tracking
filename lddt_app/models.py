@@ -1084,37 +1084,22 @@ class AccessStatement(models.Model):
 
 
 class GoogleAnalyticsStats(models.Model):
-    # GA4 property identity (UNIQUE)
     property_id = models.CharField(max_length=32, unique=True)
     property_name = models.CharField(max_length=255)
 
-    # Last sync date (not part of uniqueness anymore)
     date = models.DateField()
+    last_synced_at = models.DateTimeField(null=True, blank=True)
 
-    # High-level aggregates
     daily_users = models.PositiveIntegerField(default=0)
     monthly_users = models.PositiveIntegerField(default=0)
 
-    # First date GA has data for this property
     earliest_data_date = models.DateField(null=True, blank=True)
 
-    # Time-series data (key: YYYY-MM)
     monthly_users_data = models.JSONField(default=dict, blank=True)
     monthly_sessions_data = models.JSONField(default=dict, blank=True)
+    monthly_views_data = models.JSONField(default=dict, blank=True)
 
-    # Record metadata
     created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        indexes = [
-            models.Index(fields=["property_id"], name="idx_ga_stats_prop"),
-        ]
-        verbose_name = "Google Analytics Stat"
-        verbose_name_plural = "Google Analytics Stats"
-        ordering = ["property_name"]
-
-    def __str__(self):
-        return f"{self.property_name}"
 
 
 
