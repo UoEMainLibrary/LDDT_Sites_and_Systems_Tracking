@@ -85,16 +85,6 @@
         background: white;
     }
 
-    .service-filter-label {
-        display: block;
-        margin-top: 12px;
-        color: #6c757d;
-        font-size: 12px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-    }
-
     .report-tabs {
         background: white;
         border-radius: 16px;
@@ -140,13 +130,20 @@
         flex: 1 1 320px;
     }
 
-    .search-result-pill {
+    .search-result-pill,
+    .pdf-export-btn {
         background: #f5e8f1;
         color: #690051;
         font-weight: 800;
         border-radius: 999px;
         padding: 9px 14px;
         white-space: nowrap;
+        border: none;
+    }
+
+    .pdf-export-btn:hover {
+        background: #690051;
+        color: white;
     }
 
     .metric-toggles {
@@ -240,16 +237,10 @@
         min-width: 0;
     }
 
-    .month-col {
-        width: auto;
-    }
-
     .metric-cell {
         min-width: 0;
         font-size: 11px;
         line-height: 1.35;
-        padding-top: 8px !important;
-        padding-bottom: 8px !important;
     }
 
     .metric-row {
@@ -296,10 +287,6 @@
         text-align: center;
     }
 
-    #myTable tbody tr:hover .before-tracking {
-        background: rgba(105, 0, 81, 0.18) !important;
-    }
-
     .header-title {
         display: block;
         font-weight: 800;
@@ -326,18 +313,11 @@
         font-size: 10px;
         padding: 2px 6px;
         cursor: pointer;
-        line-height: 1.2;
     }
 
     .sort-buttons button:hover {
         background: white;
         color: #690051;
-    }
-
-    .empty-row {
-        text-align: center;
-        padding: 30px;
-        color: #6c757d;
     }
 
     @media (max-width: 991px) {
@@ -370,12 +350,8 @@
             </div>
 
             <div class="col-lg-4 text-lg-end ga4-actions">
-                <a href="{% url 'ga4_export_all_excel' %}" class="btn btn-light me-2">
-                    Export Excel
-                </a>
-                <a href="{% url 'home' %}" class="btn btn-outline-light">
-                    Home
-                </a>
+                <a href="{% url 'ga4_export_all_excel' %}" class="btn btn-light me-2">Export Excel</a>
+                <a href="{% url 'home' %}" class="btn btn-outline-light">Home</a>
             </div>
         </div>
     </section>
@@ -383,15 +359,10 @@
     <section class="report-tabs">
         <ul class="nav nav-pills flex-wrap">
             <li class="nav-item">
-                <a class="nav-link active" href="#">
-                    Combined Monthly Report
-                </a>
+                <a class="nav-link active" href="#">Combined Monthly Report</a>
             </li>
-
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'top_properties_last12m_sessions_chart' %}">
-                    Top 10 Charts
-                </a>
+                <a class="nav-link" href="{% url 'top_properties_last12m_sessions_chart' %}">Top 10 Charts</a>
             </li>
         </ul>
     </section>
@@ -401,11 +372,9 @@
         <div class="col-md-4">
             <div class="metric-card">
                 <small>Report summary</small>
-
                 <div class="metric-line">
                     TOTAL: <strong>{{ total_services }}</strong> services
                 </div>
-
                 <div class="last-update">
                     LAST UPDATE:
                     {% if last_update %}
@@ -429,8 +398,6 @@
                     <option value="9">Last 9 months</option>
                     <option value="12" selected>Last 12 months</option>
                 </select>
-
-                <span class="service-filter-label">Services shown</span>
 
                 <select id="serviceSinceFilter" class="service-filter-select" onchange="applyAllFilters()">
                     <option value="all" selected>Show all services</option>
@@ -460,7 +427,7 @@
 
     <section class="toolbar">
         <div class="row align-items-center g-3">
-            <div class="col-lg-6">
+            <div class="col-lg-7">
                 <div class="search-row">
                     <div class="search-input-wrap">
                         <input
@@ -477,41 +444,27 @@
                         <strong id="searchResultCount">{{ total_services }}</strong>
                         services
                     </div>
+
+                    <button type="button" class="pdf-export-btn" onclick="exportFilteredTableToPDF()">
+                        Export filtered PDF
+                    </button>
                 </div>
             </div>
 
-            <div class="col-lg-6 text-lg-end">
+            <div class="col-lg-5 text-lg-end">
                 <div class="metric-toggles">
                     <label class="metric-toggle">
-                        <input
-                            type="checkbox"
-                            class="metric-checkbox"
-                            data-metric="visits"
-                            checked
-                            onchange="updateVisibleMetrics()"
-                        >
+                        <input type="checkbox" class="metric-checkbox" data-metric="visits" checked onchange="updateVisibleMetrics()">
                         V = Visits
                     </label>
 
                     <label class="metric-toggle">
-                        <input
-                            type="checkbox"
-                            class="metric-checkbox"
-                            data-metric="sessions"
-                            checked
-                            onchange="updateVisibleMetrics()"
-                        >
+                        <input type="checkbox" class="metric-checkbox" data-metric="sessions" checked onchange="updateVisibleMetrics()">
                         S = Sessions
                     </label>
 
                     <label class="metric-toggle">
-                        <input
-                            type="checkbox"
-                            class="metric-checkbox"
-                            data-metric="users"
-                            checked
-                            onchange="updateVisibleMetrics()"
-                        >
+                        <input type="checkbox" class="metric-checkbox" data-metric="users" checked onchange="updateVisibleMetrics()">
                         U = Active users
                     </label>
                 </div>
@@ -541,12 +494,7 @@
                         </th>
 
                         {% for month in months %}
-                            <th
-                                scope="col"
-                                class="month-col"
-                                data-month-index="{{ forloop.counter }}"
-                                data-month="{{ month }}"
-                            >
+                            <th scope="col" class="month-col" data-month-index="{{ forloop.counter }}" data-month="{{ month }}">
                                 <span class="header-title">{{ month }}</span>
                                 <span class="sort-buttons">
                                     <button onclick="sortTable({{ forloop.counter|add:1 }}, 'num', 'asc')">▲</button>
@@ -564,10 +512,7 @@
                                 {{ prop.property_name }}
                             </td>
 
-                            <td
-                                class="since-date"
-                                data-since="{{ prop.earliest_data_date|date:'Y-m-d' }}"
-                            >
+                            <td class="since-date" data-since="{{ prop.earliest_data_date|date:'Y-m-d' }}">
                                 {{ prop.earliest_data_date|default:"—" }}
                             </td>
 
@@ -584,23 +529,17 @@
                                 >
                                     <div class="metric-row metric-visits">
                                         <span class="metric-label">V</span>
-                                        <span class="metric-value">
-                                            {{ prop.monthly_visits_data|get_item:month|default:"0" }}
-                                        </span>
+                                        <span class="metric-value">{{ prop.monthly_visits_data|get_item:month|default:"0" }}</span>
                                     </div>
 
                                     <div class="metric-row metric-sessions">
                                         <span class="metric-label">S</span>
-                                        <span class="metric-value">
-                                            {{ prop.monthly_sessions_data|get_item:month|default:"0" }}
-                                        </span>
+                                        <span class="metric-value">{{ prop.monthly_sessions_data|get_item:month|default:"0" }}</span>
                                     </div>
 
                                     <div class="metric-row metric-users">
                                         <span class="metric-label">U</span>
-                                        <span class="metric-value">
-                                            {{ prop.monthly_users_data|get_item:month|default:"0" }}
-                                        </span>
+                                        <span class="metric-value">{{ prop.monthly_users_data|get_item:month|default:"0" }}</span>
                                     </div>
                                 </td>
                             {% endfor %}
@@ -618,6 +557,9 @@
     </section>
 
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 
 <script>
 function sortTable(colIndex, type, direction) {
@@ -664,10 +606,7 @@ function calculateActivityRankings() {
 
     rows.forEach(row => {
         const hasSince = row.dataset.hasSince === "yes";
-
-        if (!hasSince) {
-            return;
-        }
+        if (!hasSince) return;
 
         const metricCells = row.querySelectorAll("td.metric-cell");
 
@@ -675,9 +614,7 @@ function calculateActivityRankings() {
         let trackedMonths = 0;
 
         metricCells.forEach(cell => {
-            if (cell.classList.contains("before-tracking")) {
-                return;
-            }
+            if (cell.classList.contains("before-tracking")) return;
 
             const visits = parseFloat(cell.dataset.visits || 0);
             const sessions = parseFloat(cell.dataset.sessions || 0);
@@ -687,9 +624,7 @@ function calculateActivityRankings() {
             trackedMonths++;
         });
 
-        if (trackedMonths === 0) {
-            return;
-        }
+        if (trackedMonths === 0) return;
 
         scoredRows.push({
             row: row,
@@ -697,13 +632,8 @@ function calculateActivityRankings() {
         });
     });
 
-    const topSorted = scoredRows
-        .slice()
-        .sort((a, b) => b.score - a.score);
-
-    const bottomSorted = scoredRows
-        .slice()
-        .sort((a, b) => a.score - b.score);
+    const topSorted = scoredRows.slice().sort((a, b) => b.score - a.score);
+    const bottomSorted = scoredRows.slice().sort((a, b) => a.score - b.score);
 
     return {
         top5: new Set(topSorted.slice(0, 5).map(item => item.row)),
@@ -754,10 +684,7 @@ function applyAllFilters() {
             matchesActivityFilter = rankings.bottom5.has(row);
         }
 
-        const isVisible =
-            matchesSearch &&
-            matchesSinceFilter &&
-            matchesActivityFilter;
+        const isVisible = matchesSearch && matchesSinceFilter && matchesActivityFilter;
 
         row.style.display = isVisible ? "" : "none";
 
@@ -873,6 +800,261 @@ function formatLastUpdate() {
     }
 
     element.textContent = `${year}-${month}-${day} at ${hours}:${minutes} ${suffix} (${agoText})`;
+}
+
+function exportFilteredTableToPDF() {
+    const table = document.getElementById("myTable");
+
+    if (!table) {
+        alert("Table not found.");
+        return;
+    }
+
+    const monthsShownText = document.getElementById("monthSelector")?.selectedOptions[0]?.text || "";
+    const servicesShownText = document.getElementById("serviceSinceFilter")?.selectedOptions[0]?.text || "";
+    const activityFilterText = document.getElementById("serviceActivityFilter")?.selectedOptions[0]?.text || "";
+    const searchText = document.getElementById("globalSearch")?.value || "None";
+
+    const activeMetrics = Array.from(document.querySelectorAll(".metric-checkbox"))
+        .filter(cb => cb.checked)
+        .map(cb => cb.parentElement.innerText.trim())
+        .join(", ");
+
+    const activityFilter = document.getElementById("serviceActivityFilter")?.value || "all";
+
+    let reportType = "ALL_SERVICES";
+
+    if (activityFilter === "top5") {
+        reportType = "TOP5";
+    } else if (activityFilter === "bottom5") {
+        reportType = "BOTTOM5";
+    }
+
+    const todayForFilename = new Date().toISOString().split("T")[0];
+    const pdfFilename = `TrackingGA4_${reportType}_${todayForFilename}.pdf`;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a3"
+    });
+
+    const exportedAt = new Date().toLocaleString();
+
+    doc.setFontSize(16);
+    doc.setTextColor(105, 0, 81);
+    doc.text("GA4 Filtered Report", 14, 14);
+
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Exported from Digital Library Tracking App on ${exportedAt}`, 14, 21);
+    doc.text(`Visible services: ${document.getElementById("searchResultCount")?.textContent || "0"}`, 14, 26);
+    doc.text(`Months: ${monthsShownText}`, 14, 31);
+    doc.text(`Services: ${servicesShownText}`, 14, 36);
+    doc.text(`Activity: ${activityFilterText}`, 14, 41);
+    doc.text(`Metrics: ${activeMetrics || "None"}`, 14, 46);
+    doc.text(`Search: ${searchText || "None"}`, 14, 51);
+
+    const visibleHeaderCells = Array.from(table.querySelectorAll("thead th"))
+        .filter(th => th.offsetParent !== null && getComputedStyle(th).display !== "none");
+
+    const headers = visibleHeaderCells.map(th => {
+        const title = th.querySelector(".header-title");
+        return title ? title.innerText.trim() : th.innerText.trim();
+    });
+
+    const allRows = Array.from(table.querySelectorAll("tbody tr"));
+    const visibleRows = allRows.filter(row => row.style.display !== "none");
+
+    const body = visibleRows.map(row => {
+        const visibleCells = Array.from(row.cells)
+            .filter(cell => cell.offsetParent !== null && getComputedStyle(cell).display !== "none");
+
+        return visibleCells.map(cell => {
+            let text = "";
+
+            if (cell.classList.contains("metric-cell")) {
+                const parts = [];
+
+                const visitsRow = cell.querySelector(".metric-visits");
+                const sessionsRow = cell.querySelector(".metric-sessions");
+                const usersRow = cell.querySelector(".metric-users");
+
+                if (visitsRow && getComputedStyle(visitsRow).display !== "none") {
+                    parts.push(`V ${cell.dataset.visits || "0"}`);
+                }
+
+                if (sessionsRow && getComputedStyle(sessionsRow).display !== "none") {
+                    parts.push(`S ${cell.dataset.sessions || "0"}`);
+                }
+
+                if (usersRow && getComputedStyle(usersRow).display !== "none") {
+                    parts.push(`U ${cell.dataset.users || "0"}`);
+                }
+
+                text = parts.join("\n");
+
+                if (cell.classList.contains("before-tracking")) {
+                    text += "\nBefore tracking";
+                }
+            } else {
+                text = cell.innerText.trim();
+            }
+
+            return text;
+        });
+    });
+
+    doc.autoTable({
+        head: [headers],
+        body: body,
+        startY: 58,
+        theme: "grid",
+        styles: {
+            fontSize: 6,
+            cellPadding: 1.6,
+            overflow: "linebreak",
+            valign: "middle"
+        },
+        headStyles: {
+            fillColor: [50, 60, 78],
+            textColor: [255, 255, 255],
+            fontStyle: "bold",
+            halign: "center"
+        },
+        bodyStyles: {
+            textColor: [40, 40, 40]
+        },
+        alternateRowStyles: {
+            fillColor: [248, 248, 248]
+        },
+        columnStyles: {
+            0: { cellWidth: 55, halign: "left" },
+            1: { cellWidth: 24, halign: "center" }
+        },
+        didParseCell: function (data) {
+            if (data.section === "body" && data.cell.raw && String(data.cell.raw).includes("Before tracking")) {
+                data.cell.styles.fillColor = [245, 232, 241];
+                data.cell.styles.textColor = [105, 0, 81];
+            }
+        },
+        margin: {
+            top: 58,
+            right: 8,
+            bottom: 12,
+            left: 8
+        },
+        pageBreak: "auto",
+        rowPageBreak: "avoid"
+    });
+
+    const finalY = doc.lastAutoTable.finalY || 58;
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    if (finalY > pageHeight - 90) {
+        doc.addPage();
+    }
+
+    const chartStartY = finalY > pageHeight - 90 ? 20 : finalY + 14;
+
+    const activeMetricKeys = Array.from(document.querySelectorAll(".metric-checkbox"))
+        .filter(cb => cb.checked)
+        .map(cb => cb.dataset.metric);
+
+    const visibleMonthHeaders = Array.from(table.querySelectorAll("thead th.month-col"))
+        .filter(th => th.offsetParent !== null && getComputedStyle(th).display !== "none")
+        .map(th => th.dataset.month);
+
+    const chartRows = visibleRows.map(row => {
+        const serviceName = row.querySelector(".property-name")?.innerText.trim() || "Unknown service";
+
+        const metricCells = Array.from(row.querySelectorAll("td.metric-cell"))
+            .filter(cell => {
+                return (
+                    cell.offsetParent !== null &&
+                    getComputedStyle(cell).display !== "none" &&
+                    visibleMonthHeaders.includes(cell.dataset.month) &&
+                    !cell.classList.contains("before-tracking")
+                );
+            });
+
+        let total = 0;
+
+        metricCells.forEach(cell => {
+            if (activeMetricKeys.includes("visits")) {
+                total += parseFloat(cell.dataset.visits || 0);
+            }
+
+            if (activeMetricKeys.includes("sessions")) {
+                total += parseFloat(cell.dataset.sessions || 0);
+            }
+
+            if (activeMetricKeys.includes("users")) {
+                total += parseFloat(cell.dataset.users || 0);
+            }
+        });
+
+        return {
+            serviceName: serviceName,
+            total: total
+        };
+    })
+    .filter(item => item.total > 0)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 12);
+
+    doc.setFontSize(13);
+    doc.setTextColor(105, 0, 81);
+    doc.text("Activity chart for exported rows", 14, chartStartY);
+
+    doc.setFontSize(8);
+    doc.setTextColor(80, 80, 80);
+    doc.text("Total activity is calculated from the visible metrics and visible months in the exported table.", 14, chartStartY + 6);
+
+    if (chartRows.length === 0) {
+        doc.setFontSize(9);
+        doc.setTextColor(80, 80, 80);
+        doc.text("No chart data available for the current filtered view.", 14, chartStartY + 16);
+    } else {
+        const chartLeft = 14;
+        const chartTop = chartStartY + 14;
+        const chartWidth = doc.internal.pageSize.getWidth() - 28;
+        const barHeight = 6;
+        const gap = 3;
+        const labelWidth = 80;
+        const maxBarWidth = chartWidth - labelWidth - 24;
+
+        const maxTotal = Math.max(...chartRows.map(item => item.total));
+
+        chartRows.forEach((item, index) => {
+            const y = chartTop + index * (barHeight + gap);
+            const barWidth = maxTotal > 0 ? (item.total / maxTotal) * maxBarWidth : 0;
+
+            let label = item.serviceName;
+
+            if (label.length > 42) {
+                label = label.substring(0, 39) + "...";
+            }
+
+            doc.setFontSize(7);
+            doc.setTextColor(40, 40, 40);
+            doc.text(label, chartLeft, y + 4.5);
+
+            doc.setFillColor(105, 0, 81);
+            doc.rect(chartLeft + labelWidth, y, barWidth, barHeight, "F");
+
+            doc.setFontSize(7);
+            doc.setTextColor(80, 80, 80);
+            doc.text(
+                String(Math.round(item.total).toLocaleString()),
+                chartLeft + labelWidth + barWidth + 2,
+                y + 4.5
+            );
+        });
+    }
+
+    doc.save(pdfFilename);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
