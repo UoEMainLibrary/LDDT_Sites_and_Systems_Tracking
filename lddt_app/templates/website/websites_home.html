@@ -195,6 +195,12 @@
     font-size: 0.72rem;
 }
 
+.action-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
 @media (max-width: 1199px) {
     .summary-box {
         border-right: none;
@@ -248,9 +254,13 @@
 
                     {% endif %}
 
-                    <div class="mt-2">
+                    <div class="mt-2 action-buttons">
                         <a href="{% url 'create_subsite' %}" class="btn btn-success btn-sm">
                             <i class="fa fa-plus"></i> Add New
+                        </a>
+
+                        <a href="{% url 'export_websites_excel' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fa fa-file-excel"></i> Export Excel
                         </a>
                     </div>
 

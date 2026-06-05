@@ -45,6 +45,9 @@ from django.utils import timezone
 from .models import GoogleAnalyticsStats
 from django.utils import timezone
 
+from openpyxl import Workbook
+
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -300,6 +303,46 @@ def websites_full_table(request):
 
 def websites_process_2(request):
     return render(request, 'website/websites_process_2.html')
+
+def export_websites_excel(request):
+    websites = Website.objects.all().order_by("common_name")
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Websites"
+
+    ws.append([
+        "Status",
+        "HTTP Code",
+        "Expiry Date",
+        "Common Name",
+        "IP Address",
+        "Access",
+        "Server",
+        "Load Balancer",
+        "SSL Provider",
+    ])
+
+    for website in websites:
+        ws.append([
+            website.http_check_status or "N/A",
+            website.http_status_code or "N/A",
+            website.ssl_expiry_date_new.strftime("%Y-%m-%d") if website.ssl_expiry_date_new else "N/A",
+            website.common_name or "N/A",
+            website.url_ip or "N/A",
+            website.url_access_scope or "N/A",
+            website.server or "N/A",
+            website.load_balancer or "N/A",
+            website.ssl_certificate_provider or "N/A",
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="websites.xlsx"'
+
+    wb.save(response)
+    return response
 
 
 ############################# WEBSITES CRUD
