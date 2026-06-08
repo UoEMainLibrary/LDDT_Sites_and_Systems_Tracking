@@ -77,6 +77,60 @@
     max-height: calc(100vh - 115px);
 }
 
+#sslTable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#sslTable th,
+#sslTable td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+
+#sslTable th:nth-child(1),
+#sslTable td:nth-child(1) {
+    width: 10%;
+}
+
+#sslTable th:nth-child(2),
+#sslTable td:nth-child(2) {
+    width: 14%;
+}
+
+#sslTable th:nth-child(3),
+#sslTable td:nth-child(3) {
+    width: 24%;
+}
+
+#sslTable th:nth-child(4),
+#sslTable td:nth-child(4) {
+    width: 12%;
+}
+
+#sslTable th:nth-child(5),
+#sslTable td:nth-child(5) {
+    width: 12%;
+    text-align: center;
+}
+
+#sslTable th:nth-child(6),
+#sslTable td:nth-child(6) {
+    width: 12%;
+}
+
+#sslTable th:nth-child(7),
+#sslTable td:nth-child(7) {
+    width: 6%;
+    text-align: center;
+}
+
+#sslTable th:nth-child(8),
+#sslTable td:nth-child(8) {
+    width: 10%;
+}
+
 .table thead th {
     background: #690051;
     color: white;
@@ -95,6 +149,10 @@
 .sort-controls {
     display: flex;
     gap: 3px;
+}
+
+.sort-controls-center {
+    justify-content: center;
 }
 
 .sort-btn {
@@ -186,6 +244,21 @@
     font-size: 0.78rem;
 }
 
+.common-name-link {
+    color: #0d6efd;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+}
+
+.common-name-link:hover {
+    text-decoration: underline;
+}
+
 .scope-cell {
     text-align: center;
     vertical-align: middle;
@@ -193,6 +266,18 @@
 
 .scope-cell .badge {
     font-size: 0.72rem;
+    display: inline-block;
+}
+
+.lb-cell {
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
 @media (max-width: 1199px) {
@@ -248,9 +333,13 @@
 
                     {% endif %}
 
-                    <div class="mt-2">
+                    <div class="mt-2 action-buttons">
                         <a href="{% url 'create_subsite' %}" class="btn btn-success btn-sm">
                             <i class="fa fa-plus"></i> Add New
+                        </a>
+
+                        <a href="{% url 'export_websites_excel' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fa fa-file-excel"></i> Export Excel
                         </a>
                     </div>
 
@@ -262,9 +351,7 @@
                 <div class="row g-1">
 
                     <div class="col-md-9">
-                        <input id="globalFilter"
-                               class="form-control form-control-sm"
-                               placeholder="Global search">
+                        <input id="globalFilter" class="form-control form-control-sm" placeholder="Global search">
                     </div>
 
                     <div class="col-md-3">
@@ -275,21 +362,15 @@
                     </div>
 
                     <div class="col-md-6">
-                        <input id="cnFilter"
-                               class="form-control form-control-sm"
-                               placeholder="Common name">
+                        <input id="cnFilter" class="form-control form-control-sm" placeholder="Common name">
                     </div>
 
                     <div class="col-md-6">
-                        <input id="serverFilter"
-                               class="form-control form-control-sm"
-                               placeholder="Server">
+                        <input id="serverFilter" class="form-control form-control-sm" placeholder="Server">
                     </div>
 
                     <div class="col-md-4">
-                        <select id="httpStatusFilter"
-                                class="form-select form-select-sm">
-
+                        <select id="httpStatusFilter" class="form-select form-select-sm">
                             <option value="">HTTP/S</option>
                             <option value="OK">OK</option>
                             <option value="BLOCKED">BLOCKED</option>
@@ -298,46 +379,33 @@
                             <option value="SSL_ERROR">SSL ERROR</option>
                             <option value="ERROR">ERROR</option>
                             <option value="N/A">N/A</option>
-
                         </select>
                     </div>
 
                     <div class="col-md-4">
-                        <select id="accessFilter"
-                                class="form-select form-select-sm">
-
+                        <select id="accessFilter" class="form-select form-select-sm">
                             <option value="">Access</option>
-
                         </select>
                     </div>
 
                     <div class="col-md-4">
-                        <select id="providerFilter"
-                                class="form-select form-select-sm">
-
+                        <select id="providerFilter" class="form-select form-select-sm">
                             <option value="">SSL Provider</option>
-
                         </select>
                     </div>
 
                     <div class="col-md-5">
                         <label class="filter-label">Expiry Date From</label>
-                        <input type="date"
-                               id="dateFrom"
-                               class="form-control form-control-sm">
+                        <input type="date" id="dateFrom" class="form-control form-control-sm">
                     </div>
 
                     <div class="col-md-5">
                         <label class="filter-label">Expiry Date To</label>
-                        <input type="date"
-                               id="dateTo"
-                               class="form-control form-control-sm">
+                        <input type="date" id="dateTo" class="form-control form-control-sm">
                     </div>
 
                     <div class="col-md-2 d-flex align-items-end">
-                        <button type="button"
-                                id="clearFilters"
-                                class="btn btn-outline-secondary btn-sm w-100">
+                        <button type="button" id="clearFilters" class="btn btn-outline-secondary btn-sm w-100">
                             Clear
                         </button>
                     </div>
@@ -352,8 +420,7 @@
 
     <div class="table-responsive-sticky" id="tableContainer">
 
-        <table class="table table-hover table-striped align-middle"
-               id="sslTable">
+        <table class="table table-hover table-striped align-middle w-100" id="sslTable">
 
             <thead>
                 <tr>
@@ -389,9 +456,9 @@
                         </div>
                     </th>
 
-                    <th>
+                    <th class="text-center">
                         <div class="th-title">Access</div>
-                        <div class="sort-controls">
+                        <div class="sort-controls sort-controls-center">
                             <button type="button" class="sort-btn" data-index="4" data-sort="asc" data-type="text">Asc</button>
                             <button type="button" class="sort-btn" data-index="4" data-sort="desc" data-type="text">Desc</button>
                         </div>
@@ -405,9 +472,9 @@
                         </div>
                     </th>
 
-                    <th>
+                    <th class="text-center">
                         <div class="th-title">LB</div>
-                        <div class="sort-controls">
+                        <div class="sort-controls sort-controls-center">
                             <button type="button" class="sort-btn" data-index="6" data-sort="asc" data-type="text">Asc</button>
                             <button type="button" class="sort-btn" data-index="6" data-sort="desc" data-type="text">Desc</button>
                         </div>
@@ -432,49 +499,34 @@
                         expiring-soon
                     {% endif %}
                 "
-
                 data-href="{% url 'website_details' website.id %}"
-
                 data-http-status="{% if website.http_check_status %}{{ website.http_check_status }}{% else %}N/A{% endif %}">
 
                     <td class="status-cell">
 
                         {% if website.http_check_status == "OK" %}
-
-                            <div class="status-box status-ok">
-                                OK
-                            </div>
+                            <div class="status-box status-ok">OK</div>
 
                         {% elif website.http_check_status == "BLOCKED" or website.http_check_status == "REDIRECT" %}
-
                             <div class="status-box status-warning">
-
                                 {{ website.http_check_status }}
 
                                 {% if website.http_status_code %}
                                     - {{ website.http_status_code }}
                                 {% endif %}
-
                             </div>
 
                         {% elif website.http_check_status %}
-
                             <div class="status-box status-bad">
-
                                 {{ website.http_check_status }}
 
                                 {% if website.http_status_code %}
                                     - {{ website.http_status_code }}
                                 {% endif %}
-
                             </div>
 
                         {% else %}
-
-                            <div class="status-box status-empty">
-                                N/A
-                            </div>
-
+                            <div class="status-box status-empty">N/A</div>
                         {% endif %}
 
                     </td>
@@ -493,23 +545,32 @@
                             {% endif %}
 
                         {% else %}
-
                             <span class="text-muted">N/A</span>
-
                         {% endif %}
 
                     </td>
 
-                    <td class="small-text-cell">{{ website.common_name }}</td>
+                    <td class="small-text-cell">
+                        {% if website.url %}
+                            <a href="{{ website.url }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="common-name-link"
+                               title="{{ website.url }}">
+                                {{ website.common_name }}
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        {% else %}
+                            {{ website.common_name }}
+                        {% endif %}
+                    </td>
 
                     <td>
-
                         {% if website.url_ip %}
                             <code class="ip-code">{{ website.url_ip }}</code>
                         {% else %}
                             <span class="text-muted small-text-cell">N/A</span>
                         {% endif %}
-
                     </td>
 
                     <td class="scope-cell">
@@ -517,39 +578,28 @@
                         {% if website.url_access_scope == "GLOBAL" %}
 
                             {% if website.url_access_scope_manual %}
-                                <span class="badge bg-warning text-dark">
-                                    Global-manual
-                                </span>
+                                <span class="badge bg-warning text-dark">Global-manual</span>
                             {% else %}
-                                <span class="badge bg-success">
-                                    Global
-                                </span>
+                                <span class="badge bg-success">Global</span>
                             {% endif %}
 
                         {% elif website.url_access_scope == "EDLAN_ONLY" %}
 
                             {% if website.url_access_scope_manual %}
-                                <span class="badge bg-warning text-dark">
-                                    EdLan-only-manual
-                                </span>
+                                <span class="badge bg-warning text-dark">EdLan-only-manual</span>
                             {% else %}
-                                <span class="badge bg-primary">
-                                    EdLan-only
-                                </span>
+                                <span class="badge bg-primary">EdLan-only</span>
                             {% endif %}
 
                         {% else %}
-
                             <span class="text-muted small-text-cell">N/A</span>
-
                         {% endif %}
 
                     </td>
 
                     <td class="small-text-cell">{{ website.server }}</td>
 
-                    <td>
-
+                    <td class="lb-cell">
                         {% if website.load_balancer|lower == "yes" %}
                             ✔️
                         {% elif website.load_balancer|lower == "no" %}
@@ -557,17 +607,14 @@
                         {% else %}
                             ?
                         {% endif %}
-
                     </td>
 
                     <td class="provider-cell small-text-cell">
-
                         {% if website.ssl_certificate_provider %}
                             {{ website.ssl_certificate_provider }}
                         {% else %}
                             <span class="text-muted">N/A</span>
                         {% endif %}
-
                     </td>
 
                 </tr>
@@ -616,6 +663,12 @@ window.addEventListener("scroll", () => {
     } else if (tableContainer.scrollTop <= 20) {
         showSummaryFilterBar();
     }
+});
+
+document.querySelectorAll(".common-name-link").forEach(link => {
+    link.addEventListener("click", event => {
+        event.stopPropagation();
+    });
 });
 
 document.querySelectorAll(".main-row").forEach(row => {

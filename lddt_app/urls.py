@@ -71,4 +71,5 @@ path("ga4/last-12-months/active-users/", ga4_last_12_months_active_users, name="
    re_path(r'^access_statement/(\d+)/', access_statement_details, name='access_statement_details'),
    path('update_access_statement/<int:id>/', update_access_statement, name='update_access_statement'),
    path('delete_statement/<int:id>/', delete_statement, name='delete_statement'),
+path("websites/export/excel/", export_websites_excel, name="export_websites_excel"),
 ]
