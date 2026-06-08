@@ -1,7 +1,8 @@
 import os
 import re
 import tempfile
-from datetime import datetime
+import warnings
+from datetime import datetime, timedelta
 
 import matplotlib
 
@@ -9,7 +10,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from django.conf import settings
-from django.core.mail import EmailMessage
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -29,15 +29,10 @@ from reportlab.platypus import (
 from lddt_app.models import GoogleAnalyticsStats
 
 
+warnings.filterwarnings("ignore")
+
 REPORT_DIR = os.path.join(settings.BASE_DIR, "reports")
-
 REPORT_FILENAME = "TrackingGA4_MONTHLY_SUMMARY.pdf"
-
-EMAIL_TO = [
-    "patryk.smacki@ed.ac.uk",
-]
-
-EMAIL_FROM = getattr(settings, "DEFAULT_FROM_EMAIL", "lacddt@ed.ac.uk")
 
 CORPORATE = "#690051"
 DARK = "#323c4e"
@@ -45,6 +40,20 @@ DARK = "#323c4e"
 
 class Command(BaseCommand):
     help = "Send monthly GA4 summary report"
+
+    # ------------------------------------------------------------
+    # Reporting period helpers
+    # ------------------------------------------------------------
+
+    def get_reporting_month_date(self):
+        today = timezone.localdate()
+        return today.replace(day=1) - timedelta(days=1)
+
+    def get_reporting_month_text(self):
+        return self.get_reporting_month_date().strftime("%B %Y")
+
+    def get_reporting_month_key(self):
+        return self.get_reporting_month_date().strftime("%Y-%m")
 
     # ------------------------------------------------------------
     # Data analysis
@@ -120,12 +129,19 @@ class Command(BaseCommand):
         highest_month = max(monthly_rows, key=lambda row: row["activity"])
         lowest_month = min(monthly_rows, key=lambda row: row["activity"])
 
+        reporting_month_key = self.get_reporting_month_key()
+        reporting_month_row = next(
+            (row for row in monthly_rows if row["month"] == reporting_month_key),
+            None,
+        )
+
         return {
             "stat": stat,
             "property_name": stat.property_name,
             "since": stat.earliest_data_date,
             "months_tracked": tracked_months,
             "monthly_rows": monthly_rows,
+            "reporting_month_row": reporting_month_row,
             "total_views": total_views,
             "total_sessions": total_sessions,
             "total_users": total_users,
@@ -214,16 +230,18 @@ class Command(BaseCommand):
         path = os.path.join(tempfile.gettempdir(), filename)
 
         months = [row["month"] for row in service["monthly_rows"]]
+        positions = list(range(len(months)))
+
         views = [row["views"] for row in service["monthly_rows"]]
         sessions = [row["sessions"] for row in service["monthly_rows"]]
         users = [row["users"] for row in service["monthly_rows"]]
 
         plt.figure(figsize=(9, 3.5))
-        plt.plot(months, views, marker="o", label="Views")
-        plt.plot(months, sessions, marker="o", label="Sessions")
-        plt.plot(months, users, marker="o", label="Active users")
+        plt.plot(positions, views, marker="o", label="Views")
+        plt.plot(positions, sessions, marker="o", label="Sessions")
+        plt.plot(positions, users, marker="o", label="Active users")
         plt.title(service["property_name"][:80])
-        plt.xticks(rotation=45, ha="right")
+        plt.xticks(positions, months, rotation=45, ha="right")
         plt.legend()
         plt.tight_layout()
         plt.savefig(path, dpi=160)
@@ -241,7 +259,6 @@ class Command(BaseCommand):
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
             ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
             ("ALIGN", (0, 0), (-1, 0), "CENTER"),
-
             ("GRID", (0, 0), (-1, -1), 0.4, colors.lightgrey),
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("FONTSIZE", (0, 0), (-1, -1), 8),
@@ -249,7 +266,6 @@ class Command(BaseCommand):
                 colors.white,
                 colors.HexColor("#f8f8f8"),
             ]),
-
             ("TEXTCOLOR", (0, 1), (-1, -1), colors.HexColor("#323c4e")),
             ("ALIGN", (0, 1), (0, -1), "CENTER"),
             ("ALIGN", (2, 1), (-1, -1), "CENTER"),
@@ -267,9 +283,9 @@ class Command(BaseCommand):
             "Since",
             "Months",
             "Avg Activity",
-            "Views",
-            "Sessions",
-            "Users",
+            "Views Total",
+            "Sessions Total",
+            "Users Total",
             "Growth",
         ]]
 
@@ -300,15 +316,44 @@ class Command(BaseCommand):
         return story
 
     def monthly_detail_table(self, service, styles):
+        reporting_month_text = self.get_reporting_month_text()
+        reporting_month_row = service["reporting_month_row"]
+
         story = [
             Paragraph(service["property_name"], styles["Heading2"]),
             Paragraph(f"Since: {service['since'].strftime('%Y-%m-%d')}", styles["Normal"]),
             Paragraph(f"Months tracked: {service['months_tracked']}", styles["Normal"]),
             Paragraph(f"Average monthly activity: {service['avg_activity']:,.0f}", styles["Normal"]),
-            Paragraph(f"Total views: {service['total_views']:,}", styles["Normal"]),
-            Paragraph(f"Total sessions: {service['total_sessions']:,}", styles["Normal"]),
-            Paragraph(f"Total active users: {service['total_users']:,}", styles["Normal"]),
-            Paragraph(f"Growth over reporting period: {service['growth_percent']:.1f}%", styles["Normal"]),
+        ]
+
+        if reporting_month_row:
+            story += [
+                Paragraph(
+                    f"{reporting_month_text} views: {reporting_month_row['views']:,}",
+                    styles["Normal"],
+                ),
+                Paragraph(
+                    f"{reporting_month_text} sessions: {reporting_month_row['sessions']:,}",
+                    styles["Normal"],
+                ),
+                Paragraph(
+                    f"{reporting_month_text} active users: {reporting_month_row['users']:,}",
+                    styles["Normal"],
+                ),
+            ]
+        else:
+            story.append(
+                Paragraph(
+                    f"No monthly data found for {reporting_month_text}.",
+                    styles["Normal"],
+                )
+            )
+
+        story += [
+            Paragraph(f"Total views across historical data range: {service['total_views']:,}", styles["Normal"]),
+            Paragraph(f"Total sessions across historical data range: {service['total_sessions']:,}", styles["Normal"]),
+            Paragraph(f"Total active users across historical data range: {service['total_users']:,}", styles["Normal"]),
+            Paragraph(f"Growth over historical data range: {service['growth_percent']:.1f}%", styles["Normal"]),
             Paragraph(
                 f"Highest month: {service['highest_month']['month']} "
                 f"({service['highest_month']['activity']:,})",
@@ -388,17 +433,19 @@ class Command(BaseCommand):
 
         months = analysis["months"]
         period = f"{months[0]} to {months[-1]}" if months else "No data"
+        reporting_month = self.get_reporting_month_text()
 
         story.append(Paragraph("Tracking GA4 Monthly Summary", styles["Title"]))
         story.append(Spacer(1, 10))
+        story.append(Paragraph(f"<b>Reporting month:</b> {reporting_month}", styles["Normal"]))
         story.append(Paragraph(
-            f"Generated: {timezone.localtime().strftime('%Y-%b-%d at %H:%M')}",
+            f"<b>Generated:</b> {timezone.localtime().strftime('%Y-%b-%d at %H:%M')}",
             styles["Normal"],
         ))
-        story.append(Paragraph(f"Reporting period: {period}", styles["Normal"]))
-        story.append(Paragraph(f"Total services: {GoogleAnalyticsStats.objects.count()}", styles["Normal"]))
-        story.append(Paragraph(f"Services analysed: {len(analysis['analysed'])}", styles["Normal"]))
-        story.append(Paragraph(f"Excluded, no Since date: {len(analysis['excluded'])}", styles["Normal"]))
+        story.append(Paragraph(f"<b>Historical data range:</b> {period}", styles["Normal"]))
+        story.append(Paragraph(f"<b>Total services:</b> {GoogleAnalyticsStats.objects.count()}", styles["Normal"]))
+        story.append(Paragraph(f"<b>Services analysed:</b> {len(analysis['analysed'])}", styles["Normal"]))
+        story.append(Paragraph(f"<b>Excluded, no Since date:</b> {len(analysis['excluded'])}", styles["Normal"]))
         story.append(Spacer(1, 14))
 
         story += self.ranking_table(
@@ -487,6 +534,22 @@ class Command(BaseCommand):
         story.append(Paragraph("Notes and Recommendations", styles["Title"]))
         story.append(Spacer(1, 10))
         story.append(Paragraph(
+            "• This report is for the previous calendar month.",
+            styles["Normal"],
+        ))
+        story.append(Paragraph(
+            "• Views, sessions and active users shown in the service detail section are clearly labelled for the reporting month.",
+            styles["Normal"],
+        ))
+        story.append(Paragraph(
+            "• Average activity is calculated across the historical data range after tracking started.",
+            styles["Normal"],
+        ))
+        story.append(Paragraph(
+            "• Highest and lowest months are included because bot activity can skew averages.",
+            styles["Normal"],
+        ))
+        story.append(Paragraph(
             "• Review services in the Bottom 5 list for tracking accuracy, visibility, and ongoing business need.",
             styles["Normal"],
         ))
@@ -502,10 +565,6 @@ class Command(BaseCommand):
             "• Activity = Views + Sessions + Active Users.",
             styles["Normal"],
         ))
-        story.append(Paragraph(
-            "• Average monthly activity is calculated only from months after tracking started.",
-            styles["Normal"],
-        ))
 
         doc.build(story)
 
@@ -518,7 +577,7 @@ class Command(BaseCommand):
     def send_email(self, summary_pdf, analysis):
         import subprocess
 
-        today = timezone.localdate().strftime("%Y-%m")
+        reporting_month = self.get_reporting_month_text()
 
         top_service = (
             analysis["busiest"][0]["property_name"]
@@ -532,19 +591,30 @@ class Command(BaseCommand):
             else "N/A"
         )
 
-        subject = f"Monthly GA4 Summary Report - {today}"
+        subject = f"Monthly GA4 Summary Report - {reporting_month}"
 
         body = (
-            "Hello,\n\n"
-            "Attached is the monthly GA4 summary report generated by the "
-            "Digital Library Tracking App.\n\n"
-            f"Reporting month: {today}\n"
+            "Welcome,\n\n"
+            f"Attached is the GA4 Monthly Summary Report for {reporting_month}.\n\n"
+            "This report covers the previous calendar month, while also including "
+            "historical averages, highest months and lowest months from the stored GA4 monthly data.\n\n"
+            f"Reporting month: {reporting_month}\n"
             f"Services analysed: {len(analysis['analysed'])}\n"
             f"Services excluded because they have no Since date: {len(analysis['excluded'])}\n\n"
             f"Top service: {top_service}\n"
             f"Lowest activity service: {bottom_service}\n\n"
+            "The PDF includes:\n"
+            "- Top 5 busiest services\n"
+            "- Bottom 5 least busy services\n"
+            "- Biggest growth services\n"
+            "- Biggest decline services\n"
+            "- Summary charts\n"
+            "- Reporting month figures\n"
+            "- Historical averages\n"
+            "- Highest and lowest months\n"
+            "- Notes and recommendations\n\n"
             "Regards,\n"
-            "Digital Library Tracking App\n"
+            "Patryk Smacki\n"
         )
 
         recipients = [
@@ -553,12 +623,12 @@ class Command(BaseCommand):
         ]
 
         cmd = [
-                  "mail",
-                  "-s",
-                  subject,
-                  "-a",
-                  summary_pdf,
-              ] + recipients
+            "mail",
+            "-s",
+            subject,
+            "-a",
+            summary_pdf,
+        ] + recipients
 
         subprocess.run(
             cmd,
