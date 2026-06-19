@@ -306,6 +306,22 @@ class Vm(models.Model):
     fetch_details = models.BooleanField(default=True)
     last_cron_run = models.DateTimeField(blank=True, null=True)
 
+    def fetch_all_ssh_details(self):
+        return {
+            "db": self.ssh_db,
+            "nginx": self.ssh_nginx,
+            "puppet_controlled": self.ssh_puppet_controlled,
+            "httpd": self.ssh_httpd,
+            "vmfs_root_used": self.ssh_vmfs_root_used,
+            "vmfs_apps_used": self.ssh_vmfs_apps_used,
+            "vmfs_data_used": self.ssh_vmfs_data_used,
+            "ip_address": self.ssh_ip_address,
+            "processors": self.ssh_processors,
+            "memory": self.ssh_mem_total_gb,
+            "last_patch_days_ago": self.ssh_last_patch_days_ago,
+            "system_check": self.ssh_healthy_check,
+        }
+
     @property
     def should_fetch_details(self):
         return self.fetch_details is True

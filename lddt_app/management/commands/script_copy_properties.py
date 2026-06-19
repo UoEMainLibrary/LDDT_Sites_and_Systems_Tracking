@@ -9,26 +9,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         total = Vm.objects.count()
-        current = 0
         updated = 0
         skipped = 0
         failed = 0
         now = timezone.now()
-
-        fields_to_copy = [
-            ("db", "ssh_db"),
-            ("nginx", "ssh_nginx"),
-            ("puppet_controlled", "ssh_puppet_controlled"),
-            ("httpd", "ssh_httpd"),
-            ("vmfs_root_used", "ssh_vmfs_root_used"),
-            ("vmfs_apps_used", "ssh_vmfs_apps_used"),
-            ("vmfs_data_used", "ssh_vmfs_data_used"),
-            ("ip_address", "ssh_ip_address"),
-            ("processors", "ssh_processors"),
-            ("memory", "ssh_mem_total_gb"),
-            ("last_patch_days_ago", "ssh_last_patch_days_ago"),
-            ("system_check", "ssh_healthy_check"),
-        ]
 
         update_fields = [
             "db",
@@ -47,9 +31,7 @@ class Command(BaseCommand):
             "last_cron_run",
         ]
 
-        for obj in Vm.objects.all():
-            current += 1
-
+        for current, obj in enumerate(Vm.objects.all(), start=1):
             self.stdout.write(f"Checking {obj.hostname} ({current} of {total})")
 
             if not obj.fetch_details:
@@ -63,14 +45,10 @@ class Command(BaseCommand):
             self.stdout.write(f"Updating {obj.hostname} ({current} of {total})")
 
             try:
-                for field_name, ssh_field_name in fields_to_copy:
-                    try:
-                        value = getattr(obj, ssh_field_name)
-                        setattr(obj, field_name, value)
-                    except Exception as e:
-                        raise Exception(
-                            f"failed while reading {ssh_field_name}: {e}"
-                        )
+                details = obj.fetch_all_ssh_details()
+
+                for field_name, value in details.items():
+                    setattr(obj, field_name, value)
 
                 obj.last_health_check = now
                 obj.last_cron_run = now
