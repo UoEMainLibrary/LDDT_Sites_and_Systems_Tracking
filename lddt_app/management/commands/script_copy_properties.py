@@ -27,18 +27,33 @@ class Command(BaseCommand):
 
             self.stdout.write(f"Updating {obj.hostname} ({current} of {total})")
 
-            obj.db = obj.ssh_db
-            obj.nginx = obj.ssh_nginx
-            obj.puppet_controlled = obj.ssh_puppet_controlled
-            obj.httpd = obj.ssh_httpd
-            obj.vmfs_root_used = obj.ssh_vmfs_root_used
-            obj.vmfs_apps_used = obj.ssh_vmfs_apps_used
-            obj.vmfs_data_used = obj.ssh_vmfs_data_used
-            obj.ip_address = obj.ssh_ip_address
-            obj.processors = obj.ssh_processors
-            obj.memory = obj.ssh_mem_total_gb
-            obj.last_patch_days_ago = obj.ssh_last_patch_days_ago
-            obj.system_check = obj.ssh_healthy_check
+            details = obj.fetch_ssh_details()
+
+            if details is None:
+                skipped += 1
+                self.stdout.write(f"Skipped {obj.hostname} because fetch_details is disabled")
+                self.stdout.write("***********************************")
+                continue
+
+            if details.get("error"):
+                skipped += 1
+                self.stdout.write(f"Skipped {obj.hostname}: {details['error']}")
+                self.stdout.write("Existing values were left unchanged")
+                self.stdout.write("***********************************")
+                continue
+
+            obj.db = details["db"]
+            obj.nginx = details["nginx"]
+            obj.puppet_controlled = details["puppet_controlled"]
+            obj.httpd = details["httpd"]
+            obj.vmfs_root_used = details["vmfs_root_used"]
+            obj.vmfs_apps_used = details["vmfs_apps_used"]
+            obj.vmfs_data_used = details["vmfs_data_used"]
+            obj.ip_address = details["ip_address"]
+            obj.processors = details["processors"]
+            obj.memory = details["memory"]
+            obj.last_patch_days_ago = details["last_patch_days_ago"]
+            obj.system_check = details["system_check"]
             obj.last_health_check = now
             obj.last_cron_run = now
 

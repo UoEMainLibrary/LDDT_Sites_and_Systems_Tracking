@@ -3,6 +3,8 @@ from datetime import *
 from django.utils.dateparse import parse_date
 import os
 import paramiko
+import re
+import socket
 import subprocess
 from django.conf import settings
 from django.http import JsonResponse
@@ -312,6 +314,237 @@ class Vm(models.Model):
     @property
     def print_hostname(self):
         return self.hostname
+
+    def _open_ssh_client(self):
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        private_key = paramiko.RSAKey.from_private_key_file(
+            "/home/lib/lacddt/.ssh/id_rsa",
+            password=settings.SSH_PASSPHRASE
+        )
+
+        ssh.connect(
+            self.hostname,
+            port=22,
+            username=settings.SSH_USER_NAME,
+            pkey=private_key,
+            timeout=10
+        )
+
+        return ssh
+
+    def _run_ssh_command(self, ssh, command):
+        stdin, stdout, stderr = ssh.exec_command(command)
+        output = stdout.read().decode().strip()
+        error = stderr.read().decode().strip()
+        return output or error
+
+    def _extract_version(self, text):
+        match = re.search(r"(\d+\.\d+(?:\.\d+)?)", text)
+        return match.group(1) if match else None
+
+    def _parse_db_details(self, ssh):
+        postgres_process = self._run_ssh_command(ssh, "ps -ef | grep '[p]ostgres'")
+        postgres_service = self._run_ssh_command(ssh, "systemctl is-active postgresql 2>/dev/null")
+
+        if postgres_process or postgres_service == "active":
+            version_output = self._run_ssh_command(ssh, "psql --version 2>/dev/null")
+            version = self._extract_version(version_output)
+            return f"PostgreSQL {version}" if version else "PostgreSQL"
+
+        mysql_process = self._run_ssh_command(ssh, "ps -ef | grep '[m]ysqld\\|[m]ariadbd'")
+        mysql_service = self._run_ssh_command(
+            ssh,
+            "systemctl is-active mysqld 2>/dev/null || systemctl is-active mariadb 2>/dev/null"
+        )
+
+        if mysql_process or mysql_service == "active":
+            version_output = self._run_ssh_command(
+                ssh,
+                "mysql --version 2>/dev/null || mariadbd --version 2>/dev/null"
+            )
+            version = self._extract_version(version_output)
+
+            if "mariadb" in version_output.lower():
+                return f"MariaDB {version}" if version else "MariaDB"
+
+            return f"MySQL {version}" if version else "No-DB"
+
+        return "No-DB"
+
+    def _parse_nginx_details(self, ssh):
+        output = self._run_ssh_command(ssh, "cat /etc/rocky-release; nginx -v")
+
+        if not output:
+            return "-----"
+
+        os_release = output.splitlines()[0]
+
+        if "(" in os_release:
+            os_release = os_release.split("(")[0].strip()
+
+        parts = os_release.split()
+        if "release" in parts:
+            parts.pop(parts.index("release"))
+
+        return " ".join(parts)
+
+    def _parse_puppet_details(self, ssh):
+        version = self._run_ssh_command(
+            ssh,
+            "rpm -q --qf '%{VERSION}-%{RELEASE}\n' puppet-agent"
+        )
+
+        if not version:
+            return "-----"
+
+        if "not installed" in version.lower() or version.lower().startswith("package "):
+            return "-----"
+
+        clean_version = version.split('-')[0]
+
+        return f"Puppet {clean_version}"
+
+    def _parse_httpd_details(self, ssh):
+        output = self._run_ssh_command(ssh, "httpd -v")
+
+        if not output:
+            return "-----"
+
+        apache_version = None
+        build_date = None
+
+        for line in output.splitlines():
+            if "Server version:" in line:
+                apache_version = line.split("Server version:")[1].strip().split()[0]
+
+            if "Server built:" in line:
+                parts = line.split("Server built:")[1].strip().split()
+                if len(parts) >= 3:
+                    build_date = f"{parts[2]}/{parts[0]}"
+
+        if not apache_version:
+            return "-----"
+
+        if build_date:
+            return f"{apache_version}\nbuilt: {build_date}"
+
+        return apache_version
+
+    def _parse_vmfs_free_percent(self, ssh, mount_name):
+        output = self._run_ssh_command(ssh, f"df -h /dev/mapper/{mount_name}")
+
+        for line in output.splitlines():
+            if line.startswith("Filesystem"):
+                continue
+
+            if f"/dev/mapper/{mount_name}" in line:
+                parts = line.split()
+                if len(parts) >= 5:
+                    used = int(parts[4].replace("%", ""))
+                    return f"{100 - used}%"
+
+        return ""
+
+    def _resolve_ip_address(self):
+        try:
+            return socket.gethostbyname(self.hostname)
+        except Exception:
+            return "-----"
+
+    def _parse_processors(self, ssh):
+        output = self._run_ssh_command(ssh, "grep -c ^processor /proc/cpuinfo")
+        return int(output) if output.isdigit() else "-----"
+
+    def _parse_mem_total_gb(self, ssh):
+        output = self._run_ssh_command(ssh, "grep MemTotal /proc/meminfo")
+
+        if output:
+            parts = output.split()
+            if len(parts) >= 2:
+                try:
+                    mem_kb = int(parts[1])
+                    return round(mem_kb / (1024 ** 2), 2)
+                except ValueError:
+                    return "Unknown"
+
+        return "-----"
+
+    def _parse_last_patch_days_ago(self, ssh):
+        cmd = 'boot=$(uptime -s); echo $(( ( $(date +%s) - $(date -d "$boot" +%s) ) / 86400 ))'
+        output = self._run_ssh_command(ssh, cmd)
+        return int(output) if output.isdigit() else "-----"
+
+    def _parse_health_check(self, ssh):
+        command = (
+            'bash -c \''
+            'errors=$(journalctl -p err -n 20); '
+            'echo "$errors"; '
+            'if [ -z "$errors" ]; then echo "HEALTHY"; else echo "ERRORS"; fi'
+            '\''
+        )
+        output = self._run_ssh_command(ssh, command)
+
+        if not output:
+            return "-----"
+
+        lines = output.splitlines()
+        status = lines[-1]
+        logs = "\n".join(lines[:-1])
+
+        if status == "HEALTHY":
+            return "HEALTHY"
+
+        return f"ERRORS\n{logs}"
+
+    def fetch_ssh_details(self):
+        if not self.fetch_details:
+            return None
+
+        details = {
+            "db": "No-DB",
+            "nginx": "-----",
+            "puppet_controlled": "-----",
+            "httpd": "-----",
+            "vmfs_root_used": "",
+            "vmfs_apps_used": "",
+            "vmfs_data_used": "",
+            "ip_address": self._resolve_ip_address(),
+            "processors": "-----",
+            "memory": "-----",
+            "last_patch_days_ago": "-----",
+            "system_check": "-----",
+        }
+
+        ssh = None
+
+        try:
+            ssh = self._open_ssh_client()
+        except Exception as e:
+            return {
+                "error": f"SSH connection failed: {e}",
+            }
+
+        try:
+            details["db"] = self._parse_db_details(ssh)
+            details["nginx"] = self._parse_nginx_details(ssh)
+            details["puppet_controlled"] = self._parse_puppet_details(ssh)
+            details["httpd"] = self._parse_httpd_details(ssh)
+            details["vmfs_root_used"] = self._parse_vmfs_free_percent(ssh, "VMFS-root")
+            details["vmfs_apps_used"] = self._parse_vmfs_free_percent(ssh, "VMFS-apps")
+            details["vmfs_data_used"] = self._parse_vmfs_free_percent(ssh, "VMFS-data")
+            details["processors"] = self._parse_processors(ssh)
+            details["memory"] = self._parse_mem_total_gb(ssh)
+            details["last_patch_days_ago"] = self._parse_last_patch_days_ago(ssh)
+            details["system_check"] = self._parse_health_check(ssh)
+        except Exception as e:
+            details["error"] = f"SSH detail fetch failed: {e}"
+        finally:
+            if ssh:
+                ssh.close()
+
+        return details
 
     @property
     def ssh_db(self):
@@ -1100,6 +1333,3 @@ class GoogleAnalyticsStats(models.Model):
     monthly_views_data = models.JSONField(default=dict, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
-
-
-
