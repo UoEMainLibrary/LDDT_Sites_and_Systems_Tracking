@@ -306,6 +306,7 @@ class Vm(models.Model):
     fetch_details = models.BooleanField(default=True)
     last_cron_run = models.DateTimeField(blank=True, null=True)
 
+
     def fetch_all_ssh_details(self):
         return {
             "db": self.ssh_db,
@@ -321,7 +322,7 @@ class Vm(models.Model):
             "last_patch_days_ago": self.ssh_last_patch_days_ago,
             "system_check": self.ssh_healthy_check,
         }
-
+    #new
     @property
     def should_fetch_details(self):
         return self.fetch_details is True
