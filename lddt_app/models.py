@@ -323,61 +323,45 @@ class Vm(models.Model):
                 "system_check": "SKIPPED",
             }
 
+        import re
+        import socket
+        import paramiko
+        from django.conf import settings
+
+        def run_command(ssh_client, command, timeout=15):
+            stdin, stdout, stderr = ssh_client.exec_command(command, timeout=timeout)
+            output = stdout.read().decode().strip()
+            error = stderr.read().decode().strip()
+            return (output or error).strip()
+
+        def extract_version(text):
+            match = re.search(r"(\d+\.\d+(?:\.\d+)?)", text or "")
+            return match.group(1) if match else None
+
+        def parse_vmfs_free(output, device_name):
+            if output:
+                for line in output.splitlines():
+                    if line.startswith("Filesystem"):
+                        continue
+
+                    if device_name in line:
+                        parts = line.split()
+                        if len(parts) >= 5:
+                            used_str = parts[4].replace("%", "")
+                            if used_str.isdigit():
+                                used = int(used_str)
+                                return f"{100 - used}%"
+            return ""
+
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        private_key = paramiko.RSAKey.from_private_key_file(
-            "/home/lib/lacddt/.ssh/id_rsa",
-            password=settings.SSH_PASSPHRASE
-        )
-
-        command = r"""
-    echo "IP_ADDRESS=$(hostname -I 2>/dev/null | awk '{print $1}')"
-    echo "PROCESSORS=$(grep -c ^processor /proc/cpuinfo 2>/dev/null)"
-    echo "MEMORY_KB=$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null)"
-    echo "OS_RELEASE=$(cat /etc/rocky-release 2>/dev/null || cat /etc/redhat-release 2>/dev/null)"
-    echo "PUPPET_VERSION=$(rpm -q --qf '%{VERSION}' puppet-agent 2>/dev/null)"
-    echo "HTTPD_VERSION=$(httpd -v 2>/dev/null | awk -F': ' '/Server version/ {print $2}' | awk '{print $1}')"
-    echo "ROOT_USED=$(df -P /dev/mapper/VMFS-root 2>/dev/null | awk 'NR==2 {print $5}')"
-    echo "APPS_USED=$(df -P /dev/mapper/VMFS-apps 2>/dev/null | awk 'NR==2 {print $5}')"
-    echo "DATA_USED=$(df -P /dev/mapper/VMFS-data 2>/dev/null | awk 'NR==2 {print $5}')"
-    echo "PATCH_DAYS=$(boot=$(uptime -s); echo $(( ( $(date +%s) - $(date -d "$boot" +%s) ) / 86400 )))"
-
-    if ps -ef | grep -q '[p]ostgres'; then
-      PG_VERSION=$(psql --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
-      if [ -n "$PG_VERSION" ]; then
-        echo "DB=PostgreSQL $PG_VERSION"
-      else
-        echo "DB=PostgreSQL"
-      fi
-    elif ps -ef | grep -q '[m]ysqld\|[m]ariadbd'; then
-      MYSQL_VERSION=$(mysql --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
-      if mysql --version 2>/dev/null | grep -qi mariadb; then
-        if [ -n "$MYSQL_VERSION" ]; then
-          echo "DB=MariaDB $MYSQL_VERSION"
-        else
-          echo "DB=MariaDB"
-        fi
-      else
-        if [ -n "$MYSQL_VERSION" ]; then
-          echo "DB=MySQL $MYSQL_VERSION"
-        else
-          echo "DB=MySQL"
-        fi
-      fi
-    else
-      echo "DB=No-DB"
-    fi
-
-    errors=$(journalctl -p err -n 20 2>/dev/null)
-    if [ -z "$errors" ]; then
-      echo "SYSTEM_CHECK=HEALTHY"
-    else
-      echo "SYSTEM_CHECK=ERRORS"
-    fi
-    """
-
         try:
+            private_key = paramiko.RSAKey.from_private_key_file(
+                "/home/lib/lacddt/.ssh/id_rsa",
+                password=settings.SSH_PASSPHRASE
+            )
+
             ssh.connect(
                 self.hostname,
                 port=22,
@@ -388,56 +372,173 @@ class Vm(models.Model):
                 auth_timeout=10,
             )
 
-            stdin, stdout, stderr = ssh.exec_command(
-                f"bash -lc {command!r}",
-                timeout=25
+            details = {}
+
+            # DB
+            postgres_process = run_command(ssh, "ps -ef | grep '[p]ostgres'")
+            postgres_service = run_command(
+                ssh,
+                "systemctl is-active postgresql 2>/dev/null"
             )
 
-            output = stdout.read().decode().strip()
-
-            raw = {}
-            for line in output.splitlines():
-                if "=" in line:
-                    key, value = line.split("=", 1)
-                    raw[key.strip()] = value.strip()
-
-            def free_percent(value):
-                value = value.replace("%", "")
-                if value.isdigit():
-                    return f"{100 - int(value)}%"
-                return ""
-
-            memory_kb = raw.get("MEMORY_KB", "")
-            if memory_kb.isdigit():
-                memory = round(int(memory_kb) / (1024 ** 2), 2)
+            if postgres_process or postgres_service == "active":
+                version_output = run_command(ssh, "psql --version 2>/dev/null")
+                version = extract_version(version_output)
+                details["db"] = f"PostgreSQL {version}" if version else "PostgreSQL"
             else:
-                memory = "-----"
+                mysql_process = run_command(
+                    ssh,
+                    "ps -ef | grep '[m]ysqld\\|[m]ariadbd'"
+                )
+                mysql_service = run_command(
+                    ssh,
+                    "systemctl is-active mysqld 2>/dev/null || systemctl is-active mariadb 2>/dev/null"
+                )
 
-            os_release = raw.get("OS_RELEASE", "-----")
-            os_release = os_release.replace(" release ", " ")
-            if "(" in os_release:
-                os_release = os_release.split("(")[0].strip()
+                if mysql_process or mysql_service == "active":
+                    version_output = run_command(
+                        ssh,
+                        "mysql --version 2>/dev/null || mariadbd --version 2>/dev/null"
+                    )
+                    version = extract_version(version_output)
 
-            puppet_version = raw.get("PUPPET_VERSION", "")
-            if puppet_version and "not installed" not in puppet_version.lower():
-                puppet_controlled = f"Puppet {puppet_version}"
+                    if "mariadb" in version_output.lower():
+                        details["db"] = f"MariaDB {version}" if version else "MariaDB"
+                    else:
+                        details["db"] = f"MySQL {version}" if version else "MySQL"
+                else:
+                    details["db"] = "No-DB"
+
+            # OS / nginx field - same behaviour as your live ssh_nginx
+            os_output = run_command(
+                ssh,
+                "cat /etc/rocky-release 2>/dev/null || cat /etc/redhat-release 2>/dev/null"
+            )
+
+            if os_output:
+                os_release = os_output.splitlines()[0]
+
+                if "(" in os_release:
+                    os_release = os_release.split("(")[0].strip()
+
+                parts = os_release.split()
+                if "release" in parts:
+                    parts.remove("release")
+
+                details["nginx"] = " ".join(parts)
             else:
-                puppet_controlled = "-----"
+                details["nginx"] = "-----"
 
-            return {
-                "db": raw.get("DB", "No-DB"),
-                "nginx": os_release or "-----",
-                "puppet_controlled": puppet_controlled,
-                "httpd": raw.get("HTTPD_VERSION") or "-----",
-                "vmfs_root_used": free_percent(raw.get("ROOT_USED", "")),
-                "vmfs_apps_used": free_percent(raw.get("APPS_USED", "")),
-                "vmfs_data_used": free_percent(raw.get("DATA_USED", "")),
-                "ip_address": raw.get("IP_ADDRESS") or "-----",
-                "processors": raw.get("PROCESSORS") or "-----",
-                "memory": memory,
-                "last_patch_days_ago": raw.get("PATCH_DAYS") or "-----",
-                "system_check": raw.get("SYSTEM_CHECK") or "-----",
-            }
+            # Puppet
+            puppet_output = run_command(
+                ssh,
+                "rpm -q --qf '%{VERSION}-%{RELEASE}\\n' puppet-agent 2>/dev/null"
+            )
+
+            if puppet_output and "not installed" not in puppet_output.lower():
+                details["puppet_controlled"] = f"Puppet {puppet_output.split('-')[0]}"
+            else:
+                details["puppet_controlled"] = "-----"
+
+            # HTTPD
+            httpd_output = run_command(ssh, "httpd -v 2>/dev/null")
+
+            if httpd_output:
+                apache_version = None
+                build_date = None
+
+                for line in httpd_output.splitlines():
+                    if "Server version:" in line:
+                        apache_version = line.split("Server version:")[1].strip().split()[0]
+
+                    if "Server built:" in line:
+                        parts = line.split("Server built:")[1].strip().split()
+                        if len(parts) >= 3:
+                            month = parts[0]
+                            year = parts[2]
+                            build_date = f"{year}/{month}"
+
+                if apache_version and build_date:
+                    details["httpd"] = f"{apache_version}\nbuilt: {build_date}"
+                elif apache_version:
+                    details["httpd"] = apache_version
+                else:
+                    details["httpd"] = "-----"
+            else:
+                details["httpd"] = "-----"
+
+            # VMFS
+            root_output = run_command(ssh, "df -h /dev/mapper/VMFS-root 2>/dev/null")
+            apps_output = run_command(ssh, "df -h /dev/mapper/VMFS-apps 2>/dev/null")
+            data_output = run_command(ssh, "df -h /dev/mapper/VMFS-data 2>/dev/null")
+
+            details["vmfs_root_used"] = parse_vmfs_free(root_output, "/dev/mapper/VMFS-root")
+            details["vmfs_apps_used"] = parse_vmfs_free(apps_output, "/dev/mapper/VMFS-apps")
+            details["vmfs_data_used"] = parse_vmfs_free(data_output, "/dev/mapper/VMFS-data")
+
+            # IP address - closer to your old nslookup behaviour
+            try:
+                details["ip_address"] = socket.gethostbyname(self.hostname)
+            except Exception:
+                ip_output = run_command(
+                    ssh,
+                    "hostname -I 2>/dev/null | awk '{print $1}'"
+                )
+                details["ip_address"] = ip_output or "-----"
+
+            # Processors
+            processors_output = run_command(
+                ssh,
+                "grep -c ^processor /proc/cpuinfo 2>/dev/null"
+            )
+            details["processors"] = int(processors_output) if processors_output.isdigit() else "-----"
+
+            # Memory
+            mem_output = run_command(
+                ssh,
+                "cat /proc/meminfo | grep MemTotal"
+            )
+
+            if mem_output:
+                parts = mem_output.split()
+                if len(parts) >= 2 and parts[1].isdigit():
+                    mem_kb = int(parts[1])
+                    mem_gb = mem_kb / (1024 ** 2)
+                    details["memory"] = round(mem_gb, 2)
+                else:
+                    details["memory"] = "Unknown"
+            else:
+                details["memory"] = "-----"
+
+            # Last patch days ago / uptime days
+            patch_cmd = 'boot=$(uptime -s); echo $(( ( $(date +%s) - $(date -d "$boot" +%s) ) / 86400 ))'
+            patch_output = run_command(ssh, patch_cmd)
+            details["last_patch_days_ago"] = int(patch_output) if patch_output.isdigit() else "-----"
+
+            # Health check
+            health_cmd = (
+                'bash -c \''
+                'errors=$(journalctl -p err -n 20); '
+                'echo "$errors"; '
+                'if [ -z "$errors" ]; then echo "HEALTHY"; else echo "ERRORS"; fi'
+                '\''
+            )
+
+            health_output = run_command(ssh, health_cmd)
+
+            if health_output:
+                lines = health_output.splitlines()
+                status = lines[-1]
+                logs = "\n".join(lines[:-1])
+
+                if status == "HEALTHY":
+                    details["system_check"] = "HEALTHY"
+                else:
+                    details["system_check"] = f"ERRORS\n{logs}"
+            else:
+                details["system_check"] = "-----"
+
+            return details
 
         finally:
             ssh.close()
