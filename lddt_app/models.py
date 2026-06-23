@@ -306,22 +306,141 @@ class Vm(models.Model):
     fetch_details = models.BooleanField(default=True)
     last_cron_run = models.DateTimeField(blank=True, null=True)
 
-
     def fetch_all_ssh_details(self):
-        return {
-            "db": self.ssh_db,
-            "nginx": self.ssh_nginx,
-            "puppet_controlled": self.ssh_puppet_controlled,
-            "httpd": self.ssh_httpd,
-            "vmfs_root_used": self.ssh_vmfs_root_used,
-            "vmfs_apps_used": self.ssh_vmfs_apps_used,
-            "vmfs_data_used": self.ssh_vmfs_data_used,
-            "ip_address": self.ssh_ip_address,
-            "processors": self.ssh_processors,
-            "memory": self.ssh_mem_total_gb,
-            "last_patch_days_ago": self.ssh_last_patch_days_ago,
-            "system_check": self.ssh_healthy_check,
-        }
+        if not self.fetch_details:
+            return {
+                "db": "SKIPPED",
+                "nginx": "SKIPPED",
+                "puppet_controlled": "SKIPPED",
+                "httpd": "SKIPPED",
+                "vmfs_root_used": "SKIPPED",
+                "vmfs_apps_used": "SKIPPED",
+                "vmfs_data_used": "SKIPPED",
+                "ip_address": "SKIPPED",
+                "processors": "SKIPPED",
+                "memory": "SKIPPED",
+                "last_patch_days_ago": "SKIPPED",
+                "system_check": "SKIPPED",
+            }
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        private_key = paramiko.RSAKey.from_private_key_file(
+            "/home/lib/lacddt/.ssh/id_rsa",
+            password=settings.SSH_PASSPHRASE
+        )
+
+        command = r"""
+    echo "IP_ADDRESS=$(hostname -I 2>/dev/null | awk '{print $1}')"
+    echo "PROCESSORS=$(grep -c ^processor /proc/cpuinfo 2>/dev/null)"
+    echo "MEMORY_KB=$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null)"
+    echo "OS_RELEASE=$(cat /etc/rocky-release 2>/dev/null || cat /etc/redhat-release 2>/dev/null)"
+    echo "PUPPET_VERSION=$(rpm -q --qf '%{VERSION}' puppet-agent 2>/dev/null)"
+    echo "HTTPD_VERSION=$(httpd -v 2>/dev/null | awk -F': ' '/Server version/ {print $2}' | awk '{print $1}')"
+    echo "ROOT_USED=$(df -P /dev/mapper/VMFS-root 2>/dev/null | awk 'NR==2 {print $5}')"
+    echo "APPS_USED=$(df -P /dev/mapper/VMFS-apps 2>/dev/null | awk 'NR==2 {print $5}')"
+    echo "DATA_USED=$(df -P /dev/mapper/VMFS-data 2>/dev/null | awk 'NR==2 {print $5}')"
+    echo "PATCH_DAYS=$(boot=$(uptime -s); echo $(( ( $(date +%s) - $(date -d "$boot" +%s) ) / 86400 )))"
+
+    if ps -ef | grep -q '[p]ostgres'; then
+      PG_VERSION=$(psql --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
+      if [ -n "$PG_VERSION" ]; then
+        echo "DB=PostgreSQL $PG_VERSION"
+      else
+        echo "DB=PostgreSQL"
+      fi
+    elif ps -ef | grep -q '[m]ysqld\|[m]ariadbd'; then
+      MYSQL_VERSION=$(mysql --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
+      if mysql --version 2>/dev/null | grep -qi mariadb; then
+        if [ -n "$MYSQL_VERSION" ]; then
+          echo "DB=MariaDB $MYSQL_VERSION"
+        else
+          echo "DB=MariaDB"
+        fi
+      else
+        if [ -n "$MYSQL_VERSION" ]; then
+          echo "DB=MySQL $MYSQL_VERSION"
+        else
+          echo "DB=MySQL"
+        fi
+      fi
+    else
+      echo "DB=No-DB"
+    fi
+
+    errors=$(journalctl -p err -n 20 2>/dev/null)
+    if [ -z "$errors" ]; then
+      echo "SYSTEM_CHECK=HEALTHY"
+    else
+      echo "SYSTEM_CHECK=ERRORS"
+    fi
+    """
+
+        try:
+            ssh.connect(
+                self.hostname,
+                port=22,
+                username=settings.SSH_USER_NAME,
+                pkey=private_key,
+                timeout=10,
+                banner_timeout=10,
+                auth_timeout=10,
+            )
+
+            stdin, stdout, stderr = ssh.exec_command(
+                f"bash -lc {command!r}",
+                timeout=25
+            )
+
+            output = stdout.read().decode().strip()
+
+            raw = {}
+            for line in output.splitlines():
+                if "=" in line:
+                    key, value = line.split("=", 1)
+                    raw[key.strip()] = value.strip()
+
+            def free_percent(value):
+                value = value.replace("%", "")
+                if value.isdigit():
+                    return f"{100 - int(value)}%"
+                return ""
+
+            memory_kb = raw.get("MEMORY_KB", "")
+            if memory_kb.isdigit():
+                memory = round(int(memory_kb) / (1024 ** 2), 2)
+            else:
+                memory = "-----"
+
+            os_release = raw.get("OS_RELEASE", "-----")
+            os_release = os_release.replace(" release ", " ")
+            if "(" in os_release:
+                os_release = os_release.split("(")[0].strip()
+
+            puppet_version = raw.get("PUPPET_VERSION", "")
+            if puppet_version and "not installed" not in puppet_version.lower():
+                puppet_controlled = f"Puppet {puppet_version}"
+            else:
+                puppet_controlled = "-----"
+
+            return {
+                "db": raw.get("DB", "No-DB"),
+                "nginx": os_release or "-----",
+                "puppet_controlled": puppet_controlled,
+                "httpd": raw.get("HTTPD_VERSION") or "-----",
+                "vmfs_root_used": free_percent(raw.get("ROOT_USED", "")),
+                "vmfs_apps_used": free_percent(raw.get("APPS_USED", "")),
+                "vmfs_data_used": free_percent(raw.get("DATA_USED", "")),
+                "ip_address": raw.get("IP_ADDRESS") or "-----",
+                "processors": raw.get("PROCESSORS") or "-----",
+                "memory": memory,
+                "last_patch_days_ago": raw.get("PATCH_DAYS") or "-----",
+                "system_check": raw.get("SYSTEM_CHECK") or "-----",
+            }
+
+        finally:
+            ssh.close()
     #new
     @property
     def should_fetch_details(self):
