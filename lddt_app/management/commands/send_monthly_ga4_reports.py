@@ -619,6 +619,9 @@ class Command(BaseCommand):
 
         recipients = [
             "patryk.smacki@ed.ac.uk",
+            "Ianthe.Sutherland@ed.ac.uk",
+            "Rebecca.Hirsch@ed.ac.uk",
+            "Scott.Renton@ed.ac.uk",
             # "lac-servers@mlist.is.ed.ac.uk",
         ]
 
