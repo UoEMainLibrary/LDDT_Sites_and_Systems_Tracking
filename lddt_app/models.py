@@ -1336,6 +1336,16 @@ class GoogleAnalyticsStats(models.Model):
     monthly_sessions_data = models.JSONField(default=dict, blank=True)
     monthly_views_data = models.JSONField(default=dict, blank=True)
 
+    ga4_measurement_ids = models.JSONField(
+
+        default=list,
+
+        blank=True,
+
+        help_text="GA4 Measurement IDs belonging to this property",
+
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
 

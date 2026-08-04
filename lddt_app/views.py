@@ -643,6 +643,7 @@ def ga4_report(request):
     months = []
 
     sample = stats.first()
+
     if sample:
         month_keys = set()
 
@@ -652,13 +653,21 @@ def ga4_report(request):
         if sample.monthly_sessions_data:
             month_keys.update(sample.monthly_sessions_data.keys())
 
+        if sample.monthly_views_data:
+            month_keys.update(sample.monthly_views_data.keys())
+
         months = sorted(month_keys)
 
     properties = []
 
     for stat in stats:
         properties.append({
+            "property_id": stat.property_id,
             "property_name": stat.property_name,
+
+            # GA4 web-stream Measurement IDs
+            "ga4_measurement_ids": stat.ga4_measurement_ids or [],
+
             "earliest_data_date": stat.earliest_data_date,
 
             # Active users by month
@@ -667,9 +676,7 @@ def ga4_report(request):
             # Sessions by month
             "monthly_sessions_data": stat.monthly_sessions_data or {},
 
-            # Temporary visits value.
-            # At the moment this uses sessions because your model does not yet
-            # have a separate monthly_visits_data field.
+            # Page views shown as visits in the template
             "monthly_visits_data": stat.monthly_views_data or {},
         })
 
@@ -677,10 +684,18 @@ def ga4_report(request):
         "properties": properties,
         "months": months,
         "total_services": total_services,
-        "last_update": last_update_obj.last_synced_at if last_update_obj else None,
+        "last_update": (
+            last_update_obj.last_synced_at
+            if last_update_obj
+            else None
+        ),
     }
 
-    return render(request, "ga4_reports.html", context)
+    return render(
+        request,
+        "ga4_reports.html",
+        context,
+    )
 
 
 def ga4_years_visits(request):
