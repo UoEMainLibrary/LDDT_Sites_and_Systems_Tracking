@@ -351,22 +351,36 @@
                 <div class="row g-1">
 
                     <div class="col-md-9">
-                        <input id="globalFilter" class="form-control form-control-sm" placeholder="Global search">
+                        <input
+                            id="globalFilter"
+                            class="form-control form-control-sm"
+                            placeholder="Global search"
+                        >
                     </div>
 
                     <div class="col-md-3">
                         <div class="search-results-box">
                             Search results:
-                            <span id="visibleCount" class="ms-1">{{ table_item_count_sites }}</span>
+                            <span id="visibleCount" class="ms-1">
+                                {{ table_item_count_sites }}
+                            </span>
                         </div>
                     </div>
 
                     <div class="col-md-6">
-                        <input id="cnFilter" class="form-control form-control-sm" placeholder="Common name">
+                        <input
+                            id="cnFilter"
+                            class="form-control form-control-sm"
+                            placeholder="Common name"
+                        >
                     </div>
 
                     <div class="col-md-6">
-                        <input id="serverFilter" class="form-control form-control-sm" placeholder="Server">
+                        <input
+                            id="serverFilter"
+                            class="form-control form-control-sm"
+                            placeholder="Server"
+                        >
                     </div>
 
                     <div class="col-md-4">
@@ -396,16 +410,30 @@
 
                     <div class="col-md-5">
                         <label class="filter-label">Expiry Date From</label>
-                        <input type="date" id="dateFrom" class="form-control form-control-sm">
+
+                        <input
+                            type="date"
+                            id="dateFrom"
+                            class="form-control form-control-sm"
+                        >
                     </div>
 
                     <div class="col-md-5">
                         <label class="filter-label">Expiry Date To</label>
-                        <input type="date" id="dateTo" class="form-control form-control-sm">
+
+                        <input
+                            type="date"
+                            id="dateTo"
+                            class="form-control form-control-sm"
+                        >
                     </div>
 
                     <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" id="clearFilters" class="btn btn-outline-secondary btn-sm w-100">
+                        <button
+                            type="button"
+                            id="clearFilters"
+                            class="btn btn-outline-secondary btn-sm w-100"
+                        >
                             Clear
                         </button>
                     </div>
@@ -420,71 +448,218 @@
 
     <div class="table-responsive-sticky" id="tableContainer">
 
-        <table class="table table-hover table-striped align-middle w-100" id="sslTable">
+        <table
+            class="table table-hover table-striped align-middle w-100"
+            id="sslTable"
+        >
 
             <thead>
                 <tr>
                     <th>
                         <div class="th-title">Status</div>
+
                         <div class="sort-controls">
-                            <button type="button" class="sort-btn" data-index="0" data-sort="asc" data-type="text">Asc</button>
-                            <button type="button" class="sort-btn" data-index="0" data-sort="desc" data-type="text">Desc</button>
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="0"
+                                data-sort="asc"
+                                data-type="text"
+                            >
+                                Asc
+                            </button>
+
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="0"
+                                data-sort="desc"
+                                data-type="text"
+                            >
+                                Desc
+                            </button>
                         </div>
                     </th>
 
                     <th>
                         <div class="th-title">Expiry</div>
+
                         <div class="sort-controls">
-                            <button type="button" class="sort-btn active" data-index="1" data-sort="asc" data-type="date">Asc</button>
-                            <button type="button" class="sort-btn" data-index="1" data-sort="desc" data-type="date">Desc</button>
+                            <button
+                                type="button"
+                                class="sort-btn active"
+                                data-index="1"
+                                data-sort="asc"
+                                data-type="date"
+                            >
+                                Asc
+                            </button>
+
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="1"
+                                data-sort="desc"
+                                data-type="date"
+                            >
+                                Desc
+                            </button>
                         </div>
                     </th>
 
                     <th>
                         <div class="th-title">Common Name</div>
+
                         <div class="sort-controls">
-                            <button type="button" class="sort-btn" data-index="2" data-sort="asc" data-type="text">Asc</button>
-                            <button type="button" class="sort-btn" data-index="2" data-sort="desc" data-type="text">Desc</button>
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="2"
+                                data-sort="asc"
+                                data-type="text"
+                            >
+                                Asc
+                            </button>
+
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="2"
+                                data-sort="desc"
+                                data-type="text"
+                            >
+                                Desc
+                            </button>
                         </div>
                     </th>
 
                     <th>
                         <div class="th-title">IP Address</div>
+
                         <div class="sort-controls">
-                            <button type="button" class="sort-btn" data-index="3" data-sort="asc" data-type="text">Asc</button>
-                            <button type="button" class="sort-btn" data-index="3" data-sort="desc" data-type="text">Desc</button>
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="3"
+                                data-sort="asc"
+                                data-type="text"
+                            >
+                                Asc
+                            </button>
+
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="3"
+                                data-sort="desc"
+                                data-type="text"
+                            >
+                                Desc
+                            </button>
                         </div>
                     </th>
 
                     <th class="text-center">
                         <div class="th-title">Access</div>
+
                         <div class="sort-controls sort-controls-center">
-                            <button type="button" class="sort-btn" data-index="4" data-sort="asc" data-type="text">Asc</button>
-                            <button type="button" class="sort-btn" data-index="4" data-sort="desc" data-type="text">Desc</button>
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="4"
+                                data-sort="asc"
+                                data-type="text"
+                            >
+                                Asc
+                            </button>
+
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="4"
+                                data-sort="desc"
+                                data-type="text"
+                            >
+                                Desc
+                            </button>
                         </div>
                     </th>
 
                     <th>
                         <div class="th-title">Server</div>
+
                         <div class="sort-controls">
-                            <button type="button" class="sort-btn" data-index="5" data-sort="asc" data-type="text">Asc</button>
-                            <button type="button" class="sort-btn" data-index="5" data-sort="desc" data-type="text">Desc</button>
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="5"
+                                data-sort="asc"
+                                data-type="text"
+                            >
+                                Asc
+                            </button>
+
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="5"
+                                data-sort="desc"
+                                data-type="text"
+                            >
+                                Desc
+                            </button>
                         </div>
                     </th>
 
                     <th class="text-center">
                         <div class="th-title">LB</div>
+
                         <div class="sort-controls sort-controls-center">
-                            <button type="button" class="sort-btn" data-index="6" data-sort="asc" data-type="text">Asc</button>
-                            <button type="button" class="sort-btn" data-index="6" data-sort="desc" data-type="text">Desc</button>
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="6"
+                                data-sort="asc"
+                                data-type="text"
+                            >
+                                Asc
+                            </button>
+
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="6"
+                                data-sort="desc"
+                                data-type="text"
+                            >
+                                Desc
+                            </button>
                         </div>
                     </th>
 
                     <th>
                         <div class="th-title">SSL Provider</div>
+
                         <div class="sort-controls">
-                            <button type="button" class="sort-btn" data-index="7" data-sort="asc" data-type="text">Asc</button>
-                            <button type="button" class="sort-btn" data-index="7" data-sort="desc" data-type="text">Desc</button>
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="7"
+                                data-sort="asc"
+                                data-type="text"
+                            >
+                                Asc
+                            </button>
+
+                            <button
+                                type="button"
+                                class="sort-btn"
+                                data-index="7"
+                                data-sort="desc"
+                                data-type="text"
+                            >
+                                Desc
+                            </button>
                         </div>
                     </th>
                 </tr>
@@ -492,140 +667,235 @@
 
             <tbody>
 
-            {% for website in websites %}
+                {% for website in websites %}
 
-                <tr class="main-row
-                    {% if website.ssl_expiry_date_new and website.ssl_expiry_date_new|date:'U' < now|date:'U'|add:'2592000' %}
-                        expiring-soon
-                    {% endif %}
-                "
-                data-href="{% url 'website_details' website.id %}"
-                data-http-status="{% if website.http_check_status %}{{ website.http_check_status }}{% else %}N/A{% endif %}">
-
-                    <td class="status-cell">
-
-                        {% if website.http_check_status == "OK" %}
-                            <div class="status-box status-ok">OK</div>
-
-                        {% elif website.http_check_status == "BLOCKED" or website.http_check_status == "REDIRECT" %}
-                            <div class="status-box status-warning">
+                    <tr
+                        class="main-row
+                            {% if website.ssl_expiry_date_new and website.ssl_expiry_date_new|date:'U' < now|date:'U'|add:'2592000' %}
+                                expiring-soon
+                            {% endif %}
+                        "
+                        data-href="{% url 'website_details' website.id %}"
+                        data-http-status="
+                            {% if website.http_check_status == 'OK' %}
+                                OK
+                            {% elif website.http_check_status == 'ERROR' and website.http_status_code == 401 %}
+                                OK
+                            {% elif website.http_check_status %}
                                 {{ website.http_check_status }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        "
+                    >
 
-                                {% if website.http_status_code %}
-                                    - {{ website.http_status_code }}
+                        <td class="status-cell">
+
+                            {% if website.http_check_status == "OK" %}
+
+                                <div class="status-box status-ok">
+                                    OK
+                                </div>
+
+                            {% elif website.http_check_status == "ERROR" and website.http_status_code == 401 %}
+
+                                <div
+                                    class="status-box status-ok"
+                                    title="The website returned HTTP 401, which is treated as OK because authentication is required."
+                                >
+                                    OK
+                                </div>
+
+                            {% elif website.http_check_status == "BLOCKED" or website.http_check_status == "REDIRECT" %}
+
+                                <div class="status-box status-warning">
+                                    {{ website.http_check_status }}
+
+                                    {% if website.http_status_code %}
+                                        - {{ website.http_status_code }}
+                                    {% endif %}
+                                </div>
+
+                            {% elif website.http_check_status %}
+
+                                <div class="status-box status-bad">
+                                    {{ website.http_check_status }}
+
+                                    {% if website.http_status_code %}
+                                        - {{ website.http_status_code }}
+                                    {% endif %}
+                                </div>
+
+                            {% else %}
+
+                                <div class="status-box status-empty">
+                                    N/A
+                                </div>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td class="expiry-cell">
+
+                            {% if website.ssl_expiry_date_new %}
+
+                                {% if website.ssl_expiry_date_new|date:'U' < now|date:'U' %}
+
+                                    <span class="expiry-expired">
+                                        {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
+                                        (expired)
+                                    </span>
+
+                                {% else %}
+
+                                    {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
+                                    ({{ website.ssl_expiry_date_new|timeuntil }})
+
                                 {% endif %}
-                            </div>
 
-                        {% elif website.http_check_status %}
-                            <div class="status-box status-bad">
-                                {{ website.http_check_status }}
+                            {% else %}
 
-                                {% if website.http_status_code %}
-                                    - {{ website.http_status_code }}
-                                {% endif %}
-                            </div>
-
-                        {% else %}
-                            <div class="status-box status-empty">N/A</div>
-                        {% endif %}
-
-                    </td>
-
-                    <td class="expiry-cell">
-
-                        {% if website.ssl_expiry_date_new %}
-
-                            {% if website.ssl_expiry_date_new|date:'U' < now|date:'U' %}
-                                <span class="expiry-expired">
-                                    {{ website.ssl_expiry_date_new|date:"Y-m-d" }} (expired)
+                                <span class="text-muted">
+                                    N/A
                                 </span>
-                            {% else %}
-                                {{ website.ssl_expiry_date_new|date:"Y-m-d" }}
-                                ({{ website.ssl_expiry_date_new|timeuntil }})
+
                             {% endif %}
 
-                        {% else %}
-                            <span class="text-muted">N/A</span>
-                        {% endif %}
+                        </td>
 
-                    </td>
+                        <td class="small-text-cell">
 
-                    <td class="small-text-cell">
-                        {% if website.url %}
-                            <a href="{{ website.url }}"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               class="common-name-link"
-                               title="{{ website.url }}">
+                            {% if website.url %}
+
+                                <a
+                                    href="{{ website.url }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="common-name-link"
+                                    title="{{ website.url }}"
+                                >
+                                    {{ website.common_name }}
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+
+                            {% else %}
+
                                 {{ website.common_name }}
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                            </a>
-                        {% else %}
-                            {{ website.common_name }}
-                        {% endif %}
-                    </td>
 
-                    <td>
-                        {% if website.url_ip %}
-                            <code class="ip-code">{{ website.url_ip }}</code>
-                        {% else %}
-                            <span class="text-muted small-text-cell">N/A</span>
-                        {% endif %}
-                    </td>
-
-                    <td class="scope-cell">
-
-                        {% if website.url_access_scope == "GLOBAL" %}
-
-                            {% if website.url_access_scope_manual %}
-                                <span class="badge bg-warning text-dark">Global-manual</span>
-                            {% else %}
-                                <span class="badge bg-success">Global</span>
                             {% endif %}
 
-                        {% elif website.url_access_scope == "EDLAN_ONLY" %}
+                        </td>
 
-                            {% if website.url_access_scope_manual %}
-                                <span class="badge bg-warning text-dark">EdLan-only-manual</span>
+                        <td>
+
+                            {% if website.url_ip %}
+
+                                <code class="ip-code">
+                                    {{ website.url_ip }}
+                                </code>
+
                             {% else %}
-                                <span class="badge bg-primary">EdLan-only</span>
+
+                                <span class="text-muted small-text-cell">
+                                    N/A
+                                </span>
+
                             {% endif %}
 
-                        {% else %}
-                            <span class="text-muted small-text-cell">N/A</span>
-                        {% endif %}
+                        </td>
 
-                    </td>
+                        <td class="scope-cell">
 
-                    <td class="small-text-cell">{{ website.server }}</td>
+                            {% if website.url_access_scope == "GLOBAL" %}
 
-                    <td class="lb-cell">
-                        {% if website.load_balancer|lower == "yes" %}
-                            ✔️
-                        {% elif website.load_balancer|lower == "no" %}
-                            ❌
-                        {% else %}
-                            ?
-                        {% endif %}
-                    </td>
+                                {% if website.url_access_scope_manual %}
 
-                    <td class="provider-cell small-text-cell">
-                        {% if website.ssl_certificate_provider %}
-                            {{ website.ssl_certificate_provider }}
-                        {% else %}
-                            <span class="text-muted">N/A</span>
-                        {% endif %}
-                    </td>
+                                    <span class="badge bg-warning text-dark">
+                                        Global-manual
+                                    </span>
 
-                </tr>
+                                {% else %}
 
-                <tr class="expandable">
-                    <td colspan="8">
-                        <b>More details coming soon…</b>
-                    </td>
-                </tr>
+                                    <span class="badge bg-success">
+                                        Global
+                                    </span>
 
-            {% endfor %}
+                                {% endif %}
+
+                            {% elif website.url_access_scope == "EDLAN_ONLY" %}
+
+                                {% if website.url_access_scope_manual %}
+
+                                    <span class="badge bg-warning text-dark">
+                                        EdLan-only-manual
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-primary">
+                                        EdLan-only
+                                    </span>
+
+                                {% endif %}
+
+                            {% else %}
+
+                                <span class="text-muted small-text-cell">
+                                    N/A
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td class="small-text-cell">
+                            {{ website.server }}
+                        </td>
+
+                        <td class="lb-cell">
+
+                            {% if website.load_balancer|lower == "yes" %}
+
+                                ✔️
+
+                            {% elif website.load_balancer|lower == "no" %}
+
+                                ❌
+
+                            {% else %}
+
+                                ?
+
+                            {% endif %}
+
+                        </td>
+
+                        <td class="provider-cell small-text-cell">
+
+                            {% if website.ssl_certificate_provider %}
+
+                                {{ website.ssl_certificate_provider }}
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    N/A
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    <tr class="expandable">
+                        <td colspan="8">
+                            <b>More details coming soon…</b>
+                        </td>
+                    </tr>
+
+                {% endfor %}
 
             </tbody>
 
@@ -672,13 +942,11 @@ document.querySelectorAll(".common-name-link").forEach(link => {
 });
 
 document.querySelectorAll(".main-row").forEach(row => {
-
     row.addEventListener("click", () => {
         window.location.href = row.dataset.href;
     });
 
     row.addEventListener("dblclick", event => {
-
         event.preventDefault();
         event.stopPropagation();
 
@@ -686,71 +954,116 @@ document.querySelectorAll(".main-row").forEach(row => {
 
         exp.style.display =
             exp.style.display === "table-row"
-            ? "none"
-            : "table-row";
-
+                ? "none"
+                : "table-row";
     });
-
 });
 
 function updateVisibleCount() {
-
     const visibleRows = Array.from(
         document.querySelectorAll(".main-row")
     ).filter(row => row.style.display !== "none").length;
 
     document.getElementById("visibleCount").innerText = visibleRows;
-
 }
 
 function applyFilters() {
+    const global = document
+        .getElementById("globalFilter")
+        .value
+        .toLowerCase();
 
-    const global = document.getElementById("globalFilter").value.toLowerCase();
+    const httpStatus = document
+        .getElementById("httpStatusFilter")
+        .value;
 
-    const httpStatus = document.getElementById("httpStatusFilter").value;
+    const server = document
+        .getElementById("serverFilter")
+        .value
+        .toLowerCase();
 
-    const server = document.getElementById("serverFilter").value.toLowerCase();
+    const cn = document
+        .getElementById("cnFilter")
+        .value
+        .toLowerCase();
 
-    const cn = document.getElementById("cnFilter").value.toLowerCase();
+    const access = document
+        .getElementById("accessFilter")
+        .value
+        .toLowerCase();
 
-    const access = document.getElementById("accessFilter").value.toLowerCase();
+    const provider = document
+        .getElementById("providerFilter")
+        .value
+        .toLowerCase();
 
-    const provider = document.getElementById("providerFilter").value.toLowerCase();
+    const from = document
+        .getElementById("dateFrom")
+        .value;
 
-    const from = document.getElementById("dateFrom").value;
-
-    const to = document.getElementById("dateTo").value;
+    const to = document
+        .getElementById("dateTo")
+        .value;
 
     document.querySelectorAll(".main-row").forEach(row => {
-
         let show = true;
 
         const cells = row.children;
-
         const rowText = row.innerText.toLowerCase();
 
-        const rowHttpStatus = row.dataset.httpStatus || "N/A";
+        const rowHttpStatus = (
+            row.dataset.httpStatus || "N/A"
+        ).trim();
 
-        if (global && !rowText.includes(global)) show = false;
+        if (global && !rowText.includes(global)) {
+            show = false;
+        }
 
-        if (httpStatus && rowHttpStatus !== httpStatus) show = false;
+        if (httpStatus && rowHttpStatus !== httpStatus) {
+            show = false;
+        }
 
-        if (server && !cells[5].innerText.toLowerCase().includes(server)) show = false;
+        if (
+            server &&
+            !cells[5].innerText.toLowerCase().includes(server)
+        ) {
+            show = false;
+        }
 
-        if (cn && !cells[2].innerText.toLowerCase().includes(cn)) show = false;
+        if (
+            cn &&
+            !cells[2].innerText.toLowerCase().includes(cn)
+        ) {
+            show = false;
+        }
 
-        if (access && cells[4].innerText.trim().toLowerCase() !== access) show = false;
+        if (
+            access &&
+            cells[4].innerText.trim().toLowerCase() !== access
+        ) {
+            show = false;
+        }
 
-        if (provider && cells[7].innerText.trim().toLowerCase() !== provider) show = false;
+        if (
+            provider &&
+            cells[7].innerText.trim().toLowerCase() !== provider
+        ) {
+            show = false;
+        }
 
-        const dateText = cells[1].innerText.split(" ")[0].trim();
+        const dateText = cells[1]
+            .innerText
+            .split(" ")[0]
+            .trim();
 
         if (dateText !== "N/A") {
+            if (from && dateText < from) {
+                show = false;
+            }
 
-            if (from && dateText < from) show = false;
-
-            if (to && dateText > to) show = false;
-
+            if (to && dateText > to) {
+                show = false;
+            }
         }
 
         row.style.display = show ? "" : "none";
@@ -758,33 +1071,25 @@ function applyFilters() {
         if (!show && row.nextElementSibling) {
             row.nextElementSibling.style.display = "none";
         }
-
     });
 
     updateVisibleCount();
-
 }
 
 document.querySelectorAll("input, select").forEach(element => {
-
     element.addEventListener("input", applyFilters);
-
     element.addEventListener("change", applyFilters);
-
 });
 
 document.getElementById("clearFilters").addEventListener("click", () => {
-
     document.querySelectorAll("input, select").forEach(element => {
         element.value = "";
     });
 
     applyFilters();
-
 });
 
 function parseDate(text) {
-
     const cleanText = text.trim();
 
     if (!cleanText || cleanText === "N/A") {
@@ -792,49 +1097,44 @@ function parseDate(text) {
     }
 
     const dateOnly = cleanText.split(" ")[0];
-
     const parts = dateOnly.split("-");
 
     if (parts.length !== 3) {
         return new Date(8640000000000000);
     }
 
-    return new Date(parts[0], parts[1] - 1, parts[2]);
-
+    return new Date(
+        parts[0],
+        parts[1] - 1,
+        parts[2]
+    );
 }
 
 function populateSelectFilter(selectId, columnIndex) {
-
     const select = document.getElementById(selectId);
-
     const values = new Set();
 
     document.querySelectorAll(".main-row").forEach(row => {
-
         const value = row.children[columnIndex].innerText.trim();
 
         if (value && value !== "N/A") {
             values.add(value);
         }
-
     });
 
-    Array.from(values).sort().forEach(value => {
+    Array.from(values)
+        .sort()
+        .forEach(value => {
+            const option = document.createElement("option");
 
-        const option = document.createElement("option");
+            option.value = value;
+            option.textContent = value;
 
-        option.value = value;
-
-        option.textContent = value;
-
-        select.appendChild(option);
-
-    });
-
+            select.appendChild(option);
+        });
 }
 
 function sortTableByColumn(index, ascending, type = "text") {
-
     const table = document.querySelector("#sslTable tbody");
 
     const rows = Array.from(
@@ -842,86 +1142,92 @@ function sortTableByColumn(index, ascending, type = "text") {
     );
 
     rows.sort((a, b) => {
+        let A;
+        let B;
 
-        let A = a.children[index].innerText.trim();
-
-        let B = b.children[index].innerText.trim();
+        /*
+         * Status sorting uses the normalised status stored in
+         * data-http-status. This means ERROR-401 sorts as OK.
+         */
+        if (index === 0) {
+            A = (a.dataset.httpStatus || "N/A").trim();
+            B = (b.dataset.httpStatus || "N/A").trim();
+        } else {
+            A = a.children[index].innerText.trim();
+            B = b.children[index].innerText.trim();
+        }
 
         if (type === "date") {
-
             A = parseDate(A);
-
             B = parseDate(B);
 
-            if (A < B) return ascending ? -1 : 1;
+            if (A < B) {
+                return ascending ? -1 : 1;
+            }
 
-            if (A > B) return ascending ? 1 : -1;
+            if (A > B) {
+                return ascending ? 1 : -1;
+            }
 
             return 0;
-
         }
 
         return ascending
             ? A.localeCompare(B)
             : B.localeCompare(A);
-
     });
 
     rows.forEach(row => {
-
         const exp = row.nextElementSibling;
 
         table.append(row);
-
         table.append(exp);
-
     });
 
     updateVisibleCount();
-
 }
 
 function setActiveSortButton(button) {
-
     document.querySelectorAll(".sort-btn").forEach(btn => {
         btn.classList.remove("active");
     });
 
     button.classList.add("active");
-
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-
     populateSelectFilter("accessFilter", 4);
-
     populateSelectFilter("providerFilter", 7);
 
     sortTableByColumn(1, true, "date");
 
     updateVisibleCount();
-
 });
 
 document.querySelectorAll(".sort-btn").forEach(button => {
-
     button.addEventListener("click", event => {
-
         event.preventDefault();
         event.stopPropagation();
 
-        const index = parseInt(button.dataset.index, 10);
+        const index = parseInt(
+            button.dataset.index,
+            10
+        );
 
-        const ascending = button.dataset.sort === "asc";
+        const ascending =
+            button.dataset.sort === "asc";
 
-        const type = button.dataset.type;
+        const type =
+            button.dataset.type;
 
-        sortTableByColumn(index, ascending, type);
+        sortTableByColumn(
+            index,
+            ascending,
+            type
+        );
 
         setActiveSortButton(button);
-
     });
-
 });
 </script>
 

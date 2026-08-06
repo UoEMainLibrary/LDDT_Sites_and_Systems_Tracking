@@ -9,62 +9,71 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         total = Vm.objects.count()
-        current = 0
         updated = 0
         skipped = 0
+        failed = 0
         now = timezone.now()
 
-        for obj in Vm.objects.all():
-            current += 1
+        update_fields = [
+            "db",
+            "nginx",
+            "puppet_controlled",
+            "httpd",
+            "vmfs_root_used",
+            "vmfs_apps_used",
+            "vmfs_data_used",
+            "ip_address",
+            "processors",
+            "memory",
+            "last_patch_days_ago",
+            "system_check",
+            "last_health_check",
+            "last_cron_run",
+        ]
 
+        for current, obj in enumerate(Vm.objects.all(), start=1):
             self.stdout.write(f"Checking {obj.hostname} ({current} of {total})")
 
             if not obj.fetch_details:
                 skipped += 1
-                self.stdout.write(f"Skipped {obj.hostname} because fetch_details is disabled")
+                self.stdout.write(
+                    f"Skipped {obj.hostname} because fetch_details is disabled"
+                )
                 self.stdout.write("***********************************")
                 continue
 
             self.stdout.write(f"Updating {obj.hostname} ({current} of {total})")
 
-            obj.db = obj.ssh_db
-            obj.nginx = obj.ssh_nginx
-            obj.puppet_controlled = obj.ssh_puppet_controlled
-            obj.httpd = obj.ssh_httpd
-            obj.vmfs_root_used = obj.ssh_vmfs_root_used
-            obj.vmfs_apps_used = obj.ssh_vmfs_apps_used
-            obj.vmfs_data_used = obj.ssh_vmfs_data_used
-            obj.ip_address = obj.ssh_ip_address
-            obj.processors = obj.ssh_processors
-            obj.memory = obj.ssh_mem_total_gb
-            obj.last_patch_days_ago = obj.ssh_last_patch_days_ago
-            obj.system_check = obj.ssh_healthy_check
-            obj.last_health_check = now
-            obj.last_cron_run = now
+            try:
+                details = obj.fetch_all_ssh_details()
 
-            obj.save(update_fields=[
-                "db",
-                "nginx",
-                "puppet_controlled",
-                "httpd",
-                "vmfs_root_used",
-                "vmfs_apps_used",
-                "vmfs_data_used",
-                "ip_address",
-                "processors",
-                "memory",
-                "last_patch_days_ago",
-                "system_check",
-                "last_health_check",
-                "last_cron_run",
-            ])
-            updated += 1
+                for field_name, value in details.items():
+                    setattr(obj, field_name, value)
 
-            self.stdout.write(f"Updated {obj.hostname}")
+                obj.last_health_check = now
+                obj.last_cron_run = now
+
+                obj.save(update_fields=update_fields)
+
+                updated += 1
+                self.stdout.write(self.style.SUCCESS(f"Updated {obj.hostname}"))
+
+            except Exception as e:
+                failed += 1
+                skipped += 1
+
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"Skipped {obj.hostname}: SSH detail fetch failed: {e}"
+                    )
+                )
+                self.stdout.write("Existing values were left unchanged")
+
             self.stdout.write("***********************************")
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Finished. Total: {total}, Updated: {updated}, Skipped: {skipped}"
+                f"Finished. Total: {total}, Updated: {updated}, "
+                f"Skipped: {skipped}, Failed: {failed}"
             )
         )
